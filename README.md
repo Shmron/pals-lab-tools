@@ -16,7 +16,7 @@ Open-source code for the geospatial climate-and-health tools built at **Place Al
 |---|---|---|---|
 | **Climate & Health Atlas** | Maps Zimbabwe's 62 districts and 10 provinces, linking heat, rain, HIV, malaria, TB and flood-related access to care, year by year, with trend charts and a validated AI assistant | [maps.placealert.org](https://maps.placealert.org) | [`tools/climate-health-atlas`](tools/climate-health-atlas) |
 | **PALs Earth** | Point-and-extract environmental data (NDVI, land-surface temperature, rainfall, elevation, soil and more) for any location and date, on Google Earth Engine | [portal](https://portal.placealert.org/palsearth/) | [`tools/palsearth`](tools/palsearth) |
-| **HarmonAIze** | AI-assisted geocoding and coordinate validation for messy facility and address records | [portal](https://portal.placealert.org/harmonaize/) | [Shmron/HarmonAIze](https://github.com/Shmron/HarmonAIze) (separate repo, see note below) |
+| **HarmonAIze** | AI-assisted geocoding and coordinate validation for messy facility and address records | [portal](https://portal.placealert.org/harmonaize/) | [`tools/harmonaize`](tools/harmonaize) (links to the [fork](https://github.com/Shmron/HarmonAIze); code lives in its own repo) |
 | **Harare Flood & Access Tool** | Flood hazard combined with access to health facilities | [portal](https://portal.placealert.org/harare-flood/) | [`tools/harare-flood`](tools/harare-flood) |
 | **CASCADE Flood-Accessibility Model** | The pipeline and method log behind flood-related access estimates | n/a | [`tools/cascade-flood-model`](tools/cascade-flood-model) |
 | **HE²AT Environmental Exposure Catalogue** | 35+ environmental exposure variables for maternal and newborn health in Sub-Saharan Africa (environmental data only) | [portal](https://portal.placealert.org/heat-catalogue/) | [`tools/exposure-catalogue`](tools/exposure-catalogue) |
@@ -60,7 +60,7 @@ Tools that use Google Earth Engine need your own Earth Engine project and servic
 
 ## About HarmonAIze
 
-HarmonAIze lives in its own repository, [Shmron/HarmonAIze](https://github.com/Shmron/HarmonAIze), which is a fork of the upstream open-source project [drnicholasbrink/HarmonAIze](https://github.com/drnicholasbrink/HarmonAIze). Please credit the upstream project when citing it.
+HarmonAIze lives in its own repository, [Shmron/HarmonAIze](https://github.com/Shmron/HarmonAIze) (see [`tools/harmonaize`](tools/harmonaize)), which is a fork of the upstream open-source project [drnicholasbrink/HarmonAIze](https://github.com/drnicholasbrink/HarmonAIze). Please credit the upstream project when citing it.
 
 ## Data sources and credit
 
