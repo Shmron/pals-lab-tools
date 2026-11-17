@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DHS Explorer — Private Research Portal</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+</head>
+<body>
+
+<!-- ── Auth screen ─────────────────────────────────────────────────────── -->
+<div class="auth-wrap" id="auth-wrap">
+  <div class="auth-card">
+    <div class="brand-row">
+      <div class="brand-title">DHS Explorer<span class="dot">.</span></div>
+    </div>
+    <div class="brand-sub">Private research portal — Demographic and Health Surveys data</div>
+
+    <div class="tabs" id="auth-tabs">
+      <div class="tab active" data-tab="login">Log In</div>
+      <div class="tab" data-tab="signup">Request Access</div>
+    </div>
+
+    <div id="auth-msg"></div>
+
+    <form id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="login-email" required></div>
+      <div class="field"><label>Password</label><input type="password" id="login-password" required></div>
+      <button class="btn" type="submit">Log In</button>
+      <div class="foot-link"><span class="btn-link" id="forgot-link">Forgot password?</span></div>
+    </form>
+
+    <form id="signup-form" style="display:none">
+      <div class="field"><label>Full name</label><input type="text" id="su-name" required></div>
+      <div class="field"><label>Email</label><input type="email" id="su-email" required></div>
+      <div class="field"><label>Password (min 8 characters)</label><input type="password" id="su-password" minlength="8" required></div>
+      <div class="field"><label>Institution</label><input type="text" id="su-institution"></div>
+      <div class="field"><label>Research purpose</label><textarea id="su-purpose" placeholder="What are you hoping to use DHS data for?"></textarea></div>
+      <div class="field">
+        <label>Countries you'd like access to
+          <span class="select-all-links">
+            <span class="btn-link" id="su-select-all" style="padding:0">Select all</span> ·
+            <span class="btn-link" id="su-select-none" style="padding:0">Clear</span>
+          </span>
+        </label>
+        <div class="checkbox-grid" id="su-countries"><em style="color:var(--muted);font-size:12px">Loading available countries…</em></div>
+      </div>
+      <button class="btn" type="submit">Request Access</button>
+      <div class="foot-link">An administrator will review your request and email you once approved.</div>
+    </form>
+
+    <form id="forgot-form" style="display:none">
+      <div class="field"><label>Email</label><input type="email" id="forgot-email" required></div>
+      <button class="btn" type="submit">Send reset link</button>
+      <div class="foot-link"><span class="btn-link" id="back-to-login">Back to log in</span></div>
+    </form>
+
+    <form id="reset-form" style="display:none">
+      <div class="field"><label>New password (min 8 characters)</label><input type="password" id="reset-password" minlength="8" required></div>
+      <button class="btn" type="submit">Set new password</button>
+    </form>
+  </div>
+</div>
+
+<!-- ── Main app ────────────────────────────────────────────────────────── -->
+<div class="app" id="app">
+  <div class="sidebar">
+    <div class="brand-title">DHS Explorer<span class="dot" style="color:var(--accent)">.</span></div>
+    <div class="brand-sub">Ask questions, run queries, see what's mappable.</div>
+
+    <div class="side-scroll">
+      <div class="side-section">
+        <h3>What I can do</h3>
+        <div class="capability"><span class="icon">🗄️</span><span>Run live queries across 13 DHS survey modules and show real results</span></div>
+        <div class="capability"><span class="icon">🔎</span><span>Look up what a variable code means (search the codebook)</span></div>
+        <div class="capability"><span class="icon">📍</span><span>Show which surveys have usable GPS coordinates, on a map</span></div>
+        <div class="capability"><span class="icon">📈</span><span>Render charts and maps inline in the conversation</span></div>
+        <div class="capability"><span class="icon">⬇️</span><span>Export a filtered extract as CSV</span></div>
+      </div>
+
+      <div class="side-section">
+        <h3>Try asking</h3>
+        <button class="prompt-chip" data-prompt="I have no background in DHS data - what's here and how would I even start exploring it?">I'm new to this — where do I start?</button>
+        <button class="prompt-chip" data-prompt="How many births have a recorded low birthweight, and can you show their location and any maternal health outcome recorded alongside them?">Low birthweight, by location + maternal outcome</button>
+        <button class="prompt-chip" data-prompt="What DHS data do we have with usable coordinates, and for which countries?">What data has usable coordinates, and for which countries?</button>
+        <button class="prompt-chip" data-prompt="Show me a map of coordinate coverage for the countries I have access to.">Show me a map of coordinate coverage</button>
+        <button class="prompt-chip" data-prompt="How many under-5 children have anthropometry (height/weight) records, broken down by country?">Under-5 anthropometry counts by country</button>
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      Approved for: <span class="countries" id="side-countries">—</span><br>
+      Signed in as <span id="side-name"></span> · <span class="logout-link" id="logout-link">Log out</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>DHS Explorer</h2>
+      <div class="actions">
+        <button class="icon-btn" id="open-coverage">📍 Coordinate coverage map</button>
+      </div>
+    </div>
+    <div class="chat-scroll" id="chat-scroll"></div>
+    <div class="composer">
+      <form id="chat-form">
+        <input type="text" id="chat-input" placeholder="Ask about DHS data — e.g. what has coordinates for Zimbabwe?" autocomplete="off">
+        <button type="submit" id="chat-send">Send</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Coverage map modal ─────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="coverage-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 style="margin:0">Coordinate coverage</h3>
+      <button class="close-x" id="close-coverage">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="coverage-map"></div>
+      <div id="coverage-list" style="margin-top:14px;font-size:13px"></div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

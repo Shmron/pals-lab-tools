@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DHS Explorer — Admin</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 60px; }
+  .panel { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 22px; }
+  .panel h3 { margin-top: 0; }
+  .row-list { display: flex; flex-direction: column; gap: 10px; }
+  .row-item { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .row-item .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .row-item .meta { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  .status-pill { font-size: 11px; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: .03em; }
+  .status-pill.pending { background: #fff3d6; color: #8a6100; }
+  .status-pill.approved { background: #e2f5ef; color: #17765f; }
+  .status-pill.rejected, .status-pill.revoked { background: #fbe9e5; color: var(--danger); }
+  .btn-sm { padding: 6px 12px; font-size: 12.5px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+  .btn-sm.primary { background: var(--teal-800); color: #fff; border-color: var(--teal-800); }
+  .btn-sm.danger { color: var(--danger); border-color: #eecfc6; }
+  .actions-inline { display: flex; gap: 8px; }
+  .topbar-admin { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--teal-950); color: #fff; }
+  .topbar-admin .brand-title { color: #fff; font-size: 18px; margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="auth-wrap" id="auth-wrap">
+  <div class="auth-card">
+    <div class="brand-row"><div class="brand-title">DHS Explorer Admin</div></div>
+    <div class="brand-sub">Sign in to manage researcher access</div>
+    <div id="auth-msg"></div>
+    <form id="admin-login-form">
+      <div class="field"><label>Username</label><input type="text" id="admin-username" required></div>
+      <div class="field"><label>Password</label><input type="password" id="admin-password" required></div>
+      <button class="btn" type="submit">Log In</button>
+    </form>
+  </div>
+</div>
+
+<div id="admin-app" style="display:none">
+  <div class="topbar-admin">
+    <h2 class="brand-title">DHS Explorer — Admin</h2>
+    <span class="btn-link" id="admin-logout" style="color:#9fbab5;cursor:pointer">Log out</span>
+  </div>
+
+  <div class="wrap">
+    <div class="panel" id="must-change-panel" style="display:none">
+      <h3>Set a new admin password</h3>
+      <p style="font-size:13px;color:var(--muted)">This account still has its initial generated password. Set your own.</p>
+      <form id="change-pw-form" style="max-width:340px">
+        <div class="field"><input type="password" id="new-admin-pw" minlength="8" placeholder="New password" required></div>
+        <button class="btn btn-sm primary" type="submit">Update password</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>Pending requests</h3>
+      <div class="row-list" id="pending-list"><em style="color:var(--muted)">Loading…</em></div>
+    </div>
+
+    <div class="panel">
+      <h3>Invite a researcher</h3>
+      <form id="invite-form">
+        <div class="field"><label>Email</label><input type="email" id="inv-email" required></div>
+        <div class="field"><label>Name (optional)</label><input type="text" id="inv-name"></div>
+        <div class="field">
+          <label>Countries to approve
+            <span class="select-all-links">
+              <span class="btn-link" id="inv-select-all" style="padding:0">Select all</span> ·
+              <span class="btn-link" id="inv-select-none" style="padding:0">Clear</span>
+            </span>
+          </label>
+          <div class="checkbox-grid" id="inv-countries"><em style="color:var(--muted);font-size:12px">Loading…</em></div>
+        </div>
+        <button class="btn btn-sm primary" type="submit">Send invite</button>
+      </form>
+      <div id="invite-msg" style="margin-top:10px"></div>
+      <h3 style="margin-top:22px">Pending invites</h3>
+      <div class="row-list" id="invite-list"></div>
+    </div>
+
+    <div class="panel">
+      <h3>All researcher accounts</h3>
+      <div class="row-list" id="all-users-list"><em style="color:var(--muted)">Loading…</em></div>
+    </div>
+  </div>
+</div>
+
+<script src="/admin.js"></script>
+</body>
+</html>
