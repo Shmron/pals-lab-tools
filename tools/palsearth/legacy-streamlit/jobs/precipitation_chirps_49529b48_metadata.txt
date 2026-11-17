@@ -1,0 +1,12 @@
+PALs Earth: extraction metadata
+Job ID: 49529b48-96a2-48ed-aaca-993dc9deaf2c
+Created: 2026-10-20T12:45:46.590746
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Precipitation - CHIRPS ===
+Earth Engine collection: UCSB-CHG/CHIRPS/DAILY  (band: precipitation)
+Daily rainfall from CHIRPS (5km) · ~2-month data lag
+
+  precipitation_mm: mm/day

@@ -1,0 +1,33 @@
+PALs Earth — extraction metadata
+Job ID: 24547166-ff5a-482a-966b-bb444fc044f7
+Created: 2026-10-08T08:42:03.876830
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Temperature - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: temperature_2m)
+2m air temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  temp_2m_k_custom: °C (converted from Kelvin at export)
+
+=== NDVI (MODIS) ===
+Earth Engine collection: MODIS/MOD09GA_006_NDVI  (band: NDVI)
+Normalized Difference Vegetation Index from MODIS (500m)
+
+  ndvi_custom: dimensionless (index, -1 to 1)
+
+=== Land Surface Temp - MODIS ===
+Earth Engine collection: MODIS/061/MOD11A1  (band: LST_Day_1km, LST_Night_1km)
+MODIS Day/Night land surface temperature (1km)
+Note: the source stores this as a scaled/encoded raw value — already converted to the real unit below before saving; no further conversion needed.
+
+  lst_day_mean_custom: °C (converted from Kelvin at export)
+  lst_night_mean_custom: °C (converted from Kelvin at export)
+
+=== Temperature + Wet Bulb - MERRA-2 ===
+Earth Engine collection: NASA/GSFC/MERRA/slv/2  (band: T2M, T2MWET)
+2m dry and wet bulb temperature from MERRA-2
+
+  T2M_mean_custom: °C (converted from Kelvin at export)
+  T2MWET_mean_custom: °C (converted from Kelvin at export)

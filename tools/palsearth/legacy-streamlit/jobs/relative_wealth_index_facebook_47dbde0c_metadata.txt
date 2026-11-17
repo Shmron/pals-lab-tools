@@ -1,0 +1,12 @@
+PALs Earth — extraction metadata
+Job ID: 47dbde0c-a2e9-4814-9146-8214521fd0b6
+Created: 2026-09-24T06:42:10.558599
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Relative Wealth Index (Facebook) ===
+Earth Engine collection: projects/sat-io/open-datasets/facebook/relative_wealth_index  (band: rwi)
+Facebook / Meta Relative Wealth Index (1km)
+
+  rwi: dimensionless (standardized relative index; higher = wealthier)

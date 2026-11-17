@@ -1,0 +1,85 @@
+{% extends "shell.html" %}
+{% block title %}Cohort admin · PALs Earth{% endblock %}
+
+{% macro country_checklist(field_name, options, checked_values, id_suffix) %}
+  {% if options|length > 8 %}
+  <details class="pe-card" style="padding:12px 14px;gap:6px">
+    <summary style="cursor:pointer;font-weight:600;font-size:13px">{{ checked_values|length }} of {{ options|length }} selected</summary>
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
+      <input type="text" class="pe-input" placeholder="Search countries…" style="max-width:220px"
+             oninput="acFilterList('{{ id_suffix }}', this.value)">
+    </div>
+    <div class="pe-wrap" id="list_{{ id_suffix }}" style="max-height:180px;overflow-y:auto">
+      {% for c in options %}
+      <label class="pe-check" data-search="{{ c|lower }}"><input type="checkbox" name="{{ field_name }}" value="{{ c }}" {% if c in checked_values %}checked{% endif %}>{{ c }}</label>
+      {% endfor %}
+    </div>
+  </details>
+  {% else %}
+  <div class="pe-wrap">
+    {% for c in options %}
+    <label class="pe-check"><input type="checkbox" name="{{ field_name }}" value="{{ c }}" {% if c in checked_values %}checked{% endif %}>{{ c }}</label>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endmacro %}
+
+{% block main %}
+<div class="pe-page">
+  <div class="pe-page-head">
+    <h1 class="pe-h1">Cohort Exposures access</h1>
+    <p class="pe-sub">This is cohort/IRB data, so access is deliberately narrower than "has a PALs Earth account".
+      Grant it per person, and link each one to the PALSlab Hub account their files should be delivered to.
+      Country access is granted separately per cohort — someone can have full PRECISE access with no DHS
+      access at all, or any other combination.</p>
+  </div>
+
+  {% for u in users %}
+  <section class="pe-card" style="gap:16px">
+    <form method="post" style="display:flex;flex-direction:column;gap:16px">
+      <input type="hidden" name="username" value="{{ u['username'] }}">
+
+      <div class="pe-wrap" style="gap:24px;align-items:end">
+        <div>
+          <label class="pe-label strong">Username</label>
+          <div style="padding:13px 0;font-weight:600">{{ u['username'] }}</div>
+          <div class="pe-sub" style="font-size:12px">{{ u['email'] }}</div>
+        </div>
+        <label class="pe-check" style="padding:13px 0">
+          <input type="checkbox" name="cohort_access" {% if u['cohort_access'] %}checked{% endif %}>
+          Cohort access
+        </label>
+        <div>
+          <label class="pe-label strong">Linked hub username</label>
+          <input class="pe-input" type="text" name="hub_username" value="{{ u['hub_username'] or '' }}" placeholder="e.g. anotidam">
+        </div>
+        <button class="pe-btn pe-btn-ghost pe-btn-sm" type="submit">Save</button>
+      </div>
+
+      <div class="pe-wrap" style="gap:20px;align-items:flex-start">
+        {% for c in cohorts %}
+          {% set opts = cohort_countries_options.get(c.key, []) %}
+          {% if opts %}
+          <div style="min-width:220px">
+            <label class="pe-label strong">{{ c.label }} — countries allowed</label>
+            {{ country_checklist('cohort_countries__' ~ c.key, opts, u['cohort_country_access'].get(c.key, []), u['username'] ~ '_' ~ c.key) }}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </form>
+  </section>
+  {% else %}
+  <p class="pe-sub">No PALs Earth accounts yet.</p>
+  {% endfor %}
+</div>
+
+<script>
+function acFilterList(suffix, q) {
+  q = (q || '').toLowerCase();
+  document.querySelectorAll(`#list_${suffix} label`).forEach(l => {
+    l.style.display = l.dataset.search.includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

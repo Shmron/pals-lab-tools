@@ -1,0 +1,36 @@
+PALs Earth — extraction metadata
+Job ID: 81825337-1a63-42dd-9108-4d5cec34d79f
+Created: 2026-10-08T09:14:12.156995
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== NDVI (MODIS) ===
+Earth Engine collection: MODIS/MOD09GA_006_NDVI  (band: NDVI)
+Normalized Difference Vegetation Index from MODIS (500m)
+
+  ndvi_mean_precon30: dimensionless (index, -1 to 1)
+  ndvi_min_precon30: dimensionless (index, -1 to 1)
+  ndvi_max_precon30: dimensionless (index, -1 to 1)
+  ndvi_p50_precon30: dimensionless (index, -1 to 1)
+  ndvi_p95_precon30: dimensionless (index, -1 to 1)
+
+=== Temperature - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: temperature_2m)
+2m air temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  temp_2m_k_mean_precon30: Kelvin
+  temp_2m_k_min_precon30: Kelvin
+  temp_2m_k_max_precon30: Kelvin
+  temp_2m_k_p50_precon30: Kelvin
+  temp_2m_k_p95_precon30: Kelvin
+
+=== Humidity - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: dewpoint_temperature_2m)
+2m dewpoint temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  dewpoint_2m_k_mean_precon30: Kelvin
+  dewpoint_2m_k_min_precon30: Kelvin
+  dewpoint_2m_k_max_precon30: Kelvin
+  dewpoint_2m_k_p50_precon30: Kelvin
+  dewpoint_2m_k_p95_precon30: Kelvin

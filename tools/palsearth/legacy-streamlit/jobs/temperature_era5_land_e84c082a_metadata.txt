@@ -1,0 +1,12 @@
+PALs Earth — extraction metadata
+Job ID: e84c082a-8890-42cf-b89e-329a2c40ee87
+Created: 2026-10-08T08:10:48.442510
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Temperature - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: temperature_2m)
+2m air temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  temp_2m_k: °C (converted from Kelvin at export)

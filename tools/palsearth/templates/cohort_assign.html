@@ -1,0 +1,377 @@
+{% extends "shell.html" %}
+{% block title %}Cohort Exposures · PALs Earth{% endblock %}
+
+{% macro searchable_checklist(field_name, options, title, id_suffix, searchable=True, open=False) %}
+  <details class="pe-card" style="padding:14px 16px;gap:8px" {% if open %}open{% endif %}>
+    <summary style="cursor:pointer;font-weight:600;font-size:14px">{{ title }} <span class="pe-sub" style="font-size:12px">({{ options|length }})</span></summary>
+    {% if searchable and options|length > 8 %}
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
+      <input type="text" class="pe-input" placeholder="Search {{ title|lower }}…" style="max-width:260px"
+             oninput="ceFilterList('{{ id_suffix }}', this.value)">
+      <button type="button" class="pe-btn-link" onclick="ceToggleAll('{{ id_suffix }}', true)">Select visible</button>
+      <button type="button" class="pe-btn-link" onclick="ceToggleAll('{{ id_suffix }}', false)">Clear</button>
+    </div>
+    {% endif %}
+    <div class="pe-wrap" id="list_{{ id_suffix }}" style="max-height:220px;overflow-y:auto">
+      {% for val in options %}
+      <label class="pe-check" data-search="{{ val|lower }}"><input type="checkbox" name="{{ field_name }}" value="{{ val }}">{{ val }}</label>
+      {% endfor %}
+    </div>
+  </details>
+{% endmacro %}
+
+{% macro searchable_checklist_scoped(field_name, options, title, id_suffix) %}
+  {# options: list of (value, country) tuples — same as searchable_checklist but
+     each checkbox also carries data-country, so ceSetupCountryScope() can
+     narrow this list to whichever Country box(es) are checked. #}
+  <details class="pe-card" style="padding:14px 16px;gap:8px" data-ce-scoped-list>
+    <summary style="cursor:pointer;font-weight:600;font-size:14px">{{ title }} <span class="pe-sub" style="font-size:12px">({{ options|length }})</span></summary>
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
+      <input type="text" class="pe-input" placeholder="Search {{ title|lower }}…" style="max-width:260px"
+             oninput="ceFilterList('{{ id_suffix }}', this.value)">
+      <button type="button" class="pe-btn-link" onclick="ceToggleAll('{{ id_suffix }}', true)">Select visible</button>
+      <button type="button" class="pe-btn-link" onclick="ceToggleAll('{{ id_suffix }}', false)">Clear</button>
+    </div>
+    <div class="pe-wrap" id="list_{{ id_suffix }}" style="max-height:220px;overflow-y:auto">
+      {% for val, country in options %}
+      <label class="pe-check" data-search="{{ val|lower }}" data-country="{{ country|lower }}">
+        <input type="checkbox" name="{{ field_name }}" value="{{ val }}">{{ val }}</label>
+      {% endfor %}
+    </div>
+  </details>
+{% endmacro %}
+
+{% block main %}
+<div class="pe-page">
+  <div class="pe-page-head">
+    <h1 class="pe-h1">Cohort Exposures</h1>
+    {% if cohorts|length > 1 %}
+    <div class="pe-wrap" style="gap:6px;margin:4px 0 2px">
+      {% for c in cohorts %}
+        <a class="pe-filter" href="{{ url_for('pe.cohort_assign', cohort=c.key) }}"
+           aria-pressed="{{ 'true' if c.key == cohort_key else 'false' }}"
+           style="text-decoration:none">{{ c.label }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <p class="pe-sub">Pick a fraction of {{ cohort['label'] }}, choose a dataset from the Earth Engine catalog,
+      and it gets assigned to those participants as a new exposure. Finished files land in
+      <code class="pe-code">~/CohortExposures/</code> in your linked PALSlab Hub home directory.
+      {% if allowed_countries %}You have access to: <strong>{{ allowed_countries|join(', ') }}</strong>.{% endif %}</p>
+  </div>
+
+  <section class="pe-card" id="pe-cohort-b">
+    <form method="post" action="{{ url_for('pe.cohort_assign_new') }}" id="ce-form-b">
+      <input type="hidden" name="cohort" value="{{ cohort_key }}">
+
+      {% set scope_label = cohort.get('column_labels', {}).get(cohort.get('access_scope_column'), cohort.get('access_scope_column')) %}
+      <h4 class="pe-h4">Who</h4>
+      <p class="pe-sub" style="margin:0 0 4px">Leave everything blank to run across every site you have access to.
+        {% if cohort.get('site_columns_scoped_by_country') and scope_label %}
+          Picking a {{ scope_label }} narrows the location filters below to that {{ scope_label|lower }}'s own sites.
+        {% endif %}
+        {% if cohort.get('site_fallback_columns') %}
+          Participants missing the primary site filter are matched by the fallback instead (picking either includes both).
+        {% endif %}</p>
+      {% for col in cohort['filterable_columns'] %}
+        {% set label = cohort.get('column_labels', {}).get(col, col) %}
+        {% if col in cohort.get('site_columns_scoped_by_country', []) %}
+          {{ searchable_checklist_scoped('filter__' ~ col, filter_options_scoped.get(col, []), label, 'b_' ~ loop.index) }}
+        {% else %}
+          {{ searchable_checklist('filter__' ~ col, filter_options.get(col, []), label, 'b_' ~ loop.index, open=(col == cohort.get('access_scope_column'))) }}
+        {% endif %}
+      {% endfor %}
+      <label class="pe-label strong" style="margin-top:10px">Or restrict to specific participant IDs (optional)</label>
+      <textarea class="pe-input" name="id_list" rows="2" placeholder="one {{ cohort['id_column'] }} per line, or comma-separated"></textarea>
+
+      <h4 class="pe-h4" style="margin-top:20px">What</h4>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="pe-wrap" style="gap:12px;align-items:center">
+          <div class="pe-wrap" id="ce-b-grp-filter" style="gap:6px">
+            {% for g in ['All', 'Climate', 'Land', 'People'] %}
+              <button type="button" class="pe-filter" data-ce-grp="{{ g }}" aria-pressed="{{ 'true' if g == 'All' else 'false' }}">{{ g }}</button>
+            {% endfor %}
+          </div>
+          <input class="pe-input" id="ce-b-search" placeholder="Search datasets…" style="margin-left:auto;max-width:220px;padding:8px 12px">
+        </div>
+        <span class="pe-small pe-muted"><span id="ce-b-selcount">0</span> selected</span>
+        <div class="pe-g-opts" id="ce-b-grid">
+          {% for d in datasets %}
+            <label class="pe-opt" style="--c:{{ d.color }};--t:{{ d.tint }}" title="{{ d.desc }}"
+                   data-grp="{{ d.grp }}" data-search="{{ d.name|lower }} {{ d.cat|lower }}">
+              <input type="checkbox" name="datasets" value="{{ d.name }}"
+                     data-ts="{{ 1 if d.is_timeseries else 0 }}"
+                     data-kelvin="{{ 1 if d.has_kelvin else 0 }}"
+                     {% if d.years %}data-years="1"{% endif %}>
+              <span class="pe-sw sm" style="background:{{ d.color }}">{{ d.short }}</span>
+              <span style="flex:1;display:flex;flex-direction:column;min-width:0">
+                <span class="name">{{ d.name }}</span>
+                <span class="kind">{{ d.kind }} · {{ d.res }}</span>
+              </span>
+              <span class="box"></span>
+            </label>
+          {% endfor %}
+        </div>
+
+        {% if ghsl_years %}
+          <div data-ce-ghsl hidden style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:#e8ecf1">
+            <span style="font-size:13px;font-weight:600;color:#475569">Urban Settlement (GHSL) year</span>
+            <select class="pe-input" name="ghsl_year" style="width:auto;padding:8px 12px">
+              {% for y in ghsl_years %}<option value="{{ y }}" {% if y == 2020 %}selected{% endif %}>{{ y }}</option>{% endfor %}
+            </select>
+            <span class="pe-small pe-muted">Published every 5 years. Pick the closest to your study.</span>
+          </div>
+        {% endif %}
+
+        <div data-ce-temp-unit hidden style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:#e8ecf1">
+          <span style="font-size:13px;font-weight:600;color:#475569">Temperature unit</span>
+          <label class="pe-check"><input type="radio" name="b_temp_unit" value="kelvin" checked> Kelvin (raw)</label>
+          <label class="pe-check"><input type="radio" name="b_temp_unit" value="celsius"> Celsius</label>
+        </div>
+
+        <label class="pe-label strong" style="margin-top:4px">Statistic(s)</label>
+        <div class="pe-wrap">
+          {% for stat in ['mean','min','max','sum','p50','p75','p95','p99'] %}
+          <label class="pe-check"><input type="checkbox" name="stats" value="{{ stat }}" {% if stat=='mean' %}checked{% endif %}>{{ stat }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <h4 class="pe-h4" style="margin-top:20px">When</h4>
+      <div style="display:flex;flex-direction:column;gap:12px" id="ce_b_when">
+        <label class="pe-label strong" style="max-width:360px">How should the date/period be set?
+          <select class="pe-input" id="ce_b_mode_select">
+            {% if pregnancy_window_support %}
+            <option value="pregnancy_windows">Named pregnancy windows, per participant</option>
+            {% endif %}
+            <option value="index_window" {% if not pregnancy_window_support %}selected{% endif %}>Custom lag window around a date column</option>
+            <option value="case_crossover">Case-crossover (self-matched, auto control days)</option>
+          </select>
+        </label>
+        <input type="hidden" name="b_date_mode"
+               value="{{ 'pregnancy_windows' if pregnancy_window_support else 'index_window' }}" id="ce_b_date_mode">
+
+        {% if pregnancy_window_support %}
+        <div data-ce-panel="pregnancy_windows" id="b_pregnancy_fields"
+             style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:14px;background:var(--sand)">
+          <div class="pe-g-wide" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <label class="pe-label strong">Conception-date column</label>
+              <select class="pe-input" name="b_conception_col">
+                {% for dc in cohort['date_columns'] if dc['role'] == 'pregnancy_start' %}
+                <option value="{{ dc['name'] }}">{{ dc['label'] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="pe-label strong">Delivery-date column</label>
+              <select class="pe-input" name="b_delivery_col">
+                <option value="">(none)</option>
+                {% for dc in cohort['date_columns'] if dc['role'] == 'pregnancy_end' %}
+                <option value="{{ dc['name'] }}">{{ dc['label'] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <span class="pe-small pe-muted" style="font-weight:600;color:var(--ink)">Windows</span>
+          <div class="pe-wrap">
+            {% for key, win in pregnancy_windows.items() %}
+            <label class="pe-check"><input type="checkbox" name="b_window_keys" value="{{ key }}">{{ win['label'] }}</label>
+            {% endfor %}
+          </div>
+          <label class="pe-label strong">Output shape</label>
+          <div class="pe-wrap">
+            <label class="pe-check"><input type="radio" name="b_output_shape" value="wide" checked>Wide (window means)</label>
+            <label class="pe-check"><input type="radio" name="b_output_shape" value="long">Daily values (long format, for DLNM)</label>
+          </div>
+        </div>
+        {% endif %}
+
+        <div data-ce-panel="index_window" id="b_index_fields" style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:14px;background:var(--sand)">
+          <div class="pe-g-wide" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px">
+            <div>
+              <label class="pe-label strong">Event/reference-date column</label>
+              <select class="pe-input" name="b_index_col">
+                {% for dc in cohort['date_columns'] %}<option value="{{ dc['name'] }}">{{ dc['label'] }}</option>{% endfor %}
+              </select>
+            </div>
+            <div><label class="pe-label strong">Days before</label><input class="pe-input" type="number" name="b_day_from" value="-14"></div>
+            <div><label class="pe-label strong">Days after</label><input class="pe-input" type="number" name="b_day_to" value="0"></div>
+          </div>
+          <label class="pe-label strong">Output shape</label>
+          <div class="pe-wrap">
+            <label class="pe-check"><input type="radio" name="b_output_shape" value="wide" checked>Wide (window mean)</label>
+            <label class="pe-check"><input type="radio" name="b_output_shape" value="long">Daily values (long format, for DLNM)</label>
+          </div>
+        </div>
+
+        <div data-ce-panel="case_crossover" id="b_cc_fields" style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:14px;background:var(--sand)">
+          <p class="pe-sub" style="margin:0">Referent days are generated automatically (same weekday, same calendar month). Output is always the daily/long shape.</p>
+          <div class="pe-g-wide" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px">
+            <div>
+              <label class="pe-label strong">Case/event-date column</label>
+              <select class="pe-input" name="b_index_col">
+                {% for dc in cohort['date_columns'] %}<option value="{{ dc['name'] }}">{{ dc['label'] }}</option>{% endfor %}
+              </select>
+            </div>
+            <div><label class="pe-label strong">Days before</label><input class="pe-input" type="number" name="b_day_from" value="-3"></div>
+            <div><label class="pe-label strong">Days after</label><input class="pe-input" type="number" name="b_day_to" value="0"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="pe-btn pe-btn-primary" type="submit" style="margin-top:14px">Submit extraction job</button>
+      <p class="pe-sub" style="margin:4px 0 0">Tracked on the <a href="{{ url_for('pe.jobs') }}">My Jobs</a> page like any other extraction.</p>
+    </form>
+
+    {% if cohort_pending_b %}
+      <div class="pe-proposal" style="margin-top:16px">
+        <span class="k">BEFORE THIS RUNS</span>
+        {% for w in cohort_pending_b.warnings %}
+          <div class="pe-note warn" style="margin-top:8px">{{ w }}</div>
+        {% endfor %}
+        <form method="post" action="{{ url_for('pe.cohort_assign_new') }}" style="margin-top:10px">
+          {% for key, values in cohort_pending_b.form.items() %}
+            {% for v in values %}<input type="hidden" name="{{ key }}" value="{{ v }}">{% endfor %}
+          {% endfor %}
+          <input type="hidden" name="confirm_stat_warning" value="1">
+          <button class="pe-btn pe-btn-primary pe-btn-sm" type="submit">
+            Run anyway <span class="pe-arrow">→</span></button>
+        </form>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+<script>
+/* A label is visible when it matches the search text AND (if it belongs
+   to a country-scoped list with an active country filter) its own
+   data-country is one of the currently-checked Country boxes. Both the
+   search box and the Country-scope logic go through this single check so
+   they combine instead of fighting over the same display style. */
+function ceLabelVisible(l, q) {
+  var searchOk = !q || l.dataset.search.includes(q);
+  if (!searchOk) return false;
+  var details = l.closest('[data-ce-scoped-list]');
+  var countryFilter = details ? details.dataset.countryFilter : '';
+  if (!countryFilter) return true;
+  return countryFilter.split(',').indexOf(l.dataset.country) !== -1;
+}
+function ceFilterList(suffix, q) {
+  q = (q || '').toLowerCase();
+  document.querySelectorAll(`#list_${suffix} label`).forEach(l => {
+    l.style.display = ceLabelVisible(l, q) ? '' : 'none';
+  });
+}
+function ceToggleAll(suffix, checked) {
+  document.querySelectorAll(`#list_${suffix} label`).forEach(l => {
+    if (l.style.display !== 'none') l.querySelector('input').checked = checked;
+  });
+}
+
+/* Picking a Country narrows Village/Health facility down to that
+   country's own sites — each is 1:1 with Country (verified live), so
+   showing all three countries' sites regardless of what's picked was the
+   "select Gambia, pick a Kenyan village" bug. Anything hidden by a
+   narrower Country selection is also unchecked, so a stale cross-country
+   combination can't be silently submitted. */
+function ceSetupCountryScope() {
+  var countryBoxes = Array.prototype.slice.call(document.querySelectorAll('input[name="filter__Country"]'));
+  var scopedDetails = Array.prototype.slice.call(document.querySelectorAll('[data-ce-scoped-list]'));
+  if (!countryBoxes.length || !scopedDetails.length) return;
+  function refresh() {
+    var checked = countryBoxes.filter(function (b) { return b.checked; })
+      .map(function (b) { return b.value.toLowerCase(); });
+    scopedDetails.forEach(function (details) {
+      details.dataset.countryFilter = checked.join(',');
+      var searchInput = details.querySelector('input[type="text"]');
+      var q = searchInput ? searchInput.value.toLowerCase() : '';
+      Array.prototype.slice.call(details.querySelectorAll('label')).forEach(function (l) {
+        var visible = ceLabelVisible(l, q);
+        l.style.display = visible ? '' : 'none';
+        if (!visible) {
+          var cb = l.querySelector('input[type="checkbox"]');
+          if (cb) cb.checked = false;
+        }
+      });
+    });
+  }
+  countryBoxes.forEach(function (b) { b.addEventListener('change', refresh); });
+  refresh();
+}
+
+/* Date-mode dropdown for form B -> shows the matching panel, keeps the
+   hidden b_date_mode input in sync. */
+function ceSetupDateMode() {
+  var select = document.getElementById('ce_b_mode_select');
+  var hidden = document.getElementById('ce_b_date_mode');
+  if (!select || !hidden) return;
+  var panels = {
+    pregnancy_windows: document.getElementById('b_pregnancy_fields'),
+    index_window: document.getElementById('b_index_fields'),
+    case_crossover: document.getElementById('b_cc_fields'),
+  };
+  function refresh() {
+    hidden.value = select.value;
+    Object.keys(panels).forEach(function (key) {
+      if (panels[key]) panels[key].style.display = (select.value === key) ? '' : 'none';
+    });
+  }
+  select.addEventListener('change', refresh);
+  refresh();
+}
+
+/* Dataset picker: category pills + search box narrow the grid down (26
+   datasets in one flat list was the main source of clutter), selected
+   count, and the GHSL/temp-unit conditional panels. */
+function ceSetupDatasetPickerB() {
+  var form = document.getElementById('ce-form-b');
+  if (!form) return;
+  var dsBoxes = Array.prototype.slice.call(form.querySelectorAll('input[name="datasets"]'));
+  var labels = Array.prototype.slice.call(document.querySelectorAll('#ce-b-grid .pe-opt'));
+  var count = document.getElementById('ce-b-selcount');
+  var ghsl = form.querySelector('[data-ce-ghsl]');
+  var tempUnit = form.querySelector('[data-ce-temp-unit]');
+  var grpButtons = Array.prototype.slice.call(document.querySelectorAll('#ce-b-grp-filter [data-ce-grp]'));
+  var searchBox = document.getElementById('ce-b-search');
+  var currentGrp = 'All';
+
+  function applyFilter() {
+    var q = (searchBox.value || '').toLowerCase();
+    labels.forEach(function (l) {
+      var grpOk = currentGrp === 'All' || l.dataset.grp === currentGrp;
+      var searchOk = !q || l.dataset.search.includes(q);
+      l.style.display = (grpOk && searchOk) ? '' : 'none';
+    });
+  }
+  grpButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      currentGrp = btn.dataset.ceGrp;
+      grpButtons.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      applyFilter();
+    });
+  });
+  if (searchBox) searchBox.addEventListener('input', applyFilter);
+
+  function refresh() {
+    var chosen = dsBoxes.filter(function (b) { return b.checked; });
+    if (count) count.textContent = chosen.length;
+    if (ghsl) ghsl.hidden = !chosen.some(function (b) { return b.dataset.years === '1'; });
+    if (tempUnit) tempUnit.hidden = !chosen.some(function (b) { return b.dataset.kelvin === '1'; });
+  }
+  dsBoxes.forEach(function (b) { b.addEventListener('change', refresh); });
+  refresh();
+  form.addEventListener('submit', function (e) {
+    if (!dsBoxes.some(function (b) { return b.checked; })) {
+      e.preventDefault();
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  ceSetupDateMode();
+  ceSetupDatasetPickerB();
+  ceSetupCountryScope();
+});
+</script>
+{% endblock %}

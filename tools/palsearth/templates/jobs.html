@@ -1,0 +1,92 @@
+{% extends "shell.html" %}
+{% block title %}My jobs · PALs Earth{% endblock %}
+
+{% block main %}
+<div class="pe-page">
+
+  <div class="pe-between" style="align-items:flex-end">
+    <div class="pe-page-head">
+      <h1 class="pe-h1">My jobs</h1>
+    </div>
+    <a class="pe-btn pe-btn-primary" href="{{ url_for('pe.extract') }}">New extraction <span class="pe-arrow">+</span></a>
+  </div>
+
+  <div class="pe-g-stats">
+    {% for s in job_stats %}
+      <div style="padding:18px 20px;border-radius:18px;background:{{ s.tint }};display:flex;flex-direction:column;gap:2px">
+        <span class="pe-num" style="color:{{ s.color }}" data-stat="{{ s.key }}">{{ s.value }}</span>
+        <span style="font-size:13px;font-weight:500;color:var(--body)">{{ s.label }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px" id="pe-joblist"
+       data-poll="{{ url_for('pe.jobs_json') }}" data-active="{{ 1 if has_active else 0 }}">
+    {% for j in jobs %}
+      <article class="pe-card" style="border-radius:18px;padding:20px 22px;gap:14px" data-job="{{ j.id }}">
+        <div class="pe-between">
+          <div class="pe-wrap" style="align-items:center;gap:12px">
+            <span class="pe-mono pe-small pe-muted">#{{ j.short_id }}</span>
+            <span class="pe-h5">{{ j.title }}</span>
+            <span class="pe-pill" style="background:{{ j.pill_bg }};color:{{ j.pill_fg }}" data-pill>
+              <span class="pe-dot" style="background:{{ j.pill_fg }};{% if j.is_running %}animation:pe-pulse 1.4s infinite{% endif %}"></span>
+              <span data-status-label>{{ j.status_label }}</span>
+            </span>
+            {% if j.source == 'shmron_ai' %}
+              <span class="pe-chip" style="background:#e9f0ea;color:#1d5a3c">via Shmron AI</span>
+            {% endif %}
+          </div>
+          <span class="pe-small" style="color:var(--dim)">{{ j.created }}</span>
+        </div>
+
+        <div class="pe-wrap" style="gap:6px;align-items:center">
+          {% for c in j.chips %}
+            <span class="pe-chip" style="background:{{ c.tint }};color:{{ c.color }}">{{ c.name }}</span>
+          {% endfor %}
+          <span class="pe-small pe-muted" style="margin-left:6px">{{ j.meta }}</span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px" data-progress {% if not j.is_running %}hidden{% endif %}>
+          <div class="pe-bar"><i style="width:{{ j.progress }}%"></i></div>
+          <span class="pe-mono pe-small" style="width:44px;text-align:right" data-pct>{{ j.progress }}%</span>
+        </div>
+
+        {% if j.is_failed and j.error_msg %}
+          <span class="pe-note err">{{ j.error_msg }}</span>
+        {% endif %}
+
+        <div class="pe-wrap" data-actions>
+          {% if j.is_complete and j.output_filename %}
+            <a class="pe-btn pe-btn-ok" href="{{ url_for('pe.download', job_id=j.id) }}">↓ Download {{ j.fmt }}</a>
+            <a class="pe-btn pe-btn-ghost" href="{{ url_for('pe.download', job_id=j.id, meta=1) }}">📋 Metadata (txt)</a>
+            <a class="pe-btn pe-btn-ghost" href="{{ url_for('pe.download', job_id=j.id, meta='pdf') }}">📄 Metadata (PDF)</a>
+            <a class="pe-btn pe-btn-ghost" href="{{ url_for('pe.download_zip', job_id=j.id) }}">📦 Download all (.zip)</a>
+          {% endif %}
+          {% if j.is_running %}
+            <form method="post" action="{{ url_for('pe.cancel', job_id=j.id) }}"
+                  data-confirm="Cancel job #{{ j.short_id }}? Progress so far is lost.">
+              <button class="pe-btn pe-btn-ghost pe-btn-sm" type="submit">Cancel</button>
+            </form>
+          {% endif %}
+          {% if j.is_failed %}
+            <form method="post" action="{{ url_for('pe.retry', job_id=j.id) }}">
+              <button class="pe-btn pe-btn-primary pe-btn-sm" type="submit">Retry job</button>
+            </form>
+          {% endif %}
+          {% if not j.is_running %}
+            <form method="post" action="{{ url_for('pe.delete_job', job_id=j.id) }}"
+                  data-confirm="Delete job #{{ j.short_id }}? The result file is removed too.">
+              <button class="pe-btn pe-btn-ghost" type="submit">Delete</button>
+            </form>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+
+    {% if not jobs %}
+      <div class="pe-empty">No jobs yet.
+        <a href="{{ url_for('pe.extract') }}">Start your first extraction</a>.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

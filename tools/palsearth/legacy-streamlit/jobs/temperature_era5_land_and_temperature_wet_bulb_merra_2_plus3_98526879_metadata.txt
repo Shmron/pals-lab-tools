@@ -1,0 +1,51 @@
+PALs Earth: extraction metadata
+Job ID: 98526879-89a6-427c-8a15-0c1525e6bd3a
+Created: 2026-10-20T11:28:47.633210
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Temperature - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: temperature_2m)
+2m air temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  temp_2m_k_mean: °C (converted from Kelvin at export)
+  temp_2m_k_min: °C (converted from Kelvin at export)
+  temp_2m_k_max: °C (converted from Kelvin at export)
+
+=== Temperature + Wet Bulb - MERRA-2 ===
+Earth Engine collection: NASA/GSFC/MERRA/slv/2  (band: T2M, T2MWET)
+2m dry and wet bulb temperature from MERRA-2
+
+  T2M_mean: °C (converted from Kelvin at export)
+  T2M_min: °C (converted from Kelvin at export)
+  T2M_max: °C (converted from Kelvin at export)
+  T2MWET_mean: °C (converted from Kelvin at export)
+  T2MWET_min: °C (converted from Kelvin at export)
+  T2MWET_max: °C (converted from Kelvin at export)
+
+=== Humidity - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: dewpoint_temperature_2m)
+2m dewpoint temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  dewpoint_2m_k_mean: °C (converted from Kelvin at export)
+  dewpoint_2m_k_min: °C (converted from Kelvin at export)
+  dewpoint_2m_k_max: °C (converted from Kelvin at export)
+
+=== PM2.5 - GHAP ===
+Earth Engine collection: projects/sat-io/open-datasets/GHAP/GHAP_D1K_PM25  (band: b1)
+GHAP modelled ground-level PM2.5 concentration (~1km, daily, from 2017), a real concentration estimate rather than an optical-depth proxy, and far finer resolution than CAMS NRT's ~44km regional PM2.5
+Note: this dataset's native revisit cadence is daily, i.e. one real image per row here, so mean/min/max/p95 etc. are therefore all the same number by definition (there is only one observation to summarise), not a bug. To see min/max/percentile spread for this variable, request a multi-day window instead of single-day rows.
+
+  pm25_ghap_mean: ug/m3
+  pm25_ghap_min: ug/m3
+  pm25_ghap_max: ug/m3
+
+=== NO₂ - Sentinel-5P ===
+Earth Engine collection: COPERNICUS/S5P/OFFL/L3_NO2  (band: tropospheric_NO2_column_number_density)
+Tropospheric NO₂ column density from Sentinel-5P OFFL (~1.1km) · mol/m² · available from 2018
+Note: this dataset's native revisit cadence is daily, i.e. one real image per row here, so mean/min/max/p95 etc. are therefore all the same number by definition (there is only one observation to summarise), not a bug. To see min/max/percentile spread for this variable, request a multi-day window instead of single-day rows.
+
+  s5p_no2_mean: mol/m2
+  s5p_no2_min: mol/m2
+  s5p_no2_max: mol/m2

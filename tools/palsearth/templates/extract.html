@@ -1,0 +1,386 @@
+{% extends "shell.html" %}
+{% block title %}New extraction · PALs Earth{% endblock %}
+
+{% block main %}
+<div class="pe-page">
+
+  <div class="pe-page-head">
+    <h1 class="pe-h1">New extraction</h1>
+    <p class="pe-sub" style="margin:0">Upload places, then pick data yourself or let Shmron AI do it.
+      Same engine either way.</p>
+  </div>
+
+  <div class="pe-wrap">
+    {% for s in steps %}
+      <span style="display:flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;border-radius:999px;font-size:13px;font-weight:600;background:{{ '#0f3d2a' if s.active else '#ebe7dc' }};color:{{ '#fff' if s.active else '#5d6b62' }}">
+        <span style="width:22px;height:22px;border-radius:50%;background:{{ '#b8f35a' if s.active else '#fff' }};color:#0b2a1d;display:grid;place-items:center;font-size:11px">{{ '✓' if s.done else s.n }}</span>{{ s.label }}
+      </span>
+    {% endfor %}
+  </div>
+
+  {# ── 1 · locations ─────────────────────────────────────────── #}
+  <section class="pe-card">
+    <h3 class="pe-h4">1 · Your locations</h3>
+
+    {% if not staged %}
+      <form method="post" action="{{ url_for('pe.upload') }}" enctype="multipart/form-data" id="pe-upload-form">
+        <input type="file" name="file" accept=".csv,.zip" id="pe-file" hidden>
+        <label class="pe-drop" for="pe-file" id="pe-drop">
+          <span class="icon">↑</span>
+          <span style="font-weight:600;font-size:16px">Drop a CSV or zipped shapefile</span>
+          <span class="pe-small pe-muted">Needs <code class="pe-code">latitude</code> +
+            <code class="pe-code">longitude</code> columns · up to 200 MB</span>
+          <span style="margin-top:6px;font-size:13px;color:var(--link);font-weight:600">or click to browse</span>
+        </label>
+      </form>
+    {% else %}
+      <div class="pe-g-wide">
+        <div class="pe-map solid" style="height:200px" role="img" aria-label="Preview of your uploaded locations">
+          <div class="pe-grid-lines sm"></div>
+          {% if staged.dots %}
+            <svg viewBox="{{ staged.dots.view }}" preserveAspectRatio="xMidYMid meet"
+                 style="position:absolute;inset:0;width:100%;height:100%">
+              {% for d in staged.dots.pts %}<circle cx="{{ d[0] }}" cy="{{ d[1] }}" r="{{ staged.dots.r }}" fill="#b8f35a" fill-opacity=".9"/>{% endfor %}
+            </svg>
+          {% endif %}
+          <span class="cap">map preview · {{ staged.n_locations }} locations</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;justify-content:center">
+          <span style="display:flex;align-items:center;gap:8px;font-weight:600;overflow-wrap:anywhere">
+            <span style="width:20px;height:20px;flex:none;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:12px">✓</span>{{ staged.label }}</span>
+          <div class="pe-g-3">
+            <div class="pe-tile"><span class="v">{{ staged.n_locations }}</span><span class="k">{{ 'polygons' if staged.geometry_type == 'polygons' else 'points' }}</span></div>
+            <div class="pe-tile"><span class="v">{{ staged.n_columns }}</span><span class="k">columns</span></div>
+            <div class="pe-tile"><span class="v">{{ staged.n_bad }}</span><span class="k">bad coords</span></div>
+          </div>
+          <form method="post" action="{{ url_for('pe.unstage') }}">
+            <button class="pe-btn-link" type="submit">Replace file</button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  {# ── 2 · build it ──────────────────────────────────────────── #}
+  <section class="pe-card" style="gap:18px">
+    <div class="pe-between">
+      <h3 class="pe-h4">2 · Build it</h3>
+      <div class="pe-seg tight">
+        <button type="button" aria-selected="{{ 'true' if tab == 'ai' else 'false' }}"
+                onclick="location.href='{{ url_for('pe.extract', tab='ai') }}'">Ask Shmron AI</button>
+        <button type="button" aria-selected="{{ 'true' if tab == 'manual' else 'false' }}"
+                onclick="location.href='{{ url_for('pe.extract', tab='manual') }}'">Manual</button>
+      </div>
+    </div>
+
+    {% if tab == 'ai' %}
+      {# ── AI tab ─────────────────────────────────────────────── #}
+      <div style="display:flex;flex-direction:column;gap:14px" id="pe-chat">
+        {% if not transcript %}
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <span class="pe-small pe-muted" style="font-size:14px">Describe your study in your own
+              words, or try one of these:</span>
+            <div class="pe-g-wide" style="gap:10px">
+              {% for s in suggestions %}
+                <button type="button" class="pe-suggest" style="background:{{ s.tint }}"
+                        data-ask="{{ s.text }}">
+                  <span class="pe-dot" style="width:8px;height:8px;margin-top:6px;background:{{ s.color }}"></span>{{ s.text }}
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        {% for m in transcript %}
+          <div class="pe-msg {{ m.role }}">
+            <div>
+              {% for ev in m.events %}
+                {% if ev.type == 'tool' %}
+                  <span class="pe-small pe-muted">{{ ev.html|safe }}</span>
+                {% else %}
+                  <span>{{ ev.html|safe }}</span>
+                {% endif %}
+              {% endfor %}
+
+              {% if m.proposal %}
+                <div class="pe-proposal">
+                  <span class="k">PROPOSED EXTRACTION</span>
+                  <div class="pe-wrap" style="gap:6px">
+                    {% for c in m.proposal.chips %}
+                      <span class="pe-chip" style="background:{{ c.tint }};color:{{ c.color }}">{{ c.name }}</span>
+                    {% endfor %}
+                  </div>
+                  <span class="pe-small pe-muted">{{ m.proposal.summary }}</span>
+
+                  {% if m.proposal.warnings %}
+                    {% for w in m.proposal.warnings %}
+                      <div class="pe-note warn" style="margin-top:8px">{{ w }}</div>
+                    {% endfor %}
+                  {% endif %}
+
+                  {% set shapes = [] %}
+                  {% if m.proposal.preview %}
+                    {% if m.proposal.preview.wide %}{% set _ = shapes.append(('wide', 'WIDE', 'One row per location, window means', m.proposal.preview.wide)) %}{% endif %}
+                    {% if m.proposal.preview.lag_matrix %}{% set _ = shapes.append(('lag_matrix', 'LAG MATRIX', 'One row per location, one column per lag day', m.proposal.preview.lag_matrix)) %}{% endif %}
+                    {% if m.proposal.preview.long %}{% set _ = shapes.append(('long', 'LONG / DAILY', 'One row per day within the window', m.proposal.preview.long)) %}{% endif %}
+                  {% endif %}
+                  <form method="post" action="{{ url_for('pe.run_plan') }}" id="pe-run-form">
+                  {% if shapes %}
+                    <p class="pe-small" style="font-weight:700;margin:6px 0 2px">
+                      {% if shapes|length > 1 %}Before you run this, confirm which output format you actually want:
+                      {% else %}Output format for this plan, review before running:{% endif %}
+                    </p>
+                    {% if m.proposal.preview and not m.proposal.preview.wide and not m.proposal.preview.lag_matrix %}
+                    <div class="pe-sub" style="font-size:12px">Case-crossover has no "wide" or "lag matrix" shape, only daily/long.</div>
+                    {% endif %}
+                    <div class="pe-wrap" style="gap:12px;margin:4px 0;align-items:stretch">
+                      {% for key, title, desc, tbl in shapes %}
+                      <label class="pe-card" style="padding:10px 12px;flex:1;min-width:260px;border:2px solid var(--line);cursor:pointer;display:block"
+                             id="pe-shape-card-{{ key }}">
+                        <span class="pe-wrap" style="align-items:center;gap:8px;margin-bottom:6px">
+                          {% if shapes|length > 1 %}
+                          <input type="radio" name="output_shape" value="{{ key }}" id="pe-shape-{{ key }}" onchange="peShapeChosen()" required>
+                          {% else %}
+                          <input type="hidden" name="output_shape" value="{{ key }}">
+                          {% endif %}
+                          <strong style="font-size:13px">{{ ("Use this: " ~ title ~ " shape") if shapes|length > 1 else title ~ " shape" }}</strong>
+                        </span>
+                        <div style="overflow-x:auto">
+                          <table style="font-size:12px;border-collapse:collapse;white-space:nowrap">
+                            <tr>{% for c in tbl.columns %}<th style="padding:4px 8px;border-bottom:1px solid var(--line);text-align:left">{{ c }}</th>{% endfor %}</tr>
+                            {% for r in tbl.rows %}
+                            <tr>{% for c in tbl.columns %}<td style="padding:4px 8px;border-bottom:1px solid var(--line)">{{ r.get(c, '') }}</td>{% endfor %}</tr>
+                            {% endfor %}
+                          </table>
+                        </div>
+                        <p class="pe-sub" style="margin:6px 0 0;font-size:11px">{{ desc }}. Example values only, not real data.</p>
+                      </label>
+                      {% endfor %}
+                    </div>
+                    <p class="pe-sub" style="margin:0 0 4px;font-size:12px">Not what you need? Tell Shmron, e.g. "make it daily instead", "one column per lag day instead", or "change the window to -14 to 0 days", then come back to this.</p>
+                  {% endif %}
+                    <button class="pe-btn pe-btn-primary pe-btn-sm" type="submit" id="pe-run-btn" style="align-self:flex-start"
+                            {% if shapes|length > 1 %}disabled{% endif %}>
+                      Run extraction <span class="pe-arrow">→</span></button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+
+        <form method="post" action="{{ url_for('pe.ask') }}" class="pe-composer" id="pe-ask-form">
+          <textarea name="message" rows="1" required
+                    placeholder="e.g. heat stress exposure for my villages, 2020–2024"></textarea>
+          <button type="submit">Send</button>
+        </form>
+
+        {% if transcript %}
+          <form method="post" action="{{ url_for('pe.clear_chat') }}">
+            <button class="pe-btn-link" type="submit">Clear conversation</button>
+          </form>
+        {% endif %}
+      </div>
+
+    {% else %}
+      {# ── Manual tab ─────────────────────────────────────────── #}
+      <form method="post" action="{{ url_for('pe.submit_manual') }}"
+            style="display:flex;flex-direction:column;gap:26px" id="pe-manual">
+
+        {% if not staged %}
+          <span class="pe-note info">Start by uploading your locations in step 1, then choose what to measure here.</span>
+        {% endif %}
+
+        {# 1. what to measure #}
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:14px;font-weight:700">What do you want to measure?
+            <span class="pe-muted" style="font-weight:400">· <span id="pe-selcount">{{ selected|length }}</span> selected</span></span>
+          <div class="pe-g-opts">
+            {% for d in datasets %}
+              <label class="pe-opt" style="--c:{{ d.color }};--t:{{ d.tint }}" title="{{ d.desc }}">
+                <input type="checkbox" name="datasets" value="{{ d.name }}"
+                       {% if d.name in selected %}checked{% endif %}
+                       data-ts="{{ 1 if d.is_timeseries else 0 }}"
+                       data-kelvin="{{ 1 if d.has_kelvin else 0 }}"
+                       {% if d.years %}data-years="1"{% endif %}>
+                <span class="pe-sw sm" style="background:{{ d.color }}">{{ d.short }}</span>
+                <span style="flex:1;display:flex;flex-direction:column;min-width:0">
+                  <span class="name">{{ d.name }}</span>
+                  <span class="kind">{{ d.kind }} · {{ d.res }}</span>
+                </span>
+                <span class="box"></span>
+              </label>
+            {% endfor %}
+          </div>
+
+          {# dataset-specific setting: only exists while that dataset is ticked #}
+          {% if ghsl_years %}
+            <div data-ghsl hidden style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:#e8ecf1">
+              <span style="font-size:13px;font-weight:600;color:#475569">Urban Settlement (GHSL) year</span>
+              <select class="pe-input" name="ghsl_year" style="width:auto;padding:8px 12px">
+                {% for y in ghsl_years %}<option value="{{ y }}" {% if y == 2020 %}selected{% endif %}>{{ y }}</option>{% endfor %}
+              </select>
+              <span class="pe-small pe-muted">Published every 5 years. Pick the closest to your study.</span>
+            </div>
+          {% endif %}
+
+          {# only exists while a Kelvin-based temperature dataset is ticked #}
+          <div data-temp-unit hidden style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:#e8ecf1">
+            <span style="font-size:13px;font-weight:600;color:#475569">Temperature unit</span>
+            <label class="pe-check"><input type="radio" name="temp_unit" value="kelvin" checked> Kelvin (raw)</label>
+            <label class="pe-check"><input type="radio" name="temp_unit" value="celsius"> Celsius</label>
+            <span class="pe-small pe-muted">Applies to ERA5-Land / MERRA-2 / MODIS LST temperature columns.</span>
+          </div>
+        </div>
+
+        {# 2. when #}
+        <div style="display:flex;flex-direction:column;gap:12px" id="pe-when">
+          <span style="font-size:14px;font-weight:700">When?</span>
+
+          <div class="pe-g-wide" data-mode-panel="range" style="max-width:520px">
+            <label class="pe-label strong">From
+              <input class="pe-input" type="date" name="start_date" value="{{ default_start }}"></label>
+            <label class="pe-label strong">To
+              <input class="pe-input" type="date" name="end_date" value="{{ default_end }}"></label>
+          </div>
+          <span class="pe-small pe-muted" data-static-note hidden>Every dataset you picked is static, so no dates are needed.</span>
+
+          {# only offered when the uploaded file really has date columns #}
+          {% if staged and staged.date_columns %}
+            <label class="pe-label strong" style="max-width:360px">How should the date/period be set?
+              <select class="pe-input" id="pe-mode-select">
+                <option value="range">Fixed calendar range, same for everyone</option>
+                <option value="pregnancy_windows">Named pregnancy windows, per participant</option>
+                <option value="index_window">Custom lag window around a date column</option>
+                <option value="case_crossover">Case-crossover (self-matched, auto control days)</option>
+              </select>
+            </label>
+            <input type="hidden" name="date_mode" value="range" id="pe-date-mode">
+
+            <div data-mode-panel="pregnancy_windows" hidden
+                 style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:14px;background:var(--sand)">
+              <div class="pe-g-wide">
+                <label class="pe-label strong">Reference date
+                  <select class="pe-input" name="conception_col">
+                    {% for c in staged.date_columns %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                  </select></label>
+                <label class="pe-label strong">End date <span class="pe-muted" style="font-weight:400">(optional)</span>
+                  <select class="pe-input" name="delivery_col">
+                    <option value="">(none)</option>
+                    {% for c in staged.date_columns %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                  </select></label>
+              </div>
+              <span class="pe-small pe-muted" style="font-weight:600;color:var(--ink)">Period to measure, relative to those dates</span>
+              <div class="pe-g-opts">
+                {% for w in windows %}
+                  <label class="pe-opt" style="--c:#0f3d2a;--t:#e9f0ea">
+                    <input type="checkbox" name="window_keys" value="{{ w.key }}">
+                    <span style="flex:1;display:flex;flex-direction:column;min-width:0">
+                      <span class="name">{{ w.label }}</span>
+                      <span class="kind">{{ w.span }}</span>
+                    </span>
+                    <span class="box"></span>
+                  </label>
+                {% endfor %}
+              </div>
+              <div class="pe-g-wide">
+                <label class="pe-check"><input type="radio" name="output_shape" value="wide" checked>
+                  <span>One summary value per window <span class="pe-muted">(compact)</span></span></label>
+                <label class="pe-check"><input type="radio" name="output_shape" value="long">
+                  <span>Daily values per window <span class="pe-muted">(long format, Day_Offset column, for DLNM/distributed-lag models)</span></span></label>
+              </div>
+            </div>
+
+            <div data-mode-panel="index_window" hidden
+                 style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:14px;background:var(--sand)">
+              <label class="pe-label strong">Reference / event date
+                <select class="pe-input" name="index_col">
+                  {% for c in staged.date_columns %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                </select></label>
+              <div class="pe-g-wide">
+                <label class="pe-label strong">Days before <span class="pe-muted" style="font-weight:400">(lag start, negative = before)</span>
+                  <input class="pe-input" type="number" name="day_from" value="-14" step="1"></label>
+                <label class="pe-label strong">Days after <span class="pe-muted" style="font-weight:400">(lag end)</span>
+                  <input class="pe-input" type="number" name="day_to" value="0" step="1"></label>
+              </div>
+              <span class="pe-small pe-muted">e.g. −14 to 0 pulls the 14 days up to and including the reference date for each row.</span>
+              <div class="pe-g-wide">
+                <label class="pe-check"><input type="radio" name="output_shape_idx" value="wide" checked>
+                  <span>One summary value for the window</span></label>
+                <label class="pe-check"><input type="radio" name="output_shape_idx" value="long">
+                  <span>Daily values <span class="pe-muted">(long format, Day_Offset column, for DLNM/distributed-lag models)</span></span></label>
+                <label class="pe-check"><input type="radio" name="output_shape_idx" value="lag_matrix">
+                  <span>One column per lag day <span class="pe-muted">(wide format, e.g. ndvi_lag-7 … ndvi_lag0, each day of the window as its own column)</span></span></label>
+              </div>
+            </div>
+
+            <div data-mode-panel="case_crossover" hidden
+                 style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:14px;background:var(--sand)">
+              <label class="pe-label strong">Case / event date
+                <select class="pe-input" name="index_col_cc">
+                  {% for c in staged.date_columns %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                </select></label>
+              <div class="pe-g-wide">
+                <label class="pe-label strong">Days before
+                  <input class="pe-input" type="number" name="day_from_cc" value="0" step="1"></label>
+                <label class="pe-label strong">Days after
+                  <input class="pe-input" type="number" name="day_to_cc" value="0" step="1"></label>
+              </div>
+              <span class="pe-small pe-muted">Control/referent days are generated automatically (same weekday, same
+                calendar month as the case day), so there's nothing extra to upload. Output is always one row per
+                day (long format), with a <code class="pe-code">Role</code> column (case/control) and a
+                <code class="pe-code">Day_Offset</code> column.</span>
+            </div>
+          {% endif %}
+        </div>
+
+        {# 3. how to summarise #}
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:14px;font-weight:700">How should values be summarised?</span>
+          <div class="pe-wrap" style="gap:6px">
+            {% for value, label in stat_options %}
+              <label class="pe-statbtn">
+                <input type="checkbox" name="stats" value="{{ value }}" {% if value == 'mean' %}checked{% endif %}>{{ label }}
+              </label>
+            {% endfor %}
+          </div>
+          <label class="pe-label strong" style="max-width:200px;margin-top:6px">File format
+            <select class="pe-input" name="output_format">
+              <option value="csv">CSV</option>
+              <option value="parquet">Parquet</option>
+            </select></label>
+        </div>
+
+        <div class="pe-between" style="padding-top:16px;border-top:1px solid var(--rule)">
+          <span class="pe-small pe-muted" id="pe-summary"></span>
+          <button class="pe-btn pe-btn-primary" type="submit" {% if not staged %}disabled{% endif %}>
+            Submit extraction <span class="pe-arrow">→</span></button>
+        </div>
+      </form>
+
+      {% if manual_pending_plan %}
+        <div class="pe-proposal" style="margin-top:16px">
+          <span class="k">BEFORE THIS RUNS</span>
+          {% for w in manual_pending_plan._stat_warnings %}
+            <div class="pe-note warn" style="margin-top:8px">{{ w }}</div>
+          {% endfor %}
+          <form method="post" action="{{ url_for('pe.run_plan') }}" style="margin-top:10px">
+            <button class="pe-btn pe-btn-primary pe-btn-sm" type="submit">
+              Run anyway <span class="pe-arrow">→</span></button>
+          </form>
+        </div>
+      {% endif %}
+    {% endif %}
+  </section>
+</div>
+<script>
+  function peShapeChosen() {
+    var btn = document.getElementById('pe-run-btn');
+    if (btn) btn.disabled = false;
+    document.querySelectorAll('input[name="output_shape"][type="radio"]').forEach(function (input) {
+      var card = document.getElementById('pe-shape-card-' + input.value);
+      if (card) card.style.borderColor = input.checked ? 'var(--ok)' : 'var(--line)';
+    });
+  }
+</script>
+{% endblock %}

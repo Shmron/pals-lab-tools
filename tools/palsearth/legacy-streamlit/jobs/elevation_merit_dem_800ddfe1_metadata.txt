@@ -1,0 +1,12 @@
+PALs Earth — extraction metadata
+Job ID: 800ddfe1-bd81-4580-b6d1-e03706ed0b29
+Created: 2026-10-08T07:20:06.408421
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Elevation - MERIT DEM ===
+Earth Engine collection: MERIT/DEM/v1_0_3  (band: dem)
+Digital elevation model (90m)
+
+  elevation_m: meters

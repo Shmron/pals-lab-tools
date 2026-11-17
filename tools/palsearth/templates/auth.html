@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Sign in · PALs Earth{% endblock %}
+
+{% block body %}
+<div class="pe-auth">
+
+  {# ── left: dark hero ─────────────────────────────────────────── #}
+  <div class="pe-auth-hero">
+    <div class="pe-grid-lines"></div>
+    {% for p in hero_points %}
+      <div style="position:absolute;left:{{ p.x }};top:{{ p.y }};width:{{ p.s }};height:{{ p.s }};border-radius:50%;background:{{ p.c }};animation:pe-pulse 2.4s {{ p.d }} infinite"></div>
+    {% endfor %}
+
+    <div class="pe-brand">
+      <span class="mark"><img src="{{ url_for('static', filename='logo.png') }}" alt="PALs Earth"></span>
+      <span class="pe-stack"><span class="name">PALs Earth</span><span class="by">by PALS Lab</span></span>
+    </div>
+
+    <div style="position:relative;display:flex;flex-direction:column;gap:20px;max-width:520px">
+      <span class="pe-eyebrow">GEOSPATIAL DATA EXTRACTION</span>
+      <h1>Every village. <span style="color:var(--lime)">Every season.</span></h1>
+      <p class="lede">Drop in your research locations and pull environmental data such as rainfall,
+        vegetation, heat, air quality and soil, straight from Earth Engine.</p>
+    </div>
+
+    <div style="position:relative;display:flex;flex-wrap:wrap;gap:8px">
+      {% for d in preview %}
+        <span class="pe-hero-chip">
+          <span class="pe-sw xs" style="background:{{ d.color }}">{{ d.short }}</span>{{ d.name }}
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── right: the form ─────────────────────────────────────────── #}
+  <div class="pe-auth-form">
+    <div>
+      {% if mode in ('signin', 'signup') %}
+        <div class="pe-seg">
+          <button type="button" aria-selected="{{ 'true' if mode == 'signin' else 'false' }}"
+                  onclick="location.href='{{ url_for('pe.auth', mode='signin') }}'">Sign in</button>
+          <button type="button" aria-selected="{{ 'true' if mode == 'signup' else 'false' }}"
+                  onclick="location.href='{{ url_for('pe.auth', mode='signup') }}'">Create account</button>
+        </div>
+      {% endif %}
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h2 class="pe-h2">{{ title }}</h2>
+        <p class="pe-sub" style="margin:0">{{ subtitle }}</p>
+      </div>
+
+      {% if error %}<div class="pe-note err">{{ error }}</div>{% endif %}
+      {% if notice %}<div class="pe-note ok">{{ notice }}</div>{% endif %}
+
+      <form method="post" action="{{ action }}" class="pe-fields" data-pw-form>
+        {% if mode == 'reset' %}<input type="hidden" name="reset_token" value="{{ reset_token }}">{% endif %}
+
+        {% if mode == 'signup' %}
+          <div class="pe-row-2">
+            <label class="pe-label">Username
+              <input class="pe-input" name="username" required autocomplete="username"
+                     placeholder="rutendo" value="{{ form.username or '' }}"></label>
+            <label class="pe-label">Email
+              <input class="pe-input" type="email" name="email" required autocomplete="email"
+                     placeholder="you@university.edu" value="{{ form.email or '' }}"></label>
+          </div>
+        {% elif mode == 'signin' %}
+          <label class="pe-label">Username
+            <input class="pe-input" name="username" required autofocus autocomplete="username"
+                   placeholder="your username" value="{{ form.username or '' }}"></label>
+        {% elif mode == 'forgot' %}
+          <label class="pe-label">Email
+            <input class="pe-input" type="email" name="email" required autofocus autocomplete="email"
+                   placeholder="you@university.edu"></label>
+        {% endif %}
+
+        {% if mode != 'forgot' %}
+          <label class="pe-label">
+            <span style="display:flex;justify-content:space-between">
+              {{ 'New password' if mode == 'reset' else 'Password' }}
+              {% if mode == 'signin' %}<a href="{{ url_for('pe.auth', mode='forgot') }}">Forgot?</a>{% endif %}
+            </span>
+            <span class="pe-input-group">
+              <input class="pe-input" type="password" name="password" required data-pw
+                     autocomplete="{{ 'current-password' if mode == 'signin' else 'new-password' }}"
+                     placeholder="Minimum 8 characters">
+              <button type="button" class="pe-reveal" data-pw-toggle>Show</button>
+            </span>
+          </label>
+        {% endif %}
+
+        {% if mode in ('signup', 'reset') %}
+          <div style="display:flex;flex-direction:column;gap:8px" data-strength hidden>
+            <div class="pe-strength">
+              <i></i><i></i><i></i><i></i>
+            </div>
+            <span class="pe-small pe-muted" data-strength-label>Use 8+ characters with a number and a symbol</span>
+          </div>
+          <label class="pe-label">Confirm password
+            <input class="pe-input" type="password" name="password2" required
+                   autocomplete="new-password" placeholder="Repeat password"></label>
+        {% endif %}
+
+        <button class="pe-btn pe-btn-primary pe-btn-block" style="margin-top:6px" type="submit">
+          {{ cta }}<span class="pe-arrow">→</span>
+        </button>
+
+        {% if mode in ('forgot', 'reset') %}
+          <a href="{{ url_for('pe.auth', mode='signin') }}" style="text-align:center;font-size:14px">Back to sign in</a>
+        {% endif %}
+      </form>
+
+      <p style="margin:0;font-size:12px;color:var(--dim);text-align:center">
+        © PALS Lab · <a href="https://portal.placealert.org/">placealert.org</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

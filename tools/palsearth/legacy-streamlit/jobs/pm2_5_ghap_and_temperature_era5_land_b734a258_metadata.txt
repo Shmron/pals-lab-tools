@@ -1,0 +1,18 @@
+PALs Earth — extraction metadata
+Job ID: b734a258-1bfb-46bf-868d-e454334f5717
+Created: 2026-10-06T09:28:56.864224
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== PM2.5 - GHAP ===
+Earth Engine collection: projects/sat-io/open-datasets/GHAP/GHAP_D1K_PM25  (band: b1)
+GHAP daily PM2.5 surface concentration (1km global)
+
+  pm25_ghap: unit not documented — check the source collection
+
+=== Temperature - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: temperature_2m)
+2m air temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  temp_2m_k: Kelvin

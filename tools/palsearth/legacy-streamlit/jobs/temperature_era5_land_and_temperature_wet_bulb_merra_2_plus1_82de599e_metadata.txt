@@ -1,0 +1,37 @@
+PALs Earth — extraction metadata
+Job ID: 82de599e-ae9f-45ac-a4a8-b6d18e4a0bc5
+Created: 2026-10-06T10:14:19.487100
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Temperature - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: temperature_2m)
+2m air temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  temp_2m_k_mean: °C (converted from Kelvin at export)
+  temp_2m_k_max: °C (converted from Kelvin at export)
+  temp_2m_k_p95: °C (converted from Kelvin at export)
+
+=== Temperature + Wet Bulb - MERRA-2 ===
+Earth Engine collection: NASA/GSFC/MERRA/slv/2  (band: T2M, T2MWET)
+2m dry and wet bulb temperature from MERRA-2
+
+  T2M_mean: °C (converted from Kelvin at export)
+  T2M_max: °C (converted from Kelvin at export)
+  T2M_p95: °C (converted from Kelvin at export)
+  T2MWET_mean: °C (converted from Kelvin at export)
+  T2MWET_max: °C (converted from Kelvin at export)
+  T2MWET_p95: °C (converted from Kelvin at export)
+
+=== Land Surface Temp - MODIS ===
+Earth Engine collection: MODIS/061/MOD11A1  (band: LST_Day_1km, LST_Night_1km)
+MODIS Day/Night land surface temperature (1km)
+Note: the source stores this as a scaled/encoded raw value — already converted to the real unit below before saving; no further conversion needed.
+
+  lst_day_mean: °C (converted from Kelvin at export)
+  lst_day_max: °C (converted from Kelvin at export)
+  lst_day_p95: °C (converted from Kelvin at export)
+  lst_night_mean: °C (converted from Kelvin at export)
+  lst_night_max: °C (converted from Kelvin at export)
+  lst_night_p95: °C (converted from Kelvin at export)

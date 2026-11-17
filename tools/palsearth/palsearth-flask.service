@@ -1,0 +1,20 @@
+[Unit]
+Description=PALs Earth (Flask)
+After=network.target
+
+[Service]
+User=rutendo
+Restart=always
+RestartSec=5
+WorkingDirectory=/home/USER/PRECISE/palsearth_flask
+ExecStart=/opt/anaconda3/bin/python serve.py
+Environment=PYTHONUNBUFFERED=1
+Environment=PALSEARTH_ROOT=/home/USER/PRECISE/palsearth
+Environment=PORT=8504
+# Served alongside the Streamlit app for now. At cutover: delete this line,
+# point the nginx /palsearth/ block at port 8504, and stop palsearth.service.
+Environment=PALSEARTH_PREFIX=/palsearth-flask
+EnvironmentFile=/home/USER/PRECISE/palsearth_flask/.env
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+PALs Earth — extraction metadata
+Job ID: 1268d899-a29d-416f-94a3-f46ba995bf8c
+Created: 2026-10-06T11:32:10.504541
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Urban Settlement - GHSL ===
+Earth Engine collection: JRC/GHSL/P2023A/GHS_SMOD/2025  (band: smod_code)
+GHSL Settlement Model: Urban / Peri-urban / Rural classification (1km). Published in 5-year epochs from 1975 to 2030 (all verified available in Earth Engine) — defaults to the 2025 epoch, but the epoch is selectable: the Extract page's Manual tab shows a year dropdown when this is checked, and Shmron AI can build any other year via propose_custom_dataset (collection 'JRC/GHSL/P2023A/GHS_SMOD/<year>', same band/scale/type as this entry). The output column name always carries the epoch, e.g. urban_class_2010, so it's traceable from the CSV alone.
+
+  urban_smod_2025: categorical code (11-30) — see the urban_class_<year> label column
+  urban_class_2025: human-readable label (Peri-urban, Rural, Urban) derived from urban_smod_2025
+
+=== Relative Wealth Index (Facebook) ===
+Earth Engine collection: projects/sat-io/open-datasets/facebook/relative_wealth_index  (band: rwi)
+Facebook / Meta Relative Wealth Index (1km)
+
+  rwi: dimensionless (standardized relative index; higher = wealthier)

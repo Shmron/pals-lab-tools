@@ -1,0 +1,24 @@
+PALs Earth: extraction metadata
+Job ID: 6d4dd637-f383-4214-9d77-6aae4bd4f3b3
+Created: 2026-10-14T07:27:34.413510
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Temperature - ERA5-Land ===
+Earth Engine collection: ECMWF/ERA5_LAND/HOURLY  (band: temperature_2m)
+2m air temperature from ERA5-Land (hourly → daily stats, ~11km)
+
+  temp_2m_k_mean: °C (converted from Kelvin at export)
+  temp_2m_k_p50: °C (converted from Kelvin at export)
+  temp_2m_k_p95: °C (converted from Kelvin at export)
+
+=== NDVI (MODIS) ===
+Earth Engine collection: MODIS/MOD09GA_006_NDVI  (band: NDVI)
+Normalized Difference Vegetation Index from MODIS (500m)
+Note: Primary source (community-curated MOD09GA_006_NDVI) has no data after 2023-02-17. For dates after that, NDVI is instead computed from the actively maintained MODIS/061/MOD09GA surface reflectance bands (red/NIR), with cloud masking applied via its state_1km QA band. Same physical quantity, same sensor family, but a different processing pipeline. Do not assume values on either side of the cutover are numerically identical to each other.
+Note: this dataset's native revisit cadence is daily, i.e. one real image per row here, so mean/min/max/p95 etc. are therefore all the same number by definition (there is only one observation to summarise), not a bug. To see min/max/percentile spread for this variable, request a multi-day window instead of single-day rows.
+
+  ndvi_mean: dimensionless (index, -1 to 1)
+  ndvi_p50: dimensionless (index, -1 to 1)
+  ndvi_p95: dimensionless (index, -1 to 1)

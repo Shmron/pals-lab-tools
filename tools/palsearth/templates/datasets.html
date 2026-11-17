@@ -1,0 +1,79 @@
+{% extends "shell.html" %}
+{% block title %}Datasets · PALs Earth{% endblock %}
+
+{% block main %}
+<div class="pe-page">
+
+  <div class="pe-page-head">
+    <h1 class="pe-h1">Datasets</h1>
+    <p class="pe-sub" style="margin:0">Everything you can extract through Google Earth Engine.
+      Click a card for the collection, bands and units.</p>
+  </div>
+
+  <div class="pe-g-opts" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+    {% for h in how_steps %}
+      <div style="padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px">
+        <span style="font:800 28px/1 var(--display);color:{{ h.color }}">{{ h.n }}</span>
+        <span style="font-weight:600;font-size:14px">{{ h.title }}</span>
+        <span class="pe-small pe-muted" style="line-height:1.45">{{ h.desc }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <form method="get" action="{{ url_for('pe.datasets') }}" class="pe-wrap" style="gap:12px;align-items:center">
+    <div class="pe-wrap" style="gap:6px">
+      {% for g in groups %}
+        <button class="pe-filter" type="submit" name="grp" value="{{ g }}"
+                aria-pressed="{{ 'true' if g == group else 'false' }}">{{ g }}</button>
+      {% endfor %}
+    </div>
+    <input class="pe-input" name="q" value="{{ q }}" placeholder="Search datasets…"
+           style="margin-left:auto;max-width:260px;padding:10px 14px">
+    <input type="hidden" name="grp" value="{{ group }}">
+  </form>
+
+  <div class="pe-g-cards">
+    {% for d in datasets %}
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column"
+           class="pe-lift">
+        <div style="height:6px;background:{{ d.color }}"></div>
+        <details style="padding:18px;display:flex;flex-direction:column;gap:12px" {% if d.name == q %}open{% endif %}>
+          <summary style="list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="pe-sw lg" style="background:{{ d.tint }};color:{{ d.color }}">{{ d.short }}</span>
+              <span style="flex:1;display:flex;flex-direction:column;min-width:0">
+                <span style="font:700 17px var(--display)">{{ d.name }}</span>
+                <span class="pe-small pe-muted" style="font-size:12px">{{ d.cat }} · {{ d.res }}</span>
+              </span>
+              <span style="padding:4px 9px;border-radius:999px;font-size:11px;font-weight:600;background:{{ '#f1ebe4' if d.kind == 'Static' else '#e2eefb' }};color:{{ '#8a6a4a' if d.kind == 'Static' else '#2b7fd6' }}">{{ d.kind }}</span>
+            </div>
+            <span style="font-size:14px;color:var(--body);line-height:1.5;display:block">{{ d.desc }}</span>
+          </summary>
+
+          <div style="display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:10px;background:var(--bg);font:400 12px/1.5 var(--mono);color:var(--body);margin-top:12px;overflow-wrap:anywhere">
+            <span>collection: {{ d.coll }}</span>
+            <span>band: {{ d.band }}</span>
+            <span>scale: {{ d.res }}</span>
+            <span>cadence: {{ d.temporal }}</span>
+            <span>units: {{ d.units }}</span>
+            <span>stats: {{ d.stats|join(', ') }}</span>
+            {% if d.years %}<span>epochs: {{ d.years|join(', ') }}</span>{% endif %}
+          </div>
+          <span class="pe-small pe-muted" style="margin-top:8px;display:block">{{ d.tech }}</span>
+
+          <form method="post" action="{{ url_for('pe.add_dataset') }}" style="margin-top:12px">
+            <input type="hidden" name="dataset" value="{{ d.name }}">
+            <button class="pe-btn pe-btn-sm" type="submit"
+                    style="background:{{ d.tint }};color:{{ d.color }}">+ Add to extraction</button>
+          </form>
+        </details>
+      </div>
+    {% endfor %}
+
+    {% if not datasets %}
+      <div class="pe-empty" style="grid-column:1/-1">Nothing matches “{{ q }}”.
+        <a href="{{ url_for('pe.datasets') }}">Clear the search</a>.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "shell.html" %}
+{% block title %}Home · PALs Earth{% endblock %}
+
+{% macro ra_country_checklist(cohort_key, options) %}
+  {% if options|length > 8 %}
+  <details class="pe-card" style="padding:12px 14px;gap:6px;border-radius:14px">
+    <summary style="cursor:pointer;font-weight:600;font-size:13px">Pick specific countries ({{ options|length }} available)</summary>
+    <div style="margin:8px 0">
+      <input type="text" class="pe-input" placeholder="Search countries…" style="max-width:220px"
+             oninput="raFilterList('{{ cohort_key }}', this.value)">
+    </div>
+    <div class="pe-wrap" id="ra_list_{{ cohort_key }}" style="max-height:180px;overflow-y:auto">
+      {% for c in options %}
+      <label class="pe-check" data-search="{{ c|lower }}"><input type="checkbox" class="ra-country-box" name="countries__{{ cohort_key }}" value="{{ c }}">{{ c }}</label>
+      {% endfor %}
+    </div>
+  </details>
+  {% else %}
+  <div class="pe-wrap">
+    {% for c in options %}
+    <label class="pe-check"><input type="checkbox" class="ra-country-box" name="countries__{{ cohort_key }}" value="{{ c }}">{{ c }}</label>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endmacro %}
+
+{% block main %}
+<div class="pe-page">
+
+  <div class="pe-hero">
+    <div class="pe-grid-lines md"></div>
+    <div style="position:relative;display:flex;flex-direction:column;gap:18px">
+      <span class="pe-eyebrow">{{ greeting }}, {{ username|upper }}</span>
+      <h1>What are we measuring today?</h1>
+      <p class="lede">{{ summary }}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px">
+        <a class="pe-btn pe-btn-lime" href="{{ url_for('pe.extract') }}">Start an extraction →</a>
+        <a class="pe-btn pe-btn-outline" href="{{ url_for('pe.datasets') }}">Browse datasets</a>
+      </div>
+    </div>
+
+    <div class="pe-map" style="height:240px">
+      {% if map_points %}
+        {% for p in map_points %}<i class="pt" style="left:{{ p.x }}%;top:{{ p.y }}%"></i>{% endfor %}
+        <span class="cap">{{ staged.label }} · {{ staged.n_locations }} locations</span>
+      {% else %}
+        <span class="cap">no locations uploaded yet</span>
+        <div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px">
+          <span style="color:#8fb09d;font-size:14px;line-height:1.5">Upload a CSV of coordinates<br>to see them here.</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="pe-g-auto">
+    {% for q in quick_cards %}
+      <a class="pe-card pe-lift" href="{{ q.href }}" style="gap:14px;border-radius:18px;text-decoration:none;color:var(--ink)">
+        <span style="width:44px;height:44px;border-radius:12px;background:{{ q.tint }};color:{{ q.color }};display:grid;place-items:center;font:700 18px var(--display)">{{ q.num }}</span>
+        <span style="font:700 20px var(--display)">{{ q.title }}</span>
+        <span class="pe-muted" style="font-size:14px;line-height:1.5">{{ q.desc }}</span>
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if not cohort_scoped %}
+  <section class="pe-card" style="gap:16px">
+    <div>
+      <h3 class="pe-h3" style="margin:0 0 4px">Cohort Exposures access</h3>
+      <p class="pe-sub" style="margin:0">
+        {% if cohort_access %}Your account isn't scoped to any country yet.{% else %}Cohort data is separate from the rest of PALs Earth.{% endif %}
+        Pick what you need and an admin will set it up.
+      </p>
+    </div>
+    <form method="post" action="{{ url_for('pe.cohort_request_access') }}" style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="pe-label strong">Cohort</label>
+        <select class="pe-input" name="cohort" style="max-width:320px" onchange="raSwitchCohort(this.value)">
+          {% for c in request_cohorts %}
+          <option value="{{ c.key }}">{{ c.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% for c in request_cohorts %}
+        {% set opts = request_cohort_countries.get(c.key, []) %}
+        {% if opts %}
+        <div class="ra-countries" data-cohort="{{ c.key }}"
+             style="display:{{ 'flex' if loop.first else 'none' }};flex-direction:column;gap:8px">
+          <label class="pe-label strong" style="margin:0">Countries</label>
+          <label class="pe-check">
+            <input type="checkbox" onchange="raToggleAll(this, '{{ c.key }}')"> All countries
+          </label>
+          {{ ra_country_checklist(c.key, opts) }}
+        </div>
+        {% endif %}
+      {% endfor %}
+      <button class="pe-btn pe-btn-outline pe-btn-sm" type="submit" style="align-self:flex-start">Request access</button>
+    </form>
+  </section>
+  {% endif %}
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <h3 class="pe-h3">Datasets you can pull</h3>
+      <a href="{{ url_for('pe.datasets') }}" style="font-size:14px">See all →</a>
+    </div>
+    <div class="pe-g-strip">
+      {% for d in datasets %}
+        <a href="{{ url_for('pe.datasets', q=d.name) }}" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:{{ d.tint }};text-decoration:none;color:var(--ink)">
+          <span class="pe-sw" style="background:{{ d.color }}">{{ d.short }}</span>
+          <span class="pe-stack" style="min-width:0">
+            <span style="font-weight:600;font-size:13px">{{ d.name }}</span>
+            <span style="font-size:11px;color:{{ d.color }};font-weight:500">{{ d.kind }} · {{ d.res }}</span>
+          </span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% if not cohort_scoped %}
+<script>
+function raSwitchCohort(key) {
+  document.querySelectorAll('.ra-countries').forEach(el => {
+    el.style.display = (el.dataset.cohort === key) ? 'flex' : 'none';
+  });
+}
+function raToggleAll(allBox, key) {
+  document.querySelectorAll(`input[name="countries__${key}"]`).forEach(cb => {
+    cb.checked = allBox.checked;
+    cb.disabled = allBox.checked;
+  });
+}
+function raFilterList(suffix, q) {
+  q = (q || '').toLowerCase();
+  document.querySelectorAll(`#ra_list_${suffix} label`).forEach(l => {
+    l.style.display = l.dataset.search.includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endif %}
+{% endblock %}

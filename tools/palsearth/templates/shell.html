@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block body %}
+<button class="pe-burger" id="pe-burger" aria-label="Menu" aria-expanded="false">☰</button>
+<div class="pe-shell">
+
+  <aside class="pe-side" id="pe-side">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 8px">
+      <span class="mark"><img src="{{ url_for('static', filename='logo.png') }}" alt=""></span>
+      <span style="font:700 17px var(--display)">PALs Earth</span>
+    </div>
+
+    <nav class="pe-nav">
+      {% for n in nav %}
+        <a href="{{ n.href }}" {% if n.active %}aria-current="page"{% endif %}>
+          <span class="tick" {% if n.active %}style="background:{{ n.dot }}"{% endif %}></span>
+          <span style="flex:1">{{ n.label }}</span>
+          {% if n.badge %}<span class="count">{{ n.badge }}</span>{% endif %}
+        </a>
+      {% endfor %}
+    </nav>
+
+    <a class="pe-ai-cta" href="{{ url_for('pe.extract', tab='ai') }}">
+      <span class="k">SHMRON AI</span>
+      <span class="d">Describe your study, it picks the datasets.</span>
+    </a>
+
+    <div class="pe-me">
+      <span class="av">{{ username[0]|upper }}</span>
+      <span class="pe-stack" style="flex:1;min-width:0">
+        <span class="n">{{ username }}</span>
+        <span class="r">{{ role|title }}</span>
+      </span>
+      <form method="post" action="{{ url_for('pe.signout') }}">
+        <button class="pe-signout" type="submit">Sign out</button>
+      </form>
+    </div>
+  </aside>
+
+  <button class="pe-scrim" id="pe-scrim" aria-label="Close menu"></button>
+
+  <main class="pe-main">
+    {% block main %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}PALs Earth{% endblock %}</title>
+<link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='pe.css') }}">
+{#
+  Google Fonts, loaded so it can never block first paint. The lab network's
+  routing to fonts.googleapis.com is sometimes slow or silently dropped, and
+  a plain <link rel="stylesheet"> to it is render-blocking — the browser
+  shows a blank tab with a spinning loader until that request resolves or
+  times out, which can take minutes or never happen. pe.css above already
+  has system-font fallbacks, so the page is fully usable without webfonts;
+  this swaps them in only once (and if) they actually arrive. The Streamlit
+  app never hit this because it injects the same link into an iframe via
+  components.html, well after the app shell has already painted.
+#}
+<link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap"></noscript>
+{% block head %}{% endblock %}
+</head>
+<body>
+{% block body %}{% endblock %}
+
+<div id="pe-toasts">
+  {% for t in notices() %}
+    <div class="pe-toast {{ 'err' if t[0] == 'error' else ('warn' if t[0] == 'warn' else '') }}"><span class="pe-dot"></span>{{ t[1] }}</div>
+  {% endfor %}
+</div>
+
+<script src="{{ url_for('static', filename='pe.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

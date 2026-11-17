@@ -1,0 +1,17 @@
+PALs Earth — extraction metadata
+Job ID: 067c61bf-7002-4e15-9720-cdd0314df796
+Created: 2026-10-01T09:25:11.341808
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Temperature + Wet Bulb - MERRA-2 ===
+Earth Engine collection: NASA/GSFC/MERRA/slv/2  (band: T2M, T2MWET)
+2m dry and wet bulb temperature from MERRA-2
+
+  T2M_mean: Kelvin
+  T2M_min: Kelvin
+  T2M_max: Kelvin
+  T2MWET_mean: Kelvin
+  T2MWET_min: Kelvin
+  T2MWET_max: Kelvin

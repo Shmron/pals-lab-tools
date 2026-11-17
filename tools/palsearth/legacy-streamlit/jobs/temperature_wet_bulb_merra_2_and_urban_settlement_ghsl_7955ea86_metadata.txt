@@ -1,0 +1,22 @@
+PALs Earth — extraction metadata
+Job ID: 7955ea86-a1e8-4f43-b4d7-89ccd0740623
+Created: 2026-10-06T12:25:55.153407
+
+One entry per output column below: which dataset/band it came from, its
+unit, and any conversion already applied before the value was saved.
+
+=== Temperature + Wet Bulb - MERRA-2 ===
+Earth Engine collection: NASA/GSFC/MERRA/slv/2  (band: T2M, T2MWET)
+2m dry and wet bulb temperature from MERRA-2
+
+  T2M_mean_custom: °C (converted from Kelvin at export)
+  T2M_max_custom: °C (converted from Kelvin at export)
+  T2MWET_mean_custom: °C (converted from Kelvin at export)
+  T2MWET_max_custom: °C (converted from Kelvin at export)
+
+=== Urban Settlement - GHSL ===
+Earth Engine collection: JRC/GHSL/P2023A/GHS_SMOD/2025  (band: smod_code)
+GHSL Settlement Model: Urban / Peri-urban / Rural classification (1km). Published in 5-year epochs from 1975 to 2030 (all verified available in Earth Engine) — defaults to the 2025 epoch, but the epoch is selectable: the Extract page's Manual tab shows a year dropdown when this is checked, and Shmron AI can build any other year via propose_custom_dataset (collection 'JRC/GHSL/P2023A/GHS_SMOD/<year>', same band/scale/type as this entry). The output column name always carries the epoch, e.g. urban_class_2010, so it's traceable from the CSV alone.
+
+  urban_smod_2025: categorical code (11-30) — see the urban_class_<year> label column
+  urban_class_2025: human-readable label (Peri-urban, Rural, Urban) derived from urban_smod_2025
