@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Place Alert Labs - Geospatial Health Research</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;600;700;800;900&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.about-lead { max-width: 760px; margin: 0 0 100px; }
+.about-lead p { font-size: 17px; line-height: 1.8; color: var(--text); margin-bottom: 20px; }
+.about-block { margin-bottom: 90px; }
+.about-block:last-child { margin-bottom: 0; }
+.values-grid { grid-template-columns: 1fr 1fr; }
+.principles-grid { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 640px) {
+    .values-grid, .principles-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Floating Chat -->
+<div class="floating-chat"><button class="chat-button whatsapp-btn" onclick="openWhatsApp()" title="Chat on WhatsApp"><i class="bi bi-whatsapp"></i><div class="chat-tooltip">Chat on WhatsApp</div></button></div>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-main"><div class="container"><div class="header-content">
+        <a href="/" class="logo">
+            <img src="/images/backgrounds/pals.png" alt="Midlands State University — Place Alert Labs" class="logo-img">
+        </a>
+        <nav class="nav">
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item has-submenu"><a href="/about.html" class="nav-link">About Us <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/about.html#vision">Vision Statement</a></li><li><a href="/about.html#mission">Mission Statement</a></li><li><a href="/about.html#strategic-pillars">Strategic Pillars</a></li><li><a href="/about.html#values">Values</a></li><li><a href="/about.html#principles">Principles</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/research.html" class="nav-link">Research <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/research.html#focus-areas">Focus Areas</a></li><li><a href="/research.html#current-projects">Current Projects</a></li><li><a href="/research.html#previous-projects">Previous Projects</a></li><li><a href="/publications.html">Publications</a></li></ul></li>
+                <li class="nav-item"><a href="/team.html" class="nav-link">Team</a></li>
+                <li class="nav-item has-submenu"><a href="/partners.html" class="nav-link">Our Partners <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/partners.html#funding-partners">Funding Partners</a></li><li><a href="/partners.html#research-partners">Research Partners</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/news.html" class="nav-link">Media <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/news.html#webinars-podcasts">Webinars &amp; Podcasts</a></li><li><a href="/news.html#latest-news">Latest News</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/courses.html" class="nav-link">Courses <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/courses.html#open-enrolment">Open for Enrolment</a></li><li><a href="/courses.html#recurring-programme">Recurring Programme</a></li><li><a href="/courses.html#coming-soon">Coming Soon</a></li></ul></li>
+                <li class="nav-item"><a href="/contact.html" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="https://portal.placealert.org" target="_blank" class="nav-portal-btn"><i class="bi bi-database"></i> Data Portal &rarr;</a><a href="/" class="pals-logo-secondary"><img src="/images/backgrounds/PALs_Logo.png" alt="Place Alert Labs" class="pals-logo-secondary-img"></a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle"><i class="bi bi-list"></i></button>
+        </nav>
+    </div></div></div>
+</header>
+
+<main class="page-main" style="max-width: 1000px; margin: 0 auto;">
+
+    <div class="page-header-band">
+    <span class="kicker">About Place Alert Labs</span>
+    <h1>Who We Are</h1>
+    <div class="heading-divider"></div>
+    </div>
+
+    <div class="about-lead">
+        <p>Based at Midlands State University, Place Alert Labs (PALs) is an African-led environment-health research laboratory at the forefront of a critical intersection: where human health and environment meet. We utilize advanced Geographical Information Science (GISc) to transform complex spatial and health data into actionable insights that guide policy, empower communities, and protect public health in Africa's toughest health and climate challenges.</p>
+        <p>Our approach is grounded in collaboration, co-design/creation with communities, policymakers, and institutions to ensure our work is relevant, inclusive, and drives real-world impact. We are dedicated to cultivating the next generation of African leaders through education and mentorship, ensuring a sustainable legacy of health and resilience.</p>
+    </div>
+    <!-- Content gap flagged in design handoff: no real team/fieldwork photo available yet for this section. -->
+
+    <div id="vision">
+    <div class="about-block">
+        <span class="kicker" style="margin-bottom: 20px;">Vision Statement</span>
+        <p class="pull-quote">Healthier and more resilient communities in Africa, where evidence-driven geospatial research and innovation guide equitable health policy and targeted health interventions.</p>
+    </div>
+
+    <div class="about-block">
+        <span class="kicker" id="mission" style="margin-bottom: 20px;">Mission Statement</span>
+        <p class="pull-quote">We use geospatial science to uncover environment–health links in data-scarce regions, building capacity to create decision-support tools and insights that improve health, inform policy, and empower communities.</p>
+    </div>
+    </div>
+
+    <div class="about-block">
+        <span class="kicker" id="strategic-pillars">Strategic Pillars</span>
+        <div class="pillar-list">
+            <div class="pillar-row"><span class="pillar-num">01</span><span class="pillar-label">Interdisciplinary environment-health research</span></div>
+            <div class="pillar-row"><span class="pillar-num">02</span><span class="pillar-label">Innovation and Commercialization</span></div>
+            <div class="pillar-row"><span class="pillar-num">03</span><span class="pillar-label">Policy Engagement and Translation</span></div>
+            <div class="pillar-row"><span class="pillar-num">04</span><span class="pillar-label">Community Partnerships and Inclusion</span></div>
+            <div class="pillar-row"><span class="pillar-num">05</span><span class="pillar-label">Education, Training, and Leadership Development</span></div>
+        </div>
+    </div>
+
+    <div class="about-block" id="values">
+        <span class="kicker">Values</span>
+        <div class="hairline-grid values-grid color-rotate-grid">
+            <div><div class="num">01</div><div class="title">Research Excellence</div><div class="body">We uphold the highest standards of research quality, rigor, and ethics.</div></div>
+            <div><div class="num">02</div><div class="title">Innovation</div><div class="body">We embrace creativity, novel technologies, and forward-thinking approaches to address emerging Geohealth challenges.</div></div>
+            <div><div class="num">03</div><div class="title">Equity and Inclusion</div><div class="body">We champion diversity, fairness, and meaningful participation of all groups, especially underrepresented and vulnerable populations.</div></div>
+            <div><div class="num">04</div><div class="title">Teamwork and Integrity</div><div class="body">We foster a supportive and collaborative environment where collective efforts lead to greater impact, acting with honesty, fairness, and consistency in all research and engagements.</div></div>
+        </div>
+    </div>
+
+    <div class="about-block">
+        <span class="kicker" id="principles">Principles</span>
+        <div class="hairline-grid principles-grid">
+            <div><div class="num">01</div><div class="title">Transparency and Accountability</div><div class="body">We maintain openness in our processes, share our findings responsibly, and hold ourselves answerable to our stakeholders.</div></div>
+            <div><div class="num">02</div><div class="title">Capacity Building</div><div class="body">We are committed to strengthening human and institutional capabilities in environment-health across Africa.</div></div>
+            <div><div class="num">03</div><div class="title">Interdisciplinary Collaboration</div><div class="body">We bring together diverse expertise across health, environment and policy to deliver integrated solutions.</div></div>
+        </div>
+    </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="modern-footer">
+    <div class="sponsors-section"></div>
+    <div class="footer-main"><div class="container"><div class="footer-content">
+        <div class="footer-section footer-about">
+            <div class="footer-logo-container">
+                <div class="footer-logo"><img src="/images/backgrounds/PALs_Logo.png" alt="PALs Logo" class="footer-logo-img"></div>
+                <div class="footer-brand"><h3>Place Alert Labs</h3><p>Geospatial Health Research</p></div>
+            </div>
+            <p class="footer-description">An African-led environment-health research laboratory based at Midlands State University, driving evidence-based solutions for health challenges across Africa.</p>
+            <div class="footer-contact">
+                <div><i class="bi bi-geo-alt"></i><span>Private Bag 9055, Senga, Gweru, Zimbabwe</span></div>
+                <div><i class="bi bi-telephone"></i><span>+263 78 231 9736</span></div>
+                <div><i class="bi bi-envelope"></i><span>pals@staff.msu.ac.zw</span></div>
+            </div>
+        </div>
+        <div class="footer-section"><h4>Explore</h4><ul class="footer-menu"><li><a href="/about.html">About Us</a></li><li><a href="/research.html">Research</a></li><li><a href="/team.html">Our Team</a></li><li><a href="/partners.html">Our Partners</a></li><li><a href="/courses.html">Courses</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://portal.placealert.org" target="_blank">Data Portal</a></li></ul></div>
+        <div class="footer-section footer-social">
+            <h4>Connect</h4>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/company/place-alert-labs/" target="_blank" class="social-link linkedin"><i class="bi bi-linkedin"></i><span>LinkedIn</span></a>
+                <a href="https://twitter.com/placealertlabs" target="_blank" class="social-link twitter"><i class="bi bi-twitter-x"></i><span>Twitter</span></a>
+                <a href="https://bsky.app/profile/place-alert-lab.bsky.social" target="_blank" class="social-link bluesky"><i class="bi bi-globe"></i><span>Bluesky</span></a>
+                <a href="mailto:pals@staff.msu.ac.zw" class="social-link email"><i class="bi bi-envelope"></i><span>Email</span></a>
+            </div>
+        </div>
+    </div></div></div>
+    <div class="footer-bottom"><div class="container"><div class="footer-bottom-content">
+        <div class="copyright"><p>&copy; 2026 Place Alert Labs · Midlands State University</p></div>
+        <div class="footer-legal"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Accessibility</a></div>
+    </div></div></div>
+</footer>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="/assets/main.js"></script>
+<script src="/pa/pa.js" defer></script>
+</body>
+</html>

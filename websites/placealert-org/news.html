@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Media - Place Alert Labs</title>
+<link href="/favicon.ico" rel="icon"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;600;700;800;900&amp;family=Source+Sans+3:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
+<link href="/assets/style.css" rel="stylesheet"/>
+<style>
+.media-intro { max-width: 600px; margin: 20px 0 70px; }
+.media-intro p { font-size: 17px; line-height: 1.75; color: var(--muted); }
+
+.media-section-heading {
+    display: flex; align-items: center; gap: .6rem; margin: 0 0 28px;
+    font-family: var(--font-head); font-size: 1.6rem; font-weight: 700; color: var(--ink);
+}
+.media-section-heading i { color: var(--accent); font-size: 1.35rem; }
+
+.video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 1.5rem; }
+.video-card {
+    background: var(--card-bg); border: 1px solid var(--line); border-top: 3px solid var(--accent);
+    border-radius: 2px; position: relative; overflow: hidden;
+    transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);
+}
+.video-card::after { content: ''; position: absolute; inset: 0; background: var(--sand); opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 0; }
+.video-card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(45,52,54,.1); }
+.video-card:hover::after { opacity: .35; }
+.video-embed { position: relative; width: 100%; padding-top: 56.25%; background: #000; z-index: 1; }
+.video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+.video-card-title { position: relative; z-index: 1; padding: .9rem 1.1rem; font-size: .9rem; font-weight: 600; color: var(--ink); line-height: 1.4; }
+
+.podcast-card {
+    grid-column: 1 / -1; background: var(--sand); border: 1px solid var(--line); border-left: 4px solid var(--terracotta);
+    border-radius: 2px; padding: 32px; display: flex; flex-direction: column; gap: .8rem;
+    box-shadow: 0 8px 28px rgba(45,52,54,.06);
+}
+.podcast-badge {
+    display: inline-flex; align-items: center; gap: .4rem; font-size: .78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: #fff; background: var(--terracotta); width: fit-content; padding: .35rem .75rem; border-radius: 20px;
+}
+.podcast-title { font-size: 1.6rem; font-weight: 800; color: var(--ink); line-height: 1.3; font-family: var(--font-head); }
+.podcast-desc { font-size: .95rem; color: var(--muted); line-height: 1.65; max-width: 780px; }
+.podcast-meta { display: flex; flex-wrap: wrap; gap: .6rem; font-size: .8rem; color: var(--muted); margin-top: .1rem; }
+.podcast-meta span { display: flex; align-items: center; gap: .3rem; }
+.btn-notify {
+    display: inline-flex; align-items: center; gap: .5rem; width: fit-content; border: none; color: #fff; background: var(--terracotta);
+    padding: .7rem 1.2rem; border-radius: 3px; font-weight: 700; font-size: .85rem; cursor: pointer; margin-top: .6rem;
+    text-decoration: none; transition: transform .2s ease, box-shadow .2s ease;
+}
+.btn-notify:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(224,122,95,.35); }
+
+.video-more { text-align: center; margin-bottom: 3rem; }
+
+.news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 2rem; }
+.news-card {
+    background: var(--card-bg); border: 1px solid var(--line); border-top: 3px solid var(--accent);
+    border-radius: 2px; position: relative; overflow: hidden;
+    display: flex; align-items: flex-start; padding: 1.5rem; gap: 1rem;
+    transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);
+}
+.news-card::after { content: ''; position: absolute; inset: 0; background: var(--sand); opacity: 0; transition: opacity .25s; pointer-events: none; }
+.news-card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(45,52,54,.1); }
+.news-card:hover::after { opacity: .35; }
+.news-card > * { position: relative; z-index: 1; }
+.news-icon { display: none; }
+.news-body { flex: 1; }
+.news-meta { display: flex; align-items: center; gap: .75rem; margin-bottom: .6rem; flex-wrap: wrap; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.news-category {
+    display: inline-flex; align-items: center; color: #fff; background: var(--accent);
+    font-weight: 700; font-size: .68rem; letter-spacing: .06em; padding: .3rem .65rem; border-radius: 20px;
+}
+.news-title { font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: .5rem; line-height: 1.4; font-family: var(--font-head); }
+.news-excerpt { font-size: .875rem; color: var(--muted); line-height: 1.6; margin-bottom: .75rem; }
+.news-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+.news-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: .85rem; }
+.news-link:hover { text-decoration: underline; }
+.news-footer { text-align: center; margin-top: 2rem; }
+
+@media (max-width:1024px) { .news-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:768px) { .video-grid, .news-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="floating-chat"><button class="chat-button whatsapp-btn" onclick="openWhatsApp()" title="Chat on WhatsApp"><i class="bi bi-whatsapp"></i><div class="chat-tooltip">Chat on WhatsApp</div></button></div>
+<header class="header">
+<div class="header-main"><div class="container"><div class="header-content">
+<a class="logo" href="/">
+<img alt="Midlands State University — Place Alert Labs" class="logo-img" src="/images/backgrounds/pals.png"/>
+</a>
+<nav class="nav">
+<ul class="nav-menu" id="nav-menu">
+<li class="nav-item has-submenu"><a href="/about.html" class="nav-link">About Us <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/about.html#vision">Vision Statement</a></li><li><a href="/about.html#mission">Mission Statement</a></li><li><a href="/about.html#strategic-pillars">Strategic Pillars</a></li><li><a href="/about.html#values">Values</a></li><li><a href="/about.html#principles">Principles</a></li></ul></li>
+<li class="nav-item has-submenu"><a href="/research.html" class="nav-link">Research <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/research.html#focus-areas">Focus Areas</a></li><li><a href="/research.html#current-projects">Current Projects</a></li><li><a href="/research.html#previous-projects">Previous Projects</a></li><li><a href="/publications.html">Publications</a></li></ul></li>
+<li class="nav-item"><a class="nav-link" href="/team.html">Team</a></li>
+<li class="nav-item has-submenu"><a href="/partners.html" class="nav-link">Our Partners <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/partners.html#funding-partners">Funding Partners</a></li><li><a href="/partners.html#research-partners">Research Partners</a></li></ul></li>
+<li class="nav-item has-submenu"><a href="/news.html" class="nav-link">Media <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/news.html#webinars-podcasts">Webinars &amp; Podcasts</a></li><li><a href="/news.html#latest-news">Latest News</a></li></ul></li>
+<li class="nav-item has-submenu"><a href="/courses.html" class="nav-link">Courses <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/courses.html#open-enrolment">Open for Enrolment</a></li><li><a href="/courses.html#recurring-programme">Recurring Programme</a></li><li><a href="/courses.html#coming-soon">Coming Soon</a></li></ul></li>
+<li class="nav-item"><a class="nav-link" href="/contact.html">Contact</a></li>
+</ul>
+<a class="nav-portal-btn" href="https://portal.placealert.org" target="_blank"><i class="bi bi-database"></i> Data Portal →</a><a href="/" class="pals-logo-secondary"><img src="/images/backgrounds/PALs_Logo.png" alt="Place Alert Labs" class="pals-logo-secondary-img"></a>
+<button class="mobile-menu-toggle" id="mobile-menu-toggle"><i class="bi bi-list"></i></button>
+</nav>
+</div></div></div>
+</header>
+<main class="page-main" style="max-width: 1180px; margin: 0 auto;">
+<div class="page-header-band">
+<span class="kicker">Media</span>
+<h1>News and coverage.</h1>
+<div class="heading-divider"></div>
+</div>
+<div class="media-intro">
+<p>Podcasts, webinars, and announcements from Place Alert Labs.</p>
+</div>
+<div class="media-section-heading" id="webinars-podcasts">
+<i class="bi bi-youtube" style="color:var(--ink);"></i> Webinars &amp; Podcast Videos
+    </div>
+<div class="video-grid">
+<div class="video-card">
+<div class="video-embed">
+<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" id="pals-video-0" loading="lazy" src="https://www.youtube-nocookie.com/embed/guiEQNF3rOE?rel=0" title="Latest video from Place Alert Labs on YouTube"></iframe>
+</div>
+<div class="video-card-title"><span id="pals-video-title-0">Latest from our channel</span></div>
+</div>
+<div class="video-card">
+<div class="video-embed">
+<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" id="pals-video-1" loading="lazy" src="https://www.youtube-nocookie.com/embed/NeoAZbIcSiU?rel=0" title="Recent video from Place Alert Labs on YouTube"></iframe>
+</div>
+<div class="video-card-title"><span id="pals-video-title-1">Also from our channel</span></div>
+</div>
+<div class="podcast-card">
+<span class="podcast-badge"><i class="bi bi-hourglass-split"></i> Upcoming Podcast Series</span>
+<div class="podcast-title">CHEAQI-MNCH: Air Quality &amp; Maternal, Newborn and Child Health</div>
+<div class="podcast-desc">An upcoming podcast series built around our CHEAQI-MNCH project — Characterizing Effects of Air Quality in Maternal, Newborn and Child Health in Sub-Saharan Africa. Episodes will follow the science and the people behind the study: how we measure outdoor air pollution across The Gambia, Kenya and Mozambique, what road-traffic and PM2.5 exposure mean for mothers and babies, and how community, clinical and geospatial data come together to protect health in low-resource settings.</div>
+<div class="podcast-meta">
+<span><i class="bi bi-mic"></i> PALs Original Series</span>
+<span><i class="bi bi-globe"></i> English</span>
+</div>
+<a class="btn-notify" href="/contact.html"><i class="bi bi-bell"></i> Notify Me When Live</a>
+</div>
+</div>
+<div class="video-more">
+<a class="btn btn-secondary" href="https://www.youtube.com/@PlaceAlertLabs/videos" rel="noopener" target="_blank">
+<i class="bi bi-youtube"></i> View more on YouTube <i class="bi bi-arrow-right"></i>
+</a>
+</div>
+<div class="media-section-heading" id="latest-news">
+<i class="bi bi-newspaper"></i> Latest News
+    </div>
+<div class="news-grid" data-news-feed="" data-news-layout="archive">
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>June 2026</span><span class="news-category"></span></div>
+<h3 class="news-title">New publication Alert</h3>
+<p class="news-excerpt"></p>
+<div class="news-tags"></div>
+<a class="news-link" href="https://www.linkedin.com/feed/update/urn:li:activity:7489986914046062594" rel="noopener noreferrer" target="_blank"></a>
+</div>
+</div><div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>June 2026</span><span class="news-category">Training</span></div>
+<h3 class="news-title">GeoAI Surveying Workshop with the Survey Institute of Zimbabwe's Young Surveyors</h3>
+<p class="news-excerpt">PALs delivered a hands-on GeoAI and surveying skills workshop in partnership with the Survey Institute of Zimbabwe, facilitated by Prestige Tatenda Makanga, Zororo Chinwadzimba, Rutendo Sibanda, and Bongani Handsome Nyoni.</p>
+<div class="news-tags"><span class="tag">GeoAI</span><span class="tag">Surveying</span><span class="tag">Young Surveyors</span></div>
+<a class="news-link" href="https://www.linkedin.com/posts/place-alert-labs_cheaqi-geoai-surveying-activity-7477156784600756224-8-uC" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>May 2026</span><span class="news-category">Research</span></div>
+<h3 class="news-title">Early Career Researchers Spotlight at the 6th DS-I Africa Consortium Meeting</h3>
+<p class="news-excerpt">Place Alert Labs celebrated Anotida Marrian Chapunza's work on the ETIQUET project, using semi-supervised learning to improve environmental exposure prediction in data-scarce settings.</p>
+<div class="news-tags"><span class="tag">DS-I Africa</span><span class="tag">ETIQUET</span><span class="tag">AI for Africa</span></div>
+<a class="news-link" href="https://www.linkedin.com/company/place-alert-labs/posts/?feedView=all" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>May 2026</span><span class="news-category">Conference</span></div>
+<h3 class="news-title">Place Alert Labs at the DS-I Africa Health Datathon in Mombasa</h3>
+<p class="news-excerpt">Prestige Tatenda Makanga and Anotida Marrian Chapunza represented the lab in discussions on fair, context-aware artificial intelligence for African healthcare.</p>
+<div class="news-tags"><span class="tag">Health Datathon</span><span class="tag">AI in Healthcare</span><span class="tag">Mombasa</span></div>
+<a class="news-link" href="https://www.linkedin.com/posts/place-alert-labs_cheaqi-placealertlabs-dsiafrica2026-activity-7464987491444449281-w9bz" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>April 2026</span><span class="news-category">Training</span></div>
+<h3 class="news-title">Environmental Epidemiology Short Course Completed in Harare</h3>
+<p class="news-excerpt">The three-day course strengthened practical skills in causal questions, distributed lag non-linear models, cohort designs, and combined heat and air-pollution exposure analysis.</p>
+<div class="news-tags"><span class="tag">Environmental Epidemiology</span><span class="tag">DLNM</span><span class="tag">Climate and Health</span></div>
+<a class="news-link" href="https://www.linkedin.com/posts/place-alert-labs_environmentalepidemiology-climateandhealth-activity-7455576218600529920-1Td2" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>April 2026</span><span class="news-category">Webinar</span></div>
+<h3 class="news-title">NIH Webinar on Data Science Solutions to Extreme Heat</h3>
+<p class="news-excerpt">Prestige Tatenda Makanga joined an expert panel presenting HE²AT Centre results on data innovation, extreme heat, and health impacts across Africa.</p>
+<div class="news-tags"><span class="tag">HE²AT Centre</span><span class="tag">Extreme Heat</span><span class="tag">Data Science</span></div>
+<a class="news-link" href="https://www.linkedin.com/posts/place-alert-labs_he2atcentre-dsiafrica-heatandhealth-activity-7455539412119027712-VqlJ" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>April 2026</span><span class="news-category">Conference</span></div>
+<h3 class="news-title">From Climate-Health Data to Action at the World Health Summit</h3>
+<p class="news-excerpt">Prestige Tatenda Makanga chaired a Nairobi session on moving climate-health intelligence from data to practical action and resilient health systems.</p>
+<div class="news-tags"><span class="tag">Climate Health</span><span class="tag">Digital Health</span><span class="tag">Health Systems</span></div>
+<a class="news-link" href="https://www.linkedin.com/company/place-alert-labs/posts/?feedView=all" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>April 2026</span><span class="news-category">Education</span></div>
+<h3 class="news-title">Free Health Geography Courses Reach Learners in More Than 30 Countries</h3>
+<p class="news-excerpt">Two short courses co-developed with the University of Oxford, King's College London, and The Global Health Network are expanding access to practical health geography training.</p>
+<div class="news-tags"><span class="tag">Health Geography</span><span class="tag">GIS</span><span class="tag">Global Health</span></div>
+<a class="news-link" href="https://www.linkedin.com/company/place-alert-labs/posts/?feedView=all" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+<div class="news-card">
+<div class="news-body">
+<div class="news-meta"><span>December 2025</span><span class="news-category">Team</span></div>
+<h3 class="news-title">Team Strategic Planning &amp; Reflections Meeting in Kadoma</h3>
+<p class="news-excerpt">PALs closed out 2025 with a full-team strategic planning and reflections day at the Kadoma Rainbow Hotel on 19 December 2025 — reviewing the year's work and sharpening priorities for 2026.</p>
+<div class="news-tags"><span class="tag">Strategic Planning</span><span class="tag">Teamwork</span><span class="tag">2025 Wrap</span></div>
+<a class="news-link" href="https://www.linkedin.com/posts/place-alert-labs_placealertlabs-strategicplanning-teamwork-activity-7409712674348929024-66V9" rel="noopener noreferrer" target="_blank">Read More on LinkedIn →</a>
+</div>
+</div>
+</div>
+<p aria-live="polite" class="news-feed-status" data-news-status="">Pulling the latest updates from LinkedIn.</p>
+<div class="news-footer">
+<a class="btn btn-primary" href="https://www.linkedin.com/company/place-alert-labs/posts/?feedView=all" target="_blank">
+<i class="bi bi-linkedin"></i> Follow us on LinkedIn for More Updates
+        </a>
+</div>
+</main>
+<footer class="modern-footer">
+<div class="sponsors-section"></div>
+<div class="footer-main"><div class="container"><div class="footer-content">
+<div class="footer-section footer-about">
+<div class="footer-logo-container"><div class="footer-logo"><img alt="PALs Logo" class="footer-logo-img" src="/images/backgrounds/PALs_Logo.png"/></div><div class="footer-brand"><h3>Place Alert Labs</h3><p>Geospatial Health Research</p></div></div>
+<p class="footer-description">An African-led environment-health research laboratory based at Midlands State University, driving evidence-based solutions for health challenges across Africa.</p>
+<div class="footer-contact">
+<div><i class="bi bi-geo-alt"></i><span>Private Bag 9055, Senga, Gweru, Zimbabwe</span></div>
+<div><i class="bi bi-telephone"></i><span>+263 78 231 9736</span></div>
+<div><i class="bi bi-envelope"></i><span>pals@staff.msu.ac.zw</span></div>
+</div>
+</div>
+<div class="footer-section"><h4>Explore</h4><ul class="footer-menu"><li><a href="/about.html">About Us</a></li><li><a href="/research.html">Research</a></li><li><a href="/team.html">Our Team</a></li><li><a href="/partners.html">Our Partners</a></li><li><a href="/courses.html">Courses</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://portal.placealert.org" target="_blank">Data Portal</a></li></ul></div>
+<div class="footer-section footer-social">
+<h4>Connect</h4>
+<div class="social-links">
+<a class="social-link linkedin" href="https://www.linkedin.com/company/place-alert-labs/" target="_blank"><i class="bi bi-linkedin"></i><span>LinkedIn</span></a>
+<a class="social-link twitter" href="https://twitter.com/placealertlabs" target="_blank"><i class="bi bi-twitter-x"></i><span>Twitter</span></a>
+<a class="social-link bluesky" href="https://bsky.app/profile/place-alert-lab.bsky.social" target="_blank"><i class="bi bi-globe"></i><span>Bluesky</span></a>
+<a class="social-link email" href="mailto:pals@staff.msu.ac.zw"><i class="bi bi-envelope"></i><span>Email</span></a>
+</div>
+</div>
+</div></div></div>
+<div class="footer-bottom"><div class="container"><div class="footer-bottom-content">
+<div class="copyright"><p>© 2026 Place Alert Labs · Midlands State University</p></div>
+<div class="footer-legal"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Accessibility</a></div>
+</div></div></div>
+</footer>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="/assets/main.js"></script>
+<script>
+/* Populate the two Media video players with the latest uploads from
+   /data/videos.json (refreshed hourly by scripts/youtube_sync.py). Falls back
+   to the hard-coded iframe src if the file is missing or fetch fails. */
+(function () {
+    fetch('/data/videos.json', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error('no videos.json'); return r.json(); })
+        .then(function (data) {
+            var items = (data && data.items) || [];
+            for (var i = 0; i < 2; i++) {
+                var frame = document.getElementById('pals-video-' + i);
+                var label = document.getElementById('pals-video-title-' + i);
+                if (!frame) continue;
+                if (items[i] && items[i].id) {
+                    var src = 'https://www.youtube-nocookie.com/embed/' + items[i].id + '?rel=0';
+                    if (frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+                    if (label && items[i].title) label.textContent = items[i].title;
+                } else if (i === 1) {
+                    var card = frame.closest('.video-card');
+                    if (card) card.style.display = 'none';
+                }
+            }
+        })
+        .catch(function () { /* keep the static fallback players */ });
+})();
+</script>
+<script defer="" src="/pa/pa.js"></script>
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CHEAQI-PEI — Personal Exposure Indicator Dashboard</title>
+<meta name="description" content="CHEAQI Personal Exposure Indicator: SuperLearner PM2.5 exposure surfaces across 5 Sub-Saharan African countries, served live from Google Earth Engine."/>
+<meta name="robots" content="noindex, nofollow"/><!-- dev-stage preview: keep out of search engines -->
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  /* Crameri batlow (sequential) + batlowS (categorical) */
+  --b0:#011959;--b1:#114360;--b2:#226061;--b3:#4d734d;--b4:#828231;--b5:#c09036;--b6:#f29d6d;--b7:#fdb4b6;--b8:#faccfa;
+  --ink:#0f1923;--paper:#f5f7fa;--line:#d4dce4;--muted:#4a6070;--accent:#1a4a8a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif}
+.mono{font-family:'IBM Plex Mono',monospace}
+header{background:var(--ink);border-bottom:2px solid var(--b1)}
+.hwrap{max-width:1240px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--b0),var(--b3) 55%,var(--b6));display:flex;align-items:center;justify-content:center;font-size:20px}
+.title{color:#fff;font-weight:600;font-size:18px;letter-spacing:-.2px}
+.sub{color:#8fa8c0;font-size:11px;font-weight:300}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;font-size:11px;font-family:'IBM Plex Mono',monospace;border:1px solid}
+.chip.green{background:rgba(20,83,45,.35);color:#86efac;border-color:rgba(34,197,94,.3)}
+.chip.blue{background:rgba(26,74,138,.3);color:#93c5fd;border-color:rgba(59,130,246,.3)}
+.pulse{animation:pu 2s infinite}@keyframes pu{0%,100%{opacity:1}50%{opacity:.35}}
+/* KPI strip */
+.kpis{background:#fff;border-bottom:1px solid var(--line)}
+.kwrap{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.kpi{padding:12px 20px;border-right:1px solid var(--line)}
+.kpi:last-child{border-right:none}
+.klab{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.kval{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500}
+.knote{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-top:2px}
+/* Tabs */
+.tabs{background:#fff;border-bottom:1px solid var(--line)}
+.twrap{max-width:1240px;margin:0 auto;display:flex;overflow-x:auto;padding:0 24px}
+.tab{padding:10px 16px;font-size:12px;font-weight:500;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap}
+.tab.active{border-bottom-color:var(--accent);color:var(--accent)}
+.tab:hover{color:var(--ink)}
+/* Layout */
+main{max-width:1240px;margin:0 auto;padding:20px 24px}
+.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:16px}
+.chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #e8edf2}
+.ctitle{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.cbadge{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--accent);background:#eff6ff;padding:2px 6px;border-radius:3px}
+.stack>*+*{margin-top:12px}
+#map{height:480px;border-radius:4px}
+.legend{margin-top:10px}
+.lramp{height:12px;border-radius:3px;background:linear-gradient(to right,var(--b0),var(--b1),var(--b2),var(--b3),var(--b4),var(--b5),var(--b6),var(--b7),var(--b8))}
+.lrow{display:flex;justify-content:space-between;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-top:3px}
+.small{font-size:12px;color:var(--muted);line-height:1.55}
+.small b{color:var(--ink)}
+input[type=text]{width:100%;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:6px 8px;border:1px solid var(--line);border-radius:4px}
+button.apply{margin-top:6px;padding:6px 12px;font-size:11px;font-weight:600;color:#fff;background:var(--accent);border:none;border-radius:4px;cursor:pointer}
+input[type=range]{width:100%}
+.lorow{display:flex;align-items:center;gap:10px;font-size:11px;margin-top:6px;flex-wrap:wrap}
+.lorow label{display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.mrow{display:flex;align-items:center;gap:10px;margin-top:12px}
+.mrow .mono{min-width:52px;font-size:11px;font-weight:600}
+.covbar{display:flex;align-items:flex-end;gap:2px;height:34px;margin-top:6px}
+.covbar span{flex:1;background:var(--b2);border-radius:2px 2px 0 0;min-height:2px;opacity:.4}
+.covbar span.on{opacity:1;outline:2px solid var(--accent)}
+button.mini{padding:4px 10px;font-size:10px;font-weight:600;color:var(--accent);background:#eff6ff;border:1px solid #bcd3f5;border-radius:4px;cursor:pointer;white-space:nowrap}
+.panel{display:none}.panel.show{display:block}
+.chartbox{height:340px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e8edf2}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.mono{font-family:'IBM Plex Mono',monospace}
+.pos{color:#15803d;font-weight:600}.neg{color:#b91c1c;font-weight:600}
+footer{background:#080e17;color:#3a5060;font-size:10px;font-family:'IBM Plex Mono',monospace;text-align:center;padding:14px 24px;margin-top:28px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.kwrap{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="brand">
+      <div class="logo">🌍</div>
+      <div>
+        <div class="title">CHEAQI-PEI</div>
+        <div class="sub">Personal Exposure Indicator · PM2.5 SuperLearner {RF+GBM+GWR+GNN} · Gambia · Kenya · Mozambique · South Africa · Uganda</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="chip green"><span class="pulse">●</span> GEE tiles live</span>
+      <span class="chip blue">100 m gridded PEI · wall-to-wall</span>
+      <span class="chip blue">DEV PREVIEW</span>
+    </div>
+  </div>
+</header>
+
+<div class="kpis"><div class="kwrap">
+  <div class="kpi"><div class="klab">Interpolation skill</div><div class="kval" style="color:#15803d">0.80</div><div class="knote">Spearman ρ · leave-locations-out</div></div>
+  <div class="kpi"><div class="klab">Honest extrapolation</div><div class="kval" style="color:#b45309">0.35</div><div class="knote">ρ · spatial-block holdout</div></div>
+  <div class="kpi"><div class="klab">Monitored cells</div><div class="kval" style="color:var(--accent)">7,132</div><div class="knote">labelled 100 m cells · 5 countries</div></div>
+  <div class="kpi"><div class="klab">Predictors</div><div class="kval" style="color:var(--accent)">32</div><div class="knote">S2/WorldCover tested — no gain</div></div>
+  <div class="kpi"><div class="klab">Peak PM2.5</div><div class="kval" style="color:#b91c1c">~800</div><div class="knote">µg/m³ · Saharan dust · Gambia</div></div>
+</div></div>
+
+<div class="tabs"><div class="twrap">
+  <button class="tab active" data-p="pmap">PEI Map</button>
+  <button class="tab" data-p="pval">Validation</button>
+  <button class="tab" data-p="ptra">Transfer</button>
+  <button class="tab" data-p="pstk">Stack anatomy</button>
+  <button class="tab" data-p="pabt">About / Methods</button>
+</div></div>
+
+<main>
+
+<!-- ===================== MAP ===================== -->
+<div class="panel show" id="pmap">
+  <div class="grid">
+    <div class="card">
+      <div class="chead"><span class="ctitle">PEI surface — served live from Google Earth Engine</span>
+        <span class="cbadge">no download · XYZ tiles · project ee-cheaqi</span></div>
+      <div id="map"></div>
+      <div class="legend">
+        <div class="lramp"></div>
+        <div class="lrow"><span>0 · low relative exposure</span><span>PEI (batlow)</span><span>1 · high</span></div>
+      </div>
+      <div class="mrow">
+        <span class="mono" id="mlab">Annual</span>
+        <input type="range" id="mslider" min="0" max="12" value="0" style="flex:1" oninput="setMonth(+this.value)"/>
+        <button class="mini" onclick="shareLink(this)">Copy share link</button>
+      </div>
+      <div class="covbar" id="covbar"></div>
+      <div class="lrow"><span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span></div>
+      <div class="lrow" style="margin-top:2px"><span>coverage — observations per month, all countries (slide to recolour observed cells)</span></div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <div class="chead"><span class="ctitle">Layers · GEE status</span><span class="cbadge" id="tstat">checking…</span></div>
+        <div class="lorow">
+          <label><input type="checkbox" id="ck_pei" checked onchange="togglePEI(this.checked)"/> PEI surface (GEE)</label>
+          <label><input type="checkbox" id="ck_cells" checked onchange="toggleCells(this.checked)"/> Observed cells</label>
+          <label><input type="checkbox" id="ck_dist" onchange="toggleDistricts(this.checked)"/> District exposure vulnerability (SSA)</label>
+        </div>
+        <div class="lorow">
+          <label><input type="radio" name="bm" value="light" checked onchange="setBase('light')"/> Light</label>
+          <label><input type="radio" name="bm" value="dark" onchange="setBase('dark')"/> Dark</label>
+          <label><input type="radio" name="bm" value="sat" onchange="setBase('sat')"/> Satellite</label>
+        </div>
+        <p class="small" style="margin-top:8px">PEI overlay opacity</p>
+        <input type="range" id="opa" min="0" max="100" value="80" oninput="peiLayer.setOpacity(this.value/100);pushHash()"/>
+        <p class="small" style="margin-top:8px">GEE <b>getMapId</b> tile URLs expire after hours–days. If the layer goes blank, regenerate
+        (<span class="mono">python3 scripts/gee_pei_serve_prototype.py</span>) and paste the fresh URL:</p>
+        <input type="text" id="turl" spellcheck="false"/>
+        <button class="apply" onclick="applyTiles()">Apply tile URL</button>
+        <p class="small mono" id="tgen" style="margin-top:6px"></p>
+      </div>
+      <div class="card">
+        <div class="chead"><span class="ctitle">Selected location — monthly PEI climatology</span><span class="cbadge">click map</span></div>
+        <p class="small" id="selinfo">Click the map: the nearest <b>observed cell</b> (≤15 km) charts its monthly PEI
+        climatology below, from real monitor data. The GEE overlay covers <b>The Gambia</b> (serving demo).</p>
+        <div style="height:170px;margin-top:8px"><canvas id="cSel"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="chead"><span class="ctitle">Model</span><span class="cbadge">lean SuperLearner</span></div>
+        <p class="small"><b>PEI</b> = predicted log10(1+PM2.5) mapped to [0,1] (fixed ceiling 500 µg/m³; ECDF variant for
+        cross-country comparability). Stack = non-negative ridge over leave-locations-out OOF of
+        <b>RF · GBM · GWR · GNN</b>. Same tile URL also loads in QGIS as an XYZ layer.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== VALIDATION ===================== -->
+<div class="panel" id="pval">
+  <div class="grid">
+    <div class="card">
+      <div class="chead"><span class="ctitle">Interpolation vs extrapolation — RF, this week's runs</span><span class="cbadge">ρ on log10(1+PM2.5) · held-out real stations</span></div>
+      <div class="chartbox"><canvas id="cVal"></canvas></div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <div class="chead"><span class="ctitle">Interpolating the label fails</span><span class="cbadge">pseudo-label experiment</span></div>
+        <div class="chartbox" style="height:230px"><canvas id="cIdw"></canvas></div>
+        <p class="small" style="margin-top:8px">IDW-kriging PM2.5 itself (team-proposed) <b>collapses under extrapolation</b>;
+        the covariate model wins everywhere. Adding kriged pseudo-labels changed skill by only −0.006…+0.018 —
+        <b>documented negative result</b>: the relationship-based model stands.</p>
+      </div>
+      <div class="card">
+        <div class="chead"><span class="ctitle">Reading the gap</span></div>
+        <p class="small">Interpolation (~0.80 pooled) is the optimistic bound — nearby-station leakage and climatology help.
+        Spatial-block extrapolation (~0.35) is the honest deployment number. The gap is a <b>monitoring-density</b> problem,
+        not a features problem: 7 activated predictors moved sparse Uganda +0.08 ρ but dense countries ~0.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TRANSFER ===================== -->
+<div class="panel" id="ptra">
+  <div class="grid">
+    <div class="card">
+      <div class="chead"><span class="ctitle">Cross-country transfer — zero-shot fails, adaptation recovers</span><span class="cbadge">ρ at target country</span></div>
+      <div class="chartbox"><canvas id="cTra"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chead"><span class="ctitle">Deployment recipe</span></div>
+      <p class="small">
+        <b>1.</b> Never ship a foreign model zero-shot — rank skill collapses (ρ ≤ 0.26).<br/><br/>
+        <b>2.</b> A small in-country monitor campaign + adaptation recovers most skill
+        (Gambia 0.08→0.85; Mozambique 0.24→0.69; Kenya 0.18→0.60; Uganda 0.26→0.34).<br/><br/>
+        <b>3.</b> South Africa (n≈33 usable cells) is below the adaptation floor — grow the network first.<br/><br/>
+        <b>Implication:</b> new-country rollout = deploy pipeline + seed monitors + adapt, in that order.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== STACK ===================== -->
+<div class="panel" id="pstk">
+  <div class="grid">
+    <div class="card">
+      <div class="chead"><span class="ctitle">Per-learner OOF ρ under spatial-block folds</span><span class="cbadge">fusion-NN experiment · Jul 2026</span></div>
+      <div class="chartbox"><canvas id="cStk"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chead"><span class="ctitle">Does a fusion-NN earn a seat?</span><span class="cbadge">honest answer: yes, in the harsh regime</span></div>
+      <table>
+        <tr><th>Country</th><th>Stack ρ</th><th>+FusionNN</th><th>Δρ</th><th>NN weight</th></tr>
+        <tr><td>Gambia</td><td class="mono">0.595</td><td class="mono">0.612</td><td class="mono pos">+0.017</td><td class="mono">0.283</td></tr>
+        <tr><td>Kenya</td><td class="mono">0.148</td><td class="mono">0.189</td><td class="mono pos">+0.041</td><td class="mono">0.464</td></tr>
+        <tr><td>Mozambique</td><td class="mono">0.224</td><td class="mono">0.265</td><td class="mono pos">+0.041</td><td class="mono">0.453</td></tr>
+        <tr><td>Uganda</td><td class="mono">0.430</td><td class="mono">0.436</td><td class="mono pos">+0.006</td><td class="mono">0.207</td></tr>
+      </table>
+      <p class="small" style="margin-top:10px">Under spatial-block (extrapolation-like) folds the multi-branch NN is the
+      <b>best single learner in Kenya & Mozambique</b> and the non-negative stack gives it real weight. Gains are modest
+      in absolute terms — candidate 5th member, pending the full leave-locations-out re-run.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ABOUT ===================== -->
+<div class="panel" id="pabt">
+  <div class="grid">
+    <div class="card">
+      <div class="chead"><span class="ctitle">What CHEAQI-PEI is</span></div>
+      <p class="small">
+        A <b>relationship-based geospatial composite</b>: we learn covariate→PM2.5 relationships at monitored cells
+        (satellite AOD, land use, meteorology, terrain, emissions proxies — 32 predictors), predict wall-to-wall on a
+        100 m grid, and map predictions onto a bounded 0–1 <b>Personal Exposure Indicator</b>.<br/><br/>
+        <b>Data:</b> dense-spatial personal monitors (Gambia, Kenya, Mozambique), SAAQIS reference stations (South Africa),
+        AirQo dense-temporal stations (Uganda) — 7,132 labelled 100 m cells.<br/><br/>
+        <b>PEI forms:</b> absolute <span class="mono">clip(s/log10(501), 0, 1)</span> — ceiling justified by Saharan-dust
+        episodes reaching ~800 µg/m³ in Gambia — and a fixed-reference ECDF form (bounded, full-range, cross-country
+        comparable, preserves ρ/R²).<br/><br/>
+        <b>Serving:</b> the trained model is exported to an <span class="mono">ee.Classifier</span> and evaluated inside
+        Google Earth Engine; this dashboard, QGIS, and any web map consume the same XYZ tile URL — no raster downloads.
+      </p>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <div class="chead"><span class="ctitle">Validation framework</span></div>
+        <p class="small"><b>Four regimes, always reported together:</b> interpolation (leave-locations-out),
+        extrapolation (spatial blocks), cross-country transfer (zero-shot vs adapted), seasonal. Confidence intervals are
+        <b>spatial-block bootstrap</b> (~4× wider than naive iid — we report the wide ones).</p>
+      </div>
+      <div class="card">
+        <div class="chead"><span class="ctitle">Conventions</span></div>
+        <p class="small">log10(1+x) everywhere · per-country reporting · colour maps: Fabio Crameri's
+        <b>Scientific colour maps</b> (batlow / vik / romaO / batlowS / oslo) — perceptually uniform, CVD-safe
+        (Crameri 2018, doi:10.5281/zenodo.1243862).</p>
+      </div>
+      <div class="card">
+        <div class="chead"><span class="ctitle">Roadmap</span></div>
+        <p class="small"><b>Open:</b> ▸ FusionNN 5th-member confirmation (leave-locations-out) · ▸ GEE exact-match
+        32-feature serving · ▸ dwell-time exposure hotspots (awaiting GPS data) · ▸ ambient-station calibration
+        (awaiting station CSV).<br/><br/><b>Shipped:</b> 32-feature atlas notebook (executed, all figures) ·
+        S2/WorldCover & kriged-pseudo-label experiments (documented negative results) · this dashboard v2 —
+        time slider + coverage bar, click-to-timeseries at observed cells, layer catalogue, share links.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>CHEAQI · Composite Health-Environment Air Quality Indicator — Personal Exposure Indicator · PALS · Midlands State University · model in Google Earth Engine (ee-cheaqi) · Scientific colour maps © F. Crameri</footer>
+
+<script src="pei_cells.js"></script>
+<script>
+/* ---------- tabs ---------- */
+const panels={}; document.querySelectorAll('.panel').forEach(p=>panels[p.id]=p);
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  Object.values(panels).forEach(p=>p.classList.remove('show'));
+  panels[t.dataset.p].classList.add('show');
+  if(t.dataset.p==='pmap') setTimeout(()=>map.invalidateSize(),50);
+});
+
+/* ---------- shared state from the URL hash (share links) ---------- */
+const H=new URLSearchParams(location.hash.slice(1));
+const S={lat:+(H.get('lat')||13.45),lon:+(H.get('lon')||-15.3),z:+(H.get('z')||8),
+         m:Math.min(12,Math.max(0,+(H.get('m')||0))),o:Math.min(100,Math.max(0,+(H.get('o')||80))),
+         b:H.get('b')||'light',cells:H.get('cells')!=='0',pei:H.get('pei')!=='0'};
+
+/* ---------- map: basemap catalogue + GEE overlay ---------- */
+const TILE_URL="https://earthengine.googleapis.com/v1/projects/ee-cheaqi/maps/1d5607ceaa4ab9e364604308788a9db7-ca8833e1befe4fa8d50a3b531b9e42e0/tiles/{z}/{x}/{y}";
+document.getElementById('turl').value=TILE_URL;
+const map=L.map('map').setView([S.lat,S.lon],S.z);
+const BASES={
+  light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}),
+  dark:L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}),
+  sat:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri World Imagery',maxZoom:19})};
+let baseName=(S.b in BASES)?S.b:'light'; BASES[baseName].addTo(map);
+const bmRadio=document.querySelector(`input[name=bm][value=${baseName}]`); if(bmRadio)bmRadio.checked=true;
+function setBase(n){map.removeLayer(BASES[baseName]);baseName=n;BASES[n].addTo(map);BASES[n].bringToBack();pushHash();}
+
+let peiLayer=L.tileLayer(TILE_URL,{opacity:S.o/100,attribution:'CHEAQI PEI — Google Earth Engine'});
+if(S.pei)peiLayer.addTo(map);
+document.getElementById('opa').value=S.o; document.getElementById('ck_pei').checked=S.pei;
+function togglePEI(on){on?peiLayer.addTo(map):map.removeLayer(peiLayer);pushHash();}
+function applyTiles(){
+  const u=document.getElementById('turl').value.trim();
+  const on=map.hasLayer(peiLayer); map.removeLayer(peiLayer);
+  peiLayer=L.tileLayer(u,{opacity:document.getElementById('opa').value/100,
+    attribution:'CHEAQI PEI — Google Earth Engine'});
+  if(on)peiLayer.addTo(map);
+  checkTiles(u);
+}
+function checkTiles(u){
+  const probe=u.replace('{z}','8').replace('{x}','117').replace('{y}','120');
+  const img=new Image(); const el=document.getElementById('tstat');
+  el.textContent='checking…';
+  img.onload=()=>{el.textContent='LIVE';el.style.color='#15803d'};
+  img.onerror=()=>{el.textContent='EXPIRED — paste new URL';el.style.color='#b91c1c'};
+  img.src=probe;
+}
+/* near-real-time: tiles.json is re-minted server-side by cron (scripts/refresh_atlas_tiles.py);
+   the page always picks up the freshest GEE tile URL, falling back to the baked one. */
+(async function loadTileConfig(){
+  try{
+    const r=await fetch('tiles.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw 0;
+    const j=await r.json();
+    if(j.url){document.getElementById('turl').value=j.url;applyTiles();}
+    else checkTiles(TILE_URL);
+    if(j.generated)document.getElementById('tgen').textContent=
+      'tile URL auto-refreshed '+new Date(j.generated).toLocaleString()+' · '+(j.refresh||'');
+  }catch(e){checkTiles(TILE_URL);}
+})();
+
+/* ---------- observed cells: batlow-coloured monthly climatology (pei_cells.js) ---------- */
+const HAVE_CELLS=(typeof CELLS!=='undefined');
+const B9=['#011959','#114360','#226061','#4d734d','#828231','#c09036','#f29d6d','#fdb4b6','#faccfa'];
+const B9RGB=B9.map(h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
+function batlow(t){t=Math.max(0,Math.min(1,t));const x=t*(B9RGB.length-1),i=Math.min(Math.floor(x),B9RGB.length-2),f=x-i,a=B9RGB[i],b=B9RGB[i+1];
+  return `rgb(${Math.round(a[0]+f*(b[0]-a[0]))},${Math.round(a[1]+f*(b[1]-a[1]))},${Math.round(a[2]+f*(b[2]-a[2]))})`;}
+const MN=['Annual','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let month=S.m, markers=[], selChart=null;
+const cellLayer=L.layerGroup();
+function cellVal(i){const p=CELLS.p[i];if(month===0){let s=0,n=0;for(const v of p)if(v!==null){s+=v;n++;}return n?s/n:null;}return p[month-1];}
+function paintCells(){markers.forEach((m,i)=>{const v=cellVal(i);
+  v===null?m.setStyle({fillColor:'#9aa4ad',fillOpacity:.25,radius:2}):m.setStyle({fillColor:batlow(v),fillOpacity:.85,radius:3});});}
+if(HAVE_CELLS){
+  const canvasR=L.canvas({padding:.3});
+  markers=CELLS.lat.map((la,i)=>{
+    const m=L.circleMarker([la,CELLS.lon[i]],{renderer:canvasR,radius:3,stroke:false,fillColor:'#888',fillOpacity:.8});
+    m.on('click',ev=>{L.DomEvent.stop(ev);selectCell(i);}); cellLayer.addLayer(m); return m;});
+  paintCells(); if(S.cells)cellLayer.addTo(map);
+  /* coverage bar: observations per month across all countries */
+  const covTot=Array.from({length:12},(_,m)=>Object.values(CELLS.cov).reduce((s,a)=>s+a[m],0));
+  const covMax=Math.max(...covTot), cb=document.getElementById('covbar');
+  covTot.forEach((t,m)=>{const s=document.createElement('span');
+    s.style.height=(2+30*Math.sqrt(t/covMax))+'px'; s.title=`${MN[m+1]}: ${t.toLocaleString()} observations`; cb.appendChild(s);});
+}
+document.getElementById('ck_cells').checked=S.cells;
+function toggleCells(on){if(!HAVE_CELLS)return;on?cellLayer.addTo(map):map.removeLayer(cellLayer);pushHash();}
+function setMonth(m){month=m;document.getElementById('mlab').textContent=MN[m];
+  const cb=document.getElementById('covbar');
+  [...cb.children].forEach((s,i)=>s.classList.toggle('on',m>0&&i===m-1));
+  if(HAVE_CELLS)paintCells(); pushHash();}
+document.getElementById('mslider').value=month; setMonth(month);
+
+/* ---------- click -> nearest observed cell -> monthly climatology chart ---------- */
+function selectCell(i){
+  const cn=CELLS.countries[CELLS.c[i]], p=CELLS.p[i], nm=p.filter(v=>v!==null).length;
+  document.getElementById('selinfo').innerHTML=
+    `<b>${cn}</b> observed cell · <span class="mono">${CELLS.lat[i].toFixed(4)}, ${CELLS.lon[i].toFixed(4)}</span> · ${nm}/12 months observed`;
+  if(selChart)selChart.destroy();
+  selChart=new Chart(document.getElementById('cSel'),{type:'line',
+    data:{labels:MN.slice(1),datasets:[{data:p,borderColor:'#1a4a8a',backgroundColor:'rgba(26,74,138,.12)',
+      fill:true,spanGaps:false,pointRadius:4,pointBackgroundColor:p.map(v=>v===null?'#ccc':batlow(v))}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:1,title:{display:true,text:'PEI climatology'}}}}});
+  const v=cellVal(i);
+  L.popup().setLatLng([CELLS.lat[i],CELLS.lon[i]]).setContent(
+    `<span style="font-family:'IBM Plex Mono',monospace;font-size:11px">${cn} · PEI ${month===0?'annual':MN[month]}: ${v===null?'–':v.toFixed(2)}</span>`).openOn(map);
+}
+map.on('click',e=>{
+  if(!HAVE_CELLS)return;
+  const la=e.latlng.lat,lo=e.latlng.lng,cs=Math.cos(la*Math.PI/180);
+  let best=-1,bd=Infinity;
+  CELLS.lat.forEach((cla,i)=>{const dy=(cla-la)*111.32,dx=(CELLS.lon[i]-lo)*111.32*cs,d=dx*dx+dy*dy;if(d<bd){bd=d;best=i;}});
+  if(best>=0&&Math.sqrt(bd)<=15)selectCell(best);
+  else document.getElementById('selinfo').innerHTML=
+    `<b>Lat:</b> <span class="mono">${la.toFixed(5)}</span> · <b>Lon:</b> <span class="mono">${lo.toFixed(5)}</span> — no observed cell within 15 km; the GEE overlay renders model PEI here.`;
+});
+
+/* ---------- district exposure-vulnerability index, sub-Saharan Africa (districts.geojson, loaded on demand) ---------- */
+/* Built without health outcomes from layers that exist for the whole region: exposure (annual PM2.5, dust, fire),
+   sensitivity (density, women 15-49, children under 5), adaptive capacity (travel time to health facility and city,
+   night lights). PCA weights, 0-1; black outlines mark significant High-High clusters. */
+let distLayer=null, distOn=H.get('dist')==='1';
+const DR=['#fff0f1','#f7b7bb','#e5646d','#c1121f','#8c0d17','#4d070d'];
+function distCol(v){if(v===null)return '#cccccc';const x=Math.max(0,Math.min(.9999,v))*(DR.length-1),i=Math.floor(x),f=x-i;
+  const h=a=>[parseInt(a.slice(1,3),16),parseInt(a.slice(3,5),16),parseInt(a.slice(5,7),16)],a=h(DR[i]),b=h(DR[i+1]);
+  return `rgb(${Math.round(a[0]+f*(b[0]-a[0]))},${Math.round(a[1]+f*(b[1]-a[1]))},${Math.round(a[2]+f*(b[2]-a[2]))})`;}
+const CLN={HH:'High-High cluster',LL:'Low-Low cluster',HL:'High-Low outlier',LH:'Low-High outlier',ns:'not in a significant cluster'};
+async function toggleDistricts(on){
+  if(on&&!distLayer){
+    try{const r=await fetch('districts.geojson',{cache:'force-cache'});const g=await r.json();
+      distLayer=L.geoJSON(g,{style:f=>({fillColor:distCol(f.properties.i),fillOpacity:.72,
+          color:f.properties.cl==='HH'?'#1c1c1c':'#ffffff',weight:f.properties.cl==='HH'?1.1:.25}),
+        onEachFeature:(f,l)=>{const p=f.properties;l.bindPopup(
+          `<div style="font-family:'IBM Plex Sans',sans-serif;font-size:12px"><b>${p.n}</b>, ${p.a} · ${p.c}<br>`+
+          `Vulnerability index <b>${p.i??'–'}</b> (0-1) · ${CLN[p.cl]}<br>`+
+          `PM<sub>2.5</sub>, population-weighted annual mean: ${p.pm??'–'} µg/m³<br>`+
+          `Travel time to a health facility: ${p.hc??'–'} min · children under 5: ${p.u5??'–'}%<br>`+
+          `People: ~${p.p??'–'} thousand<br><span style="color:#666">Exposure sub-index ${p.ex??'–'} · adaptive-capacity deficit ${p.ac??'–'}</span></div>`);}});
+    }catch(e){document.getElementById('ck_dist').checked=false;return;}
+  }
+  if(distLayer){on?distLayer.addTo(map):map.removeLayer(distLayer);}
+  distOn=on; pushHash();
+}
+document.getElementById('ck_dist').checked=distOn; if(distOn)toggleDistricts(true);
+
+/* ---------- share links: view/date/layers encoded in the URL ---------- */
+function pushHash(){
+  const c=map.getCenter();
+  history.replaceState(null,'',`#lat=${c.lat.toFixed(4)}&lon=${c.lng.toFixed(4)}&z=${map.getZoom()}&m=${month}`+
+    `&o=${document.getElementById('opa').value}&b=${baseName}&cells=${map.hasLayer(cellLayer)?1:0}&pei=${map.hasLayer(peiLayer)?1:0}&dist=${(typeof distOn!=='undefined'&&distOn)?1:0}`);
+}
+map.on('moveend',pushHash); pushHash();
+function shareLink(btn){pushHash();navigator.clipboard.writeText(location.href).then(()=>{
+  const t=btn.textContent;btn.textContent='Copied ✓';setTimeout(()=>btn.textContent=t,1500);});}
+
+/* ---------- charts (batlowS palette) ---------- */
+const BS=['#011959','#828231','#226061','#f19d6b','#4d734d','#faccfa'];
+/* tidyplots-inspired house defaults (see scripts/plot_style.py) */
+Chart.defaults.font.family="'IBM Plex Sans',sans-serif"; Chart.defaults.font.size=11;
+Chart.defaults.color="#22303a"; Chart.defaults.borderColor="#ececec";
+Chart.defaults.plugins.legend.labels.boxWidth=12; Chart.defaults.plugins.legend.labels.boxHeight=12;
+Chart.defaults.scale.grid.drawTicks=true; Chart.defaults.scale.grid.tickLength=3;
+Chart.defaults.scale.grid.color="rgba(0,0,0,0)"; Chart.defaults.scale.grid.drawBorder=true;
+Chart.defaults.scale.border={color:"#333333",width:1}; Chart.defaults.scale.ticks.color="#333333";
+const mk=(id,cfg)=>new Chart(document.getElementById(id),cfg);
+let made={};
+function lazyCharts(){
+  if(!made.cVal){made.cVal=mk('cVal',{type:'bar',data:{
+    labels:['Gambia','Kenya','Mozambique'],
+    datasets:[{label:'Interpolation (leave-locations-out)',data:[0.789,0.556,0.692],backgroundColor:BS[2]},
+              {label:'Extrapolation (spatial blocks)',data:[0.597,0.187,0.258],backgroundColor:BS[3]}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:1,title:{display:true,text:'Spearman ρ'}}}}});}
+  if(!made.cIdw){made.cIdw=mk('cIdw',{type:'bar',data:{
+    labels:['Gambia','Kenya','Mozambique'],
+    datasets:[{label:'IDW of PM2.5 only',data:[0.459,0.049,0.177],backgroundColor:BS[5]},
+              {label:'Covariate model (RF)',data:[0.597,0.187,0.258],backgroundColor:BS[0]}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+      scales:{y:{min:-0.1,max:0.7,title:{display:true,text:'ρ · extrapolation'}}}}});}
+  if(!made.cTra){made.cTra=mk('cTra',{type:'bar',data:{
+    labels:['Gambia','Kenya','Mozambique','Uganda'],
+    datasets:[{label:'Zero-shot transfer',data:[0.08,0.18,0.24,0.26],backgroundColor:BS[3]},
+              {label:'After adaptation',data:[0.85,0.60,0.69,0.34],backgroundColor:BS[2]}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:-0.1,max:1,title:{display:true,text:'Spearman ρ'}}}}});}
+  if(!made.cStk){made.cStk=mk('cStk',{type:'bar',data:{
+    labels:['Gambia','Kenya','Mozambique','Uganda'],
+    datasets:[{label:'RF',data:[0.583,0.156,0.224,0.424],backgroundColor:BS[0]},
+              {label:'GBM',data:[0.542,0.123,0.147,0.421],backgroundColor:BS[1]},
+              {label:'GWR',data:[0.474,0.048,0.048,0.187],backgroundColor:BS[2]},
+              {label:'GNN',data:[0.371,0.107,0.163,0.192],backgroundColor:BS[3]},
+              {label:'FusionNN',data:[0.557,0.192,0.264,0.343],backgroundColor:BS[4]}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:0.7,title:{display:true,text:'OOF ρ (spatial blocks)'}}}}});}
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setTimeout(lazyCharts,60)));
+lazyCharts();
+</script>
+</body>
+</html>

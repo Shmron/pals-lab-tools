@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeoAI: Air Quality Explorer | Place Alert Labs</title>
+<meta name="description" content="A free, self-paced course for high school students. Is the air around you making you sick? Learn what's in the air, how satellites see it, check live air quality anywhere, and ask a real AI assistant about it yourself. No coding required.">
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --ink:#12213B; --paper:#F7F5F0; --text:#1C2A3F; --muted:#5C6B80; --line:rgba(18,33,59,0.12);
+    --accent:#2F8F8C; --correct:#1E8A5F; --wrong:#C0392B; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:'Source Sans 3',sans-serif;background:var(--paper);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--ink);margin:0;}
+  p{margin:0;}
+  button{font-family:inherit;cursor:pointer;}
+  textarea,input{font-family:inherit;}
+  [hidden]{display:none !important;}
+
+  header.app-header{position:sticky;top:0;z-index:50;background:rgba(247,245,240,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+  .header-inner{max-width:900px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .brand{cursor:pointer;display:flex;flex-direction:column;line-height:1.1;}
+  .brand-back{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .brand-back:hover{color:var(--ink);}
+  .brand-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;color:var(--ink);white-space:nowrap;}
+  .brand-sub{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+  .progress-wrap{display:flex;align-items:center;gap:8px;}
+  .progress-track{width:90px;height:8px;border-radius:20px;background:var(--line);overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:20px;transition:width .4s ease;}
+  .progress-label{font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;}
+
+  main{max-width:700px;margin:0 auto;padding:56px 24px 120px;}
+
+  .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:14px;}
+  .back-link{cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:24px;}
+  .back-link:hover{color:var(--ink);}
+
+  h1.page-title{font-size:34px;line-height:1.2;margin-bottom:16px;}
+  h1.stop-title{font-size:30px;line-height:1.25;margin-bottom:16px;}
+  .lede{font-size:16px;line-height:1.7;color:var(--muted);max-width:580px;margin-bottom:36px;}
+  p.body-copy{font-size:15px;line-height:1.7;color:var(--text);margin-bottom:18px;}
+  p.body-copy:last-child{margin-bottom:0;}
+  p.small-muted{font-size:13px;line-height:1.6;color:var(--muted);}
+
+  .module-list{display:flex;flex-direction:column;gap:14px;}
+  .module-card{display:flex;align-items:center;gap:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px;transition:opacity .2s,border-color .2s;}
+  .module-card.unlocked{cursor:pointer;}
+  .module-card.unlocked:hover{border-color:var(--ink);}
+  .module-card.locked{opacity:.55;}
+  .badge-circle{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;}
+  .m-body{flex:1;}
+  .m-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+  .m-blurb{font-size:14px;color:var(--muted);}
+  .m-status{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+
+  /* Health cards (Module 1) */
+  .health-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+  .health-card{border:1px solid var(--line);border-radius:16px;padding:20px;background:#fff;}
+  .health-swatch{width:34px;height:34px;border-radius:10px;margin-bottom:12px;}
+  .health-card-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .health-card-body{font-size:13px;line-height:1.55;color:var(--muted);}
+
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;}
+  .chip{font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;background:#F2F1EC;color:var(--ink);border:1px solid var(--line);}
+
+  .aside-card{border:1px dashed var(--accent);border-radius:16px;padding:18px 20px;background:#F2F1EC;margin-bottom:20px;}
+  .aside-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:8px;}
+  .aside-card p{font-size:14px;line-height:1.6;color:var(--text);}
+
+  .deeper{border:1.5px solid var(--accent);border-radius:16px;background:linear-gradient(135deg,#fff 0%,#F2F1EC 100%);margin-bottom:20px;overflow:hidden;box-shadow:0 2px 10px rgba(47,143,140,0.1);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
+  .deeper:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(47,143,140,0.22);border-color:var(--ink);}
+  .deeper summary{cursor:pointer;padding:17px 20px;display:flex;align-items:center;gap:10px;list-style:none;}
+  .deeper summary::-webkit-details-marker{display:none;}
+  .deeper summary::before{content:'✦';color:var(--accent);font-size:14px;}
+  .deeper[open] summary{border-bottom:1px solid var(--line);}
+  .deeper-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff;background:var(--accent);padding:5px 10px;border-radius:20px;white-space:nowrap;}
+  .deeper-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:var(--ink);flex:1;}
+  .deeper-chevron{margin-left:auto;flex-shrink:0;color:var(--accent);font-size:12px;transition:transform .25s ease;}
+  .deeper[open] .deeper-chevron{transform:rotate(180deg);}
+  .deeper-body{padding:2px 20px 20px;font-size:14px;line-height:1.65;color:var(--text);}
+  .deeper-body strong{color:var(--ink);}
+  @keyframes deeperPulse{0%,100%{box-shadow:0 2px 10px rgba(47,143,140,0.1);}50%{box-shadow:0 2px 18px rgba(47,143,140,0.4);}}
+  .deeper:not([open]){animation:deeperPulse 2.6s ease-in-out .5s 2;}
+  @media (prefers-reduced-motion: reduce){ .deeper{animation:none !important;} }
+
+  textarea.reflect{width:100%;font-size:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;resize:vertical;color:var(--text);background:#fff;margin-bottom:24px;}
+
+  /* Compare task (Module 1) */
+  .compare-row{display:flex;flex-direction:column;gap:10px;margin-bottom:10px;}
+  .compare-card{cursor:pointer;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#fff;font-size:14px;line-height:1.5;color:var(--text);}
+  .compare-card.correct{border-color:var(--correct);background:#EAF6EF;}
+  .compare-card.wrong{border-color:var(--wrong);background:#FBEAEA;}
+  .compare-card.disabled{cursor:default;}
+
+  /* Spark flip cards (fun facts / guesses) */
+  .spark-card{perspective:1000px;margin-bottom:20px;cursor:pointer;height:130px;box-shadow:0 8px 22px rgba(18,33,59,0.18);border-radius:16px;transition:transform .2s ease,box-shadow .2s ease;animation:sparkHint 2.6s ease-in-out .6s 1;}
+  .spark-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(18,33,59,0.26);}
+  .spark-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;}
+  .spark-card.flipped .spark-inner{transform:rotateY(180deg);}
+  .spark-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;justify-content:center;}
+  .spark-front{background:var(--ink);color:#fff;}
+  .spark-back{background:var(--accent);color:#fff;transform:rotateY(180deg);}
+  .spark-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.85;margin-bottom:8px;}
+  .spark-text{font-size:14px;line-height:1.5;font-weight:600;}
+  .spark-tap{font-size:12px;opacity:.95;margin-top:8px;font-weight:700;display:inline-flex;align-items:center;gap:5px;}
+  .spark-tap-icon{display:inline-block;animation:sparkSpin 3s linear infinite;}
+  @keyframes sparkHint{0%,100%{transform:rotate(0deg);}15%{transform:rotate(-2.5deg);}30%{transform:rotate(2.5deg);}45%{transform:rotate(-1.5deg);}60%{transform:rotate(1deg);}75%{transform:rotate(0deg);}}
+  @keyframes sparkSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .spark-card{animation:none !important;} .spark-tap-icon{animation:none !important;} }
+
+  /* Glossary (Module 2) */
+  .glossary-list{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;}
+  .glossary-row{border:1px solid var(--line);border-radius:16px;padding:18px 22px;background:#fff;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;}
+  .glossary-term{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--accent);min-width:100px;}
+  .glossary-def{font-size:14px;line-height:1.55;color:var(--text);flex:1;min-width:200px;}
+
+  .gauge-card{border:1px solid var(--line);border-radius:16px;padding:20px 22px;background:#fff;margin-bottom:24px;}
+  .gauge-track{position:relative;height:10px;border-radius:6px;background:linear-gradient(90deg,#2F8F8C,#E2C744 40%,#E2725B 65%,#C0392B 100%);margin:36px 6px 10px;}
+  .gauge-mark{position:absolute;top:-26px;transform:translateX(-50%);text-align:center;width:90px;}
+  .gauge-dot{position:absolute;top:-3px;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--ink);}
+  .gauge-mark-label{font-size:10px;font-weight:700;color:var(--ink);white-space:nowrap;}
+  .gauge-mark-val{font-size:9px;color:var(--muted);white-space:nowrap;}
+  .gauge-line{position:absolute;top:-16px;bottom:-16px;width:2px;background:var(--ink);}
+
+  /* Signup gate */
+  .signup-input{width:100%;font-size:14px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;color:var(--text);}
+
+  /* Live air check (Module 2) */
+  .live-check-row{display:flex;gap:10px;margin-bottom:4px;}
+  .live-check-row .live-check-input{flex:1;font-size:14px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;color:var(--text);}
+  .live-result{border:2px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:14px;background:#fff;}
+  .live-result-place{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:4px;}
+  .live-result-value{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;margin-bottom:6px;}
+  .live-result-note{font-size:13px;color:var(--muted);}
+
+  /* Trend + forecast charts */
+  .trend-wrap{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+  .trend-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;}
+  .trend-svg{display:block;overflow:visible;}
+  .trend-legend{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;}
+  .trend-legend-mid{font-weight:700;color:var(--ink);}
+  td.spark-td{padding:6px 10px;text-align:center;}
+  .spark-td .trend-svg{width:84px;}
+
+  .card{border:1px solid var(--line);border-radius:20px;padding:24px;margin-bottom:24px;background:var(--card);}
+  .card-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:16px;}
+
+  .quiz-q{margin-bottom:22px;}
+  .quiz-q-text{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:10px;}
+  .quiz-opts{display:flex;flex-direction:column;gap:8px;}
+  .quiz-opt{cursor:pointer;padding:11px 15px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:14px;color:var(--text);}
+  .quiz-opt.selected{border-color:var(--ink);background:#F2F1EC;}
+  .quiz-opt.correct{border-color:var(--correct);background:#EAF6EF;}
+  .quiz-opt.wrong{border-color:var(--wrong);background:#FBEAEA;}
+  .quiz-opt.disabled{cursor:default;}
+  .score-msg{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:16px;}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:12px 24px;border:none;border-radius:20px;font-family:inherit;}
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-accent{background:var(--accent);color:#fff;}
+  .btn-outline{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+
+  /* Module 3 slider demo */
+  .demo-card{border:1px solid var(--line);border-radius:20px;padding:28px;margin-bottom:24px;}
+  .haze-row{display:flex;align-items:center;gap:16px;margin-bottom:24px;}
+  .sun-circle{width:48px;height:48px;border-radius:50%;background:#F2C744;flex-shrink:0;}
+  .haze-track{flex:1;height:60px;border-radius:10px;position:relative;overflow:hidden;background:#DCEFFB;}
+  .haze-fill{position:absolute;inset:0;background:#A9A18F;opacity:.12;}
+  .particle-field{position:absolute;inset:0;overflow:hidden;}
+  .particle{position:absolute;border-radius:50%;background:rgba(90,80,60,.65);animation-name:particleDrift;animation-iteration-count:infinite;animation-direction:alternate;animation-timing-function:ease-in-out;}
+  @keyframes particleDrift{from{transform:translate(0,0);}to{transform:translate(4px,-5px);}}
+  .sat-box{width:56px;height:40px;border-radius:6px;background:var(--ink);flex-shrink:0;}
+  .haze-readout{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:16px;flex-wrap:wrap;gap:6px;}
+  .haze-readout strong{color:var(--ink);}
+  input[type=range]{width:100%;margin-bottom:14px;accent-color:var(--accent);}
+
+  .mini-card-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+  .mini-card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;}
+  .mini-card-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .mini-card-body{font-size:12px;line-height:1.5;color:var(--muted);}
+
+  .callout-box{border:1px solid var(--accent);border-radius:16px;padding:20px 22px;background:#F2F1EC;font-size:14px;line-height:1.65;color:var(--text);margin-bottom:24px;}
+  .callout-box strong{color:var(--ink);}
+
+  .map-wrap{border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px;background:#EFEDE5;}
+  .map-caption{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;}
+  .map-box{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;}
+  .leaflet-container{font-family:'Source Sans 3',sans-serif;background:#E4E1D6;}
+  .map-tip{background:rgba(239,237,229,0.92) !important;border:none !important;box-shadow:none !important;font-size:10px !important;font-weight:700 !important;color:var(--ink) !important;padding:1px 6px !important;}
+  .map-tip::before{display:none !important;}
+  .map-loading{font-size:13px;color:var(--muted);padding:10px 2px;}
+
+  table.dataset-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;margin-bottom:24px;}
+  table.dataset-table thead tr{background:var(--ink);color:#fff;}
+  table.dataset-table th{text-align:right;padding:10px 14px;font-weight:600;}
+  table.dataset-table th:first-child{text-align:left;}
+  table.dataset-table td{padding:10px 14px;text-align:right;color:var(--text);border-top:1px solid var(--line);}
+  table.dataset-table td:first-child{text-align:left;font-weight:600;color:var(--ink);}
+  table.dataset-table tr.hi td{background:#F2F1EC;}
+  table.dataset-table td.flag-bad{color:var(--wrong);font-weight:700;}
+  table.dataset-table td.flag-ok{color:var(--correct);font-weight:700;}
+
+  /* Mission checklist (Module 4) */
+  .mission-list{display:flex;flex-direction:column;gap:10px;}
+  .mission-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:14px;color:var(--text);transition:background .35s ease,border-color .35s ease;}
+  .mission-item.done{background:#EAF6EF;border-color:var(--correct);color:var(--muted);text-decoration:line-through;}
+  .mission-check{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+  .mission-item.done .mission-check{background:var(--correct);color:#fff;}
+
+  .chat-card{border:1px solid var(--line);border-radius:20px;padding:24px;}
+  .chat-log{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;max-height:420px;overflow-y:auto;}
+  .chat-msg{max-width:85%;}
+  .chat-msg.user{align-self:flex-end;}
+  .chat-msg.assistant{align-self:flex-start;}
+  .chat-bubble{padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.6;white-space:pre-line;}
+  .chat-msg.user .chat-bubble{background:var(--ink);color:#fff;}
+  .chat-msg.assistant .chat-bubble{background:#F2F1EC;color:var(--text);}
+  .chat-thinking{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:16px;}
+  .suggested-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .suggested-chip{cursor:pointer;font-size:12px;font-weight:600;padding:8px 14px;border:1px solid var(--line);border-radius:20px;color:var(--ink);background:#fff;}
+  .suggested-chip:hover{border-color:var(--ink);}
+  .chat-input-row{display:flex;gap:10px;}
+  .chat-input{flex:1;font-size:14px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;color:var(--text);}
+  .chat-send{background:var(--ink);color:#fff;font-weight:700;font-size:14px;padding:12px 22px;border:none;border-radius:14px;}
+  .chat-send:disabled{opacity:.5;cursor:not-allowed;}
+
+  .footer-tip{margin-top:28px;border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+  .footer-tip p{font-size:13px;color:var(--muted);max-width:400px;}
+  .footer-tip a.link-accent{color:var(--accent);font-weight:600;}
+
+  .cert-frame{border:1px solid var(--line);border-radius:24px;padding:64px 48px 84px;text-align:center;background:#fff;position:relative;overflow:hidden;}
+  .cert-wave-top{position:absolute;top:0;right:0;width:65%;height:160px;background:radial-gradient(circle at 100% 0%, rgba(47,143,140,0.14), transparent 70%);pointer-events:none;}
+  .cert-wave-bottom{position:absolute;bottom:0;left:0;width:100%;height:64px;background:linear-gradient(115deg, var(--ink) 0%, var(--accent) 100%);clip-path:ellipse(70% 100% at 25% 100%);opacity:.92;pointer-events:none;}
+  .cert-logo{height:38px;display:block;margin:0 auto 22px;position:relative;z-index:1;}
+  .cert-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:36px;color:var(--ink);letter-spacing:.01em;margin-bottom:2px;position:relative;z-index:1;}
+  .cert-title span{display:block;font-size:15px;letter-spacing:.25em;color:var(--accent);margin-top:4px;}
+  .cert-presented{font-size:14px;color:var(--muted);margin:26px 0 8px;position:relative;z-index:1;}
+  .cert-name-input{font-family:'Dancing Script',cursive;font-size:38px;font-weight:700;color:var(--accent);text-align:center;border:none;border-bottom:2px solid var(--line);padding:6px 0;margin-bottom:26px;width:340px;max-width:100%;background:transparent;position:relative;z-index:1;}
+  .cert-body{font-size:14px;line-height:1.7;color:var(--text);max-width:460px;margin:0 auto 36px;position:relative;z-index:1;}
+  .cert-sign-block{max-width:280px;margin:0 auto 30px;position:relative;z-index:1;}
+  .cert-signature{font-family:'Dancing Script',cursive;font-size:26px;color:var(--ink);margin-bottom:4px;}
+  .cert-signature-img{height:48px;margin-bottom:4px;}
+  .cert-sign-line{border-top:1px solid var(--line);margin:0 auto 8px;width:210px;}
+  .cert-sign-name{font-size:13px;font-weight:700;color:var(--ink);}
+  .cert-sign-title{font-size:11px;color:var(--muted);line-height:1.5;margin-top:3px;}
+  .cert-meta{display:flex;justify-content:center;gap:40px;font-size:13px;color:var(--muted);position:relative;z-index:1;}
+  .cert-note{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;}
+  @page{size:auto;margin:0;}
+  @media print{
+    html,body{margin:0;height:auto;}
+    header.app-header,.back-link,.footer-tip,.cert-note,.btn-row{display:none !important;}
+    main{padding:0;max-width:100%;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .cert-frame{break-inside:avoid;box-shadow:none;margin:0;padding:40px 36px 64px;}
+  }
+
+  @media (max-width:640px){
+    .health-grid,.mini-card-row{grid-template-columns:1fr;}
+    .cert-frame{padding:36px 20px 76px;}
+    .cert-meta{gap:24px;flex-wrap:wrap;}
+    .gauge-mark{width:56px;}
+    .gauge-mark-label{white-space:normal;line-height:1.15;}
+    .gauge-mark-val{font-size:8px;}
+    .live-check-row{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand" onclick="go('list')">
+      <a class="brand-back" href="/courses.html" onclick="event.stopPropagation()">← placealert.org/courses</a>
+      <span class="brand-title">GeoAI</span>
+      <span class="brand-sub">Air &amp; Health Explorers · Place Alert Labs</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-label" id="progress-label">0/4</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============ SIGNUP ============ -->
+<main id="view-signup" hidden>
+  <div class="eyebrow">Before You Start</div>
+  <h1 class="page-title">Quick Sign-Up</h1>
+  <p class="lede">Just so we know who's exploring, and so you can pick up where you left off. Takes 10 seconds, no password needed.</p>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:14px;max-width:420px;">
+      <input class="signup-input" id="signup-name" placeholder="Your name">
+      <input class="signup-input" id="signup-email" type="email" placeholder="Your email">
+      <input class="signup-input" id="signup-school" placeholder="Your school (optional)">
+      <p class="small-muted" id="signup-error" style="color:var(--wrong);" hidden></p>
+      <button class="btn btn-primary" onclick="submitSignup()">Start Course →</button>
+      <p class="small-muted">We only use this to track course progress and issue certificates. No spam, ever.</p>
+    </div>
+  </div>
+</main>
+
+<!-- ============ LIST VIEW ============ -->
+<main id="view-list" hidden>
+  <div class="eyebrow">Self-Paced · Free · Certificate on Completion</div>
+  <h1 class="page-title">Is the Air Around You Making You Sick?</h1>
+  <p class="lede">Air pollution isn't just uncomfortable, it's a real health risk, and some people feel it more than others. In four short stops, you'll learn what's actually in the air, check live air quality anywhere in the world, see how satellites help us track it, and ask a real AI assistant about it yourself.</p>
+  <div class="module-list" id="module-list"></div>
+</main>
+
+<!-- ============ STOP 1 - WHY IT MATTERS ============ -->
+<main id="view-m1" hidden>
+  <a class="back-link" onclick="go('list')">← All stops</a>
+  <div class="eyebrow">Stop 1</div>
+  <h1 class="stop-title">Why It Matters</h1>
+  <p class="body-copy">Bad air isn't just unpleasant, it can genuinely affect health. And it doesn't affect everyone the same way.</p>
+  <p class="body-copy">Here's the short version of why: the air you breathe carries tiny particles called PM2.5, so small they slip past your body's usual defenses and travel deep into your lungs, and from there into your bloodstream. Breathe in enough of them, often enough, and your body pays for it, your lungs and heart have to work harder, and if you're pregnant, it can affect the pregnancy too. None of that is visible in the moment. That's exactly why it needs data and science to see clearly, not just how the air looks or smells.</p>
+
+  <div class="health-grid" id="health-grid"></div>
+
+  <div class="aside-card">
+    <div class="aside-label">The Scale Of It</div>
+    <p>Air pollution is linked to roughly 7 million early deaths a year worldwide, and household air pollution from things like cooking smoke accounts for more than 4 million of those on its own, according to the World Health Organization. This isn't a rare or distant problem, it's one of the biggest environmental health risks on the planet.</p>
+  </div>
+
+  <div class="aside-card">
+    <div class="aside-label">This Happens Close to Home</div>
+    <div class="chip-row">
+      <span class="chip">Harare</span><span class="chip">Lagos</span><span class="chip">Nairobi</span><span class="chip">Kampala</span><span class="chip">and beyond</span>
+    </div>
+    <p>This isn't hypothetical, it's happening in neighborhoods across Africa right now. Place Alert Labs researchers study exactly this, in real cities, to figure out where to act first.</p>
+  </div>
+
+  <div class="aside-card">
+    <div class="aside-label">Did You Know?</div>
+    <p>The smoke from indoor cooking fires can sometimes make the air <em>inside</em> a home worse than the air outside. It's not just about traffic and factories.</p>
+  </div>
+
+  <details class="deeper">
+    <summary><span class="deeper-tag">Go Deeper</span><span class="deeper-title">How Do Researchers Know Where to Look First?</span><span class="deeper-chevron">▾</span></summary>
+    <div class="deeper-body">
+      <p>Nobody can put a sensor on every street. So GeoAI researchers train models to guess where air is likely worst, combining things like traffic density, cooking fuel type, and satellite haze readings, before a single sensor is ever installed there. It's less "detective with a magnifying glass" and more "pattern-spotter that checks every neighborhood at once, and never gets tired."</p>
+    </div>
+  </details>
+
+  <div class="spark-card" id="spark-m1" onclick="document.getElementById('spark-m1').classList.toggle('flipped')">
+    <div class="spark-inner">
+      <div class="spark-face spark-front">
+        <div class="spark-eyebrow">Guess</div>
+        <div class="spark-text">What share of African cities have zero official ground air-quality sensors?</div>
+        <div class="spark-tap"><span class="spark-tap-icon">&#8635;</span> Tap to flip &amp; reveal</div>
+      </div>
+      <div class="spark-face spark-back">
+        <div class="spark-eyebrow">Answer</div>
+        <div class="spark-text">Most of them. That huge gap is exactly the problem GeoAI is built to help fill.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Try This</div>
+    <p class="body-copy" style="margin-bottom:14px;">Which situation probably means breathing in more polluted air overall?</p>
+    <div class="compare-row" id="m1-compare"></div>
+    <p class="small-muted" id="m1-compare-feedback" hidden></p>
+  </div>
+
+  <p class="small-muted" style="margin-bottom:8px;">Optional, no right answer, nobody's grading this:</p>
+  <textarea class="reflect" rows="2" placeholder="Think of a place near you that might have worse air than another. What makes you think that?"></textarea>
+
+  <div class="card">
+    <div class="card-label">Quick Check</div>
+    <div id="m1-quiz"></div>
+    <div class="score-msg" id="m1-score" hidden></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="m1-submit" onclick="m1Submit()" disabled>Check My Answers</button>
+      <button class="btn btn-accent" id="m1-continue" onclick="completeModule('m1')" hidden>Next Stop ✓</button>
+      <button class="btn btn-outline" id="m1-retry" onclick="m1Retry()" hidden>Try Again</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ STOP 2 - KNOW YOUR AIR ============ -->
+<main id="view-m2" hidden>
+  <a class="back-link" onclick="go('list')">← All stops</a>
+  <div class="eyebrow">Stop 2</div>
+  <h1 class="stop-title">Know Your Air</h1>
+  <p class="body-copy">Five simple terms are all you need to talk about air quality like a scientist. Once you know these, every air-quality app, news report, and research paper starts making a lot more sense.</p>
+  <p class="body-copy" style="margin-bottom:24px;">The single most important measurement to track is your PM2.5 level, short for particulate matter 2.5 micrometers or smaller. It's what most air-quality guidelines, indexes, and the rest of this course are built around, so if you only remember one term, make it this one.</p>
+
+  <div class="glossary-list" id="glossary-list"></div>
+
+  <div class="gauge-card">
+    <div class="card-label" style="margin-bottom:6px;">Where Does a PM2.5 of 15 µg/m³ Sit?</div>
+    <p class="small-muted" style="margin-bottom:8px;">Here's roughly where a few real-world PM2.5 readings would land on the scale. The line marks the WHO guideline.</p>
+    <div class="gauge-track" id="gauge-track"></div>
+    <p class="small-muted">Anything past the line is considered a health concern by WHO standards.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Your Personal Air Quality Dashboard</div>
+    <p class="small-muted" style="margin-bottom:14px;">Check your own exact spot, live. Use your device's location, or type any city or town.</p>
+    <button class="btn btn-outline" style="margin-bottom:12px;" onclick="useMyLocation()">📍 Use My Location</button>
+    <div class="live-check-row">
+      <input class="live-check-input" id="live-check-input" placeholder="e.g. Harare, Bulawayo, your town..." onkeydown="if(event.key==='Enter')checkLiveAir()">
+      <button class="btn btn-primary" onclick="checkLiveAir()">Check</button>
+    </div>
+    <div id="live-check-result"></div>
+    <p class="small-muted" style="margin-top:10px;">Live data: <a class="link-accent" href="https://open-meteo.com/en/docs/air-quality-api" target="_blank" rel="noopener">Open-Meteo Air Quality API</a>, ground and satellite-blended estimates, updated hourly.</p>
+  </div>
+
+  <div class="spark-card" id="spark-m2" onclick="document.getElementById('spark-m2').classList.toggle('flipped')">
+    <div class="spark-inner">
+      <div class="spark-face spark-front">
+        <div class="spark-eyebrow">Did You Know?</div>
+        <div class="spark-text">Wildfire smoke can push PM2.5 to more than 10 times the WHO guideline.</div>
+        <div class="spark-tap"><span class="spark-tap-icon">&#8635;</span> Tap to flip &amp; reveal</div>
+      </div>
+      <div class="spark-face spark-back">
+        <div class="spark-eyebrow">Why It Matters</div>
+        <div class="spark-text">That is exactly why the "Wildfire smoke" mark on the gauge above sits so far past the line, and why satellites that watch for smoke plumes matter so much.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Quick Check</div>
+    <div id="m2-quiz"></div>
+    <div class="score-msg" id="m2-score" hidden></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="m2-submit" onclick="m2Submit()" disabled>Check My Answers</button>
+      <button class="btn btn-accent" id="m2-continue" onclick="completeModule('m2')" hidden>Next Stop ✓</button>
+      <button class="btn btn-outline" id="m2-retry" onclick="m2Retry()" hidden>Try Again</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ STOP 3 - EYES IN THE SKY ============ -->
+<main id="view-m3" hidden>
+  <a class="back-link" onclick="go('list')">← All stops</a>
+  <div class="eyebrow">Stop 3</div>
+  <h1 class="stop-title">Eyes in the Sky</h1>
+  <p class="body-copy">A satellite is just an object orbiting Earth, carrying instruments, not a spy camera. Some carry sensors that measure how much sunlight makes it through the atmosphere.</p>
+  <p class="body-copy">Most places, especially across Africa, don't have ground air-quality sensors on every street. Satellites give us coverage everywhere, even where there's no equipment on the ground at all.</p>
+  <p class="body-copy" style="margin-bottom:28px;">The catch: satellites don't measure PM2.5 directly, they measure AOD, and turning AOD into an estimated PM2.5 number takes calibration against the few real ground sensors that do exist. That's actual GeoAI work: teaching a model the relationship between what the satellite sees and what a ground sensor reads, then using that model to fill in every gap in between.</p>
+
+  <div class="demo-card">
+    <div class="card-label">Try It: Drag the Slider</div>
+    <div class="haze-row">
+      <div class="sun-circle"></div>
+      <div class="haze-track"><div class="haze-fill" id="haze-fill"></div><div class="particle-field" id="m3-particle-field"></div></div>
+      <div class="sat-box" id="m3-sat-box"></div>
+    </div>
+    <input type="range" min="0" max="100" value="30" id="m3-slider" oninput="m3Update()">
+    <div class="haze-readout">
+      <span>Particles in the air: <strong id="m3-particles">30</strong></span>
+      <span>Light reaching sensor: <strong id="m3-light">70%</strong></span>
+      <span>Estimated AOD: <strong id="m3-aod">0.31</strong></span>
+    </div>
+    <p class="body-copy" style="margin:0;">More particles → less light reaches the satellite → the satellite reads that as a higher AOD, which gets turned into an estimated PM2.5 value.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Mini Challenge</div>
+    <p class="body-copy" style="margin-bottom:14px;">Move the slider until the estimated AOD reads about <strong>0.50</strong>.</p>
+    <p class="small-muted" id="m3-challenge-msg">Give it a try!</p>
+  </div>
+
+  <div class="card-label" style="margin-bottom:12px;">A Few Real Satellites</div>
+  <div class="mini-card-row">
+    <div class="mini-card"><div class="mini-card-title">MODIS</div><div class="mini-card-body"><em>Moderate Resolution Imaging Spectroradiometer.</em> Flies over almost the whole planet every day, tracking haze and smoke.</div></div>
+    <div class="mini-card"><div class="mini-card-title">Sentinel-5P</div><div class="mini-card-body"><em>Sentinel-5 Precursor.</em> Built specifically to track air pollutants like particles and gases.</div></div>
+    <div class="mini-card"><div class="mini-card-title">VIIRS</div><div class="mini-card-body"><em>Visible Infrared Imaging Radiometer Suite.</em> Spots fires and smoke plumes, even faint ones, from orbit.</div></div>
+  </div>
+
+  <div class="spark-card" id="spark-m3" onclick="document.getElementById('spark-m3').classList.toggle('flipped')">
+    <div class="spark-inner">
+      <div class="spark-face spark-front">
+        <div class="spark-eyebrow">Guess</div>
+        <div class="spark-text">How many major satellite missions are currently tracking air pollution worldwide?</div>
+        <div class="spark-tap"><span class="spark-tap-icon">&#8635;</span> Tap to flip &amp; reveal</div>
+      </div>
+      <div class="spark-face spark-back">
+        <div class="spark-eyebrow">Answer</div>
+        <div class="spark-text">Well over a dozen, and the number keeps growing as more countries launch their own air-quality satellites.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="aside-card">
+    <div class="aside-label">Why Not Just Use Ground Sensors Everywhere?</div>
+    <p>Ground sensors are accurate, but they're expensive to buy, need power and upkeep, and only tell you about the one spot they sit in. Covering a whole country with them isn't realistic. A satellite already up there, passing overhead, gives rough estimates everywhere at once, even in places nobody has ever installed a sensor.</p>
+  </div>
+
+  <details class="deeper">
+    <summary><span class="deeper-tag">Go Deeper</span><span class="deeper-title">From Sunlight to a Pollution Map</span><span class="deeper-chevron">▾</span></summary>
+    <div class="deeper-body">
+      <p>A single AOD reading isn't very useful by itself. Haze, dust, and humidity all block sunlight in slightly different ways. This is where GeoAI comes in: models are trained on the rare spots where a satellite reading and a real ground sensor exist side by side, learn the relationship between them, then apply that same pattern to every satellite pass, even over places that have never had a sensor.</p>
+    </div>
+  </details>
+
+  <div class="card">
+    <div class="card-label">Quick Check</div>
+    <div id="m3-quiz"></div>
+    <div class="score-msg" id="m3-score" hidden></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="m3-submit" onclick="m3Submit()" disabled>Check My Answers</button>
+      <button class="btn btn-accent" id="m3-continue" onclick="completeModule('m3')" hidden>Next Stop ✓</button>
+      <button class="btn btn-outline" id="m3-retry" onclick="m3Retry()" hidden>Try Again</button>
+    </div>
+  </div>
+</main>
+
+<!-- ============ STOP 4 - EXPLORE YOUR EXPOSURE ============ -->
+<main id="view-m4" hidden>
+  <a class="back-link" onclick="go('list')">← All stops</a>
+  <div class="eyebrow">Stop 4 · The Big Moment</div>
+  <h1 class="stop-title">Explore Your Exposure</h1>
+  <p class="body-copy">Now build your own comparison. Add up to 5 real places, your home, your school, a city you have only ever heard about, anywhere in the world, and we will pull live PM2.5 air quality for each one right now. We have already added two real reference points so you have something to measure against: Lahore, Pakistan, one of the most polluted cities on Earth, and Reykjavík, Iceland, one of the cleanest.</p>
+  <p class="small-muted" style="margin-bottom:24px;">Ask a question in plain English below. A real AI assistant reads whatever you have added and answers you, the same way GeoAI researchers question their own datasets.</p>
+
+  <div class="card">
+    <div class="card-label">Add A Place</div>
+    <div class="live-check-row">
+      <input class="live-check-input" id="m4-place-input" placeholder="Your town, your school's suburb, a city you're curious about..." onkeydown="if(event.key==='Enter'){event.preventDefault();addM4Place();}">
+      <button class="btn btn-primary" id="m4-add-btn" onclick="addM4Place()">Add</button>
+    </div>
+    <button class="btn btn-outline" id="m4-location-btn" style="margin-top:10px;" onclick="useM4Location()">Use My Location</button>
+    <p class="small-muted" id="m4-add-status" style="margin-top:8px;"></p>
+    <div class="chip-row" id="m4-place-chips" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="map-wrap">
+    <div class="map-caption">Map View · dashed ring = fixed reference city, color = live PM2.5 level</div>
+    <div class="map-box" id="m4-map"></div>
+  </div>
+  <p class="map-loading" id="m4-live-status">Add at least one place above to see live data and unlock the map.</p>
+
+  <div class="table-wrap"><table class="dataset-table" id="m4-table"></table></div>
+  <p class="small-muted" style="margin:-14px 0 24px;">Trend column: each line is 5 days recorded + 4 days forecast for that place, left to right. The gap in the dashes marks today. See Stop 2's live check for the same chart with numbers.</p>
+
+  <div class="spark-card" id="spark-m4" onclick="document.getElementById('spark-m4').classList.toggle('flipped')">
+    <div class="spark-inner">
+      <div class="spark-face spark-front">
+        <div class="spark-eyebrow">Did You Know?</div>
+        <div class="spark-text">GeoAI models like this one can help cities decide exactly where to plant trees.</div>
+        <div class="spark-tap"><span class="spark-tap-icon">&#8635;</span> Tap to flip &amp; reveal</div>
+      </div>
+      <div class="spark-face spark-back">
+        <div class="spark-eyebrow">Why It Matters</div>
+        <div class="spark-text">Real researchers use the same pattern-spotting you just tried, high PM2.5 plus low green cover, to target tree-planting and clean-air policy where it will help the most.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Your Mission</div>
+    <p class="small-muted" style="margin-bottom:14px;">These steps complete themselves as you actually do them, no clicking required:</p>
+    <div class="mission-list" id="mission-list"></div>
+  </div>
+
+  <div class="chat-card">
+    <div class="card-label">Ask the AI Assistant</div>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-thinking" id="chat-thinking" hidden>Thinking through the data...</div>
+    <div class="chat-thinking" id="chat-loading-hint" hidden>Pulling live data for your newest place, one moment...</div>
+    <div class="suggested-row" id="chat-suggested"></div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Ask about air quality in your places..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" id="chat-send" onclick="sendChat()">Ask</button>
+    </div>
+  </div>
+
+  <div class="footer-tip">
+    <p>This is a taste of what real GeoAI researchers do daily, exploring air, health, and climate data to protect real communities. Our <a class="link-accent" href="/workshop.html">senior GeoAI course</a> goes much deeper.</p>
+    <button class="btn btn-accent" onclick="finishCourse()">Finish Course ✓</button>
+  </div>
+</main>
+
+<!-- ============ CERTIFICATE ============ -->
+<main id="view-cert" hidden>
+  <a class="back-link" onclick="go('list')">← All stops</a>
+  <div class="cert-frame">
+    <div class="cert-wave-top"></div>
+    <img class="cert-logo" src="/images/place_alert_labs_logo.jpg" alt="Place Alert Labs">
+    <div class="cert-title">CERTIFICATE<span>OF COMPLETION</span></div>
+    <div class="cert-presented">This certificate is proudly presented to</div>
+    <input class="cert-name-input" id="cert-name" placeholder="Your Name">
+    <div class="cert-body">For completing <strong>GeoAI: Air Quality Explorer</strong>, a Place Alert Labs course covering why air quality matters, live air quality data, how satellites track pollution, and hands-on GeoAI exploration with a real AI assistant.</div>
+    <div class="cert-sign-block">
+      <img class="cert-signature-img" src="/images/makanga-signature.png" alt="Signature of Prestige T. Makanga">
+      <div class="cert-sign-line"></div>
+      <div class="cert-sign-name">Dr Prestige Tatenda Makanga</div>
+      <div class="cert-sign-title">Research Lead &amp; Director, Place Alert Labs<br>Geomatics Department, Midlands State University, Zimbabwe</div>
+    </div>
+    <div class="cert-meta">
+      <div>Date Completed<br><strong id="cert-date" style="color:var(--ink);"></strong></div>
+      <div>Stops Completed<br><strong id="cert-count" style="color:var(--ink);"></strong></div>
+    </div>
+    <div class="cert-wave-bottom"></div>
+  </div>
+  <div class="btn-row" style="justify-content:center;margin-top:20px;">
+    <button class="btn btn-outline" onclick="window.print()">Print / Save Certificate</button>
+  </div>
+  <p class="cert-note" id="cert-hint"></p>
+</main>
+
+<script>
+/* ---------------- State ---------------- */
+const STORAGE_KEY = 'geoaiAirQualityProgress_v1';
+const MODULE_IDS = ['m1','m2','m3','m4'];
+function defaultState(){ return { completed:{m1:false,m2:false,m3:false,m4:false}, certName:'', sessionId:null, signup:null, attempts:{m1:0,m2:0,m3:0} }; }
+let state = loadState();
+function loadState(){
+  try { const s = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (s && s.completed) return Object.assign(defaultState(), s); } catch(e){}
+  return defaultState();
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+/* ---------------- Signup & progress tracking (best-effort, never blocks the course) ---------------- */
+const COURSE_ID = 'geoai-air-quality';
+function ensureSessionId(){
+  if (!state.sessionId) {
+    state.sessionId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    saveState();
+  }
+  return state.sessionId;
+}
+function postProgress(fields){
+  try {
+    fetch('/duckrequest/junior-course-progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ session_id: ensureSessionId(), course_id: COURSE_ID }, fields))
+    }).catch(()=>{});
+  } catch (e) { /* tracking is best-effort */ }
+}
+function postQuizAttempt(moduleId, quiz, answers, score, allCorrect){
+  state.attempts = state.attempts || { m1:0, m2:0, m3:0 };
+  state.attempts[moduleId] = (state.attempts[moduleId] || 0) + 1;
+  saveState();
+  const answerDetail = quiz.map(q => ({ key: q.key, correct: answers[q.key] === q.correct }));
+  try {
+    fetch('/duckrequest/junior-quiz-attempt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: ensureSessionId(), course_id: COURSE_ID, module_id: moduleId,
+        attempt_number: state.attempts[moduleId], score, total: quiz.length,
+        passed: allCorrect, answers: answerDetail
+      })
+    }).catch(()=>{});
+  } catch (e) { /* best-effort */ }
+}
+function submitSignup(){
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const school = document.getElementById('signup-school').value.trim();
+  const errEl = document.getElementById('signup-error');
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!name || !emailOk) {
+    errEl.textContent = !name ? 'Please enter your name.' : 'Please enter a valid email.';
+    errEl.hidden = false;
+    return;
+  }
+  errEl.hidden = true;
+  state.signup = { name, email, school: school || null };
+  state.certName = name;
+  saveState();
+  postProgress({ name, email, school: school || undefined, status: 'started' });
+  go('list');
+}
+
+const MODULES = [
+  { id:'m1', title:'Why It Matters', blurb:'What bad air can actually do to your health, plain and simple.' },
+  { id:'m2', title:'Know Your Air', blurb:'PM2.5, AOD, and the WHO guideline, plus a live checker for any city.' },
+  { id:'m3', title:'Eyes in the Sky', blurb:'How satellites let us see air pollution from space.' },
+  { id:'m4', title:'Explore Your Exposure', blurb:'A real map, live data, and a real AI assistant to question it.' },
+];
+
+/* ---------------- Navigation ---------------- */
+function go(view){
+  document.querySelectorAll('main[id^="view-"]').forEach(el => el.hidden = el.id !== 'view-' + view);
+  window.scrollTo(0,0);
+  if (view === 'list') renderList();
+  if (view === 'cert') renderCert();
+}
+function unlocked(idx){ return idx === 0 || state.completed[MODULE_IDS[idx-1]]; }
+function completeModule(id){
+  state.completed[id] = true; saveState(); renderHeader();
+  postProgress({ modules_done: MODULE_IDS.filter(mid => state.completed[mid]).length });
+  go('list');
+}
+function finishCourse(){
+  state.completed.m4 = true; saveState(); renderHeader();
+  postProgress({ modules_done: 4, status: 'completed' });
+  go('cert');
+}
+function renderHeader(){
+  const count = MODULE_IDS.filter(id => state.completed[id]).length;
+  document.getElementById('progress-fill').style.width = Math.round(count/4*100) + '%';
+  document.getElementById('progress-label').textContent = count + '/4';
+}
+function renderList(){
+  const wrap = document.getElementById('module-list');
+  wrap.innerHTML = '';
+  MODULES.forEach((m,i) => {
+    const isDone = !!state.completed[m.id];
+    const isUnlocked = unlocked(i);
+    const div = document.createElement('div');
+    div.className = 'module-card ' + (isUnlocked ? 'unlocked' : 'locked');
+    const badgeBg = isDone ? 'var(--accent)' : (isUnlocked ? 'var(--ink)' : 'var(--line)');
+    const badgeColor = isDone ? '#fff' : (isUnlocked ? '#fff' : 'var(--muted)');
+    const statusLabel = isDone ? 'Done' : (isUnlocked ? 'Start' : 'Locked');
+    const statusColor = isDone ? 'var(--accent)' : (isUnlocked ? 'var(--ink)' : 'var(--muted)');
+    div.innerHTML = `
+      <div class="badge-circle" style="background:${badgeBg};color:${badgeColor};">${isDone ? '✓' : String(i+1)}</div>
+      <div class="m-body"><div class="m-title">${m.title}</div><div class="m-blurb">${m.blurb}</div></div>
+      <div class="m-status" style="color:${statusColor};">${statusLabel}</div>`;
+    if (isUnlocked) div.onclick = () => { renderModule(m.id); go(m.id); };
+    wrap.appendChild(div);
+  });
+  renderHeader();
+}
+function renderCert(){
+  document.getElementById('cert-name').value = state.certName || '';
+  document.getElementById('cert-date').textContent = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const count = MODULE_IDS.filter(id => state.completed[id]).length;
+  document.getElementById('cert-count').textContent = count + ' / 4';
+  document.getElementById('cert-hint').textContent = count === 4
+    ? 'Congratulations on finishing GeoAI: Air Quality Explorer! Enter your name above and print or save your certificate.'
+    : 'Preview only. Come back once all 4 stops are complete to make it official.';
+}
+document.getElementById('cert-name').addEventListener('input', e => { state.certName = e.target.value; saveState(); });
+
+function renderModule(id){
+  if (id === 'm1') renderM1();
+  if (id === 'm2') renderM2();
+  if (id === 'm3') renderM3();
+  if (id === 'm4') renderM4();
+}
+
+/* ==================================================================
+   STOP 1 - Why It Matters
+   ================================================================== */
+const HEALTH_CARDS = [
+  { title:'Babies Before Birth', color:'#E2725B', body:'Breathing polluted air during pregnancy has been linked to babies being born earlier or smaller than expected.' },
+  { title:'Growing Kids', color:'#2F8F8C', body:'Young lungs are still developing, so dirty air can make coughing and asthma worse and affect healthy lung growth.' },
+  { title:'Older Adults', color:'#7B6BA8', body:'Polluted air adds extra strain on the heart and lungs, especially for people who already have health conditions.' },
+  { title:'Everyone Else', color:'#C9922F', body:'Even healthy people can get irritated eyes, throat, and airways on high-pollution days.' },
+];
+const M1_COMPARE = [
+  { id:'a', label:'Cooking dinner over an open wood fire in a closed kitchen for about an hour', correct:true },
+  { id:'b', label:'Walking past a busy road for two minutes on your way home', correct:false },
+];
+function renderM1(){
+  const wrap = document.getElementById('health-grid');
+  wrap.innerHTML = HEALTH_CARDS.map(c => `
+    <div class="health-card">
+      <div class="health-swatch" style="background:${c.color};"></div>
+      <div class="health-card-title">${c.title}</div>
+      <div class="health-card-body">${c.body}</div>
+    </div>`).join('');
+
+  document.getElementById('m1-compare').innerHTML = M1_COMPARE.map(c =>
+    `<div class="compare-card" id="compare-${c.id}" onclick="pickCompare('${c.id}')">${c.label}</div>`).join('');
+  document.getElementById('m1-compare-feedback').hidden = true;
+  document.querySelectorAll('#m1-compare .compare-card').forEach(el => el.classList.remove('correct','wrong','disabled'));
+
+  m1Answers = { q1:null, q2:null, q3:null, q4:null };
+  m1Submitted = false;
+  renderM1Quiz();
+  document.getElementById('m1-score').hidden = true;
+  document.getElementById('m1-submit').hidden = false;
+  document.getElementById('m1-submit').disabled = true;
+  document.getElementById('m1-continue').hidden = true;
+  document.getElementById('m1-retry').hidden = true;
+}
+function pickCompare(id){
+  const picked = M1_COMPARE.find(c => c.id === id);
+  const correctOne = M1_COMPARE.find(c => c.correct);
+  document.querySelectorAll('#m1-compare .compare-card').forEach(el => el.classList.add('disabled'));
+  document.getElementById(`compare-${id}`).classList.add(picked.correct ? 'correct' : 'wrong');
+  document.getElementById(`compare-${correctOne.id}`).classList.add('correct');
+  const fb = document.getElementById('m1-compare-feedback');
+  fb.hidden = false;
+  fb.textContent = 'An hour of smoke in a closed room usually adds up to far more exposure than two minutes passing traffic outside, even though the traffic feels more obviously polluted. Time and ventilation matter as much as the source.';
+}
+const M1_QUIZ = [
+  { key:'q1', text:'Whose lungs are still developing, which can make dirty air hit harder?', options:['Nobody, lungs are fully grown from birth', 'Growing kids', 'Only adults over 60'], correct:1 },
+  { key:'q2', text:'True or false: the air inside a home can sometimes be worse than the air outside.', options:['False, outdoor air is always worse', 'True, indoor cooking smoke can be a major source', 'False, homes have no air pollution'], correct:1 },
+  { key:'q3', text:"Why don't ground sensors alone solve Africa's air-quality data gap?", options:['Installing and maintaining sensors everywhere is expensive and impractical', 'Sensors cannot detect any pollutant except dust', 'Air pollution does not exist outside of cities'], correct:0 },
+  { key:'q4', text:"A neighborhood has heavy diesel traffic but sits right next to a large forested park. What's the most honest takeaway?", options:['The trees automatically cancel out all the traffic pollution completely', 'The busy road nearby may still push local air quality down despite the greenery close by', 'Green space always means the air is clean, no exceptions'], correct:1 },
+];
+let m1Answers = { q1:null, q2:null, q3:null, q4:null };
+let m1Submitted = false;
+function renderM1Quiz(){
+  const wrap = document.getElementById('m1-quiz');
+  wrap.innerHTML = '';
+  M1_QUIZ.forEach(q => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'quiz-q';
+    qDiv.innerHTML = `<div class="quiz-q-text">${q.text}</div><div class="quiz-opts" id="m1-opts-${q.key}"></div>`;
+    wrap.appendChild(qDiv);
+    const optsWrap = qDiv.querySelector(`#m1-opts-${q.key}`);
+    q.options.forEach((label, oi) => {
+      const opt = document.createElement('div');
+      opt.className = 'quiz-opt';
+      opt.textContent = label;
+      opt.onclick = () => { if (!m1Submitted) { m1Answers[q.key] = oi; renderM1Quiz(); checkM1Ready(); } };
+      const selected = m1Answers[q.key] === oi;
+      if (m1Submitted && selected) opt.classList.add(oi === q.correct ? 'correct' : 'wrong');
+      else if (m1Submitted && oi === q.correct) opt.classList.add('correct');
+      else if (!m1Submitted && selected) opt.classList.add('selected');
+      if (m1Submitted) opt.classList.add('disabled');
+      optsWrap.appendChild(opt);
+    });
+  });
+}
+function checkM1Ready(){
+  const allAnswered = M1_QUIZ.every(q => m1Answers[q.key] !== null);
+  document.getElementById('m1-submit').disabled = !allAnswered;
+}
+function m1Submit(){
+  m1Submitted = true;
+  const score = M1_QUIZ.filter(q => m1Answers[q.key] === q.correct).length;
+  const allCorrect = score === M1_QUIZ.length;
+  postQuizAttempt('m1', M1_QUIZ, m1Answers, score, allCorrect);
+  renderM1Quiz();
+  const scoreEl = document.getElementById('m1-score');
+  scoreEl.hidden = false;
+  scoreEl.textContent = allCorrect ? `You got ${score}/${M1_QUIZ.length}. Nice work!` : `You got ${score}/${M1_QUIZ.length}. Take another look and try again.`;
+  document.getElementById('m1-submit').hidden = true;
+  document.getElementById('m1-continue').hidden = !allCorrect;
+  document.getElementById('m1-retry').hidden = allCorrect;
+}
+function m1Retry(){
+  m1Submitted = false;
+  m1Answers = { q1:null, q2:null, q3:null, q4:null };
+  renderM1Quiz();
+  document.getElementById('m1-score').hidden = true;
+  document.getElementById('m1-submit').hidden = false;
+  document.getElementById('m1-submit').disabled = true;
+  document.getElementById('m1-continue').hidden = true;
+  document.getElementById('m1-retry').hidden = true;
+}
+
+/* ==================================================================
+   STOP 2 - Know Your Air
+   ================================================================== */
+const GLOSSARY = [
+  { term:'PM2.5', def:'Short for "particulate matter 2.5," tiny particles 2.5 micrometers or smaller, small enough to get deep into your lungs. This is the main measurement air-quality guidelines are built around.' },
+  { term:'Sources', def:'Dust, wildfire or cooking smoke, and vehicle exhaust all add PM2.5 to the air around you.' },
+  { term:'WHO Guideline', def:'A simple line in the sand: 15 µg/m³ annual average. Air above that line is considered a health concern.' },
+  { term:'AOD', def:'Short for "Aerosol Optical Depth," the raw thing satellites actually measure: how much sunlight gets blocked by particles in the air. It gets converted into an estimated PM2.5 number.' },
+  { term:'AQI', def:'Air Quality Index. Combines PM2.5 and other pollutants into one easy 0-500+ scale, so anyone can read air quality at a glance without knowing the raw science.' },
+];
+const GAUGE_POINTS = [
+  { label:'Clean rural air', val:5, pct:10 },
+  { label:'WHO guideline', val:15, pct:30, isLine:true },
+  { label:'Hazy city day', val:35, pct:65 },
+  { label:'Wildfire smoke', val:'150+', pct:95 },
+];
+function renderM2(){
+  document.getElementById('glossary-list').innerHTML = GLOSSARY.map(g => `
+    <div class="glossary-row"><div class="glossary-term">${g.term}</div><div class="glossary-def">${g.def}</div></div>`).join('');
+
+  const gauge = document.getElementById('gauge-track');
+  gauge.innerHTML = GAUGE_POINTS.map(p => {
+    if (p.isLine) return `<div class="gauge-line" style="left:${p.pct}%;"></div><div class="gauge-mark" style="left:${p.pct}%;"><div class="gauge-mark-label">${p.label}</div><div class="gauge-mark-val">${p.val} µg/m³</div></div>`;
+    return `<div class="gauge-dot" style="left:${p.pct}%;"></div><div class="gauge-mark" style="left:${p.pct}%;"><div class="gauge-mark-label">${p.label}</div><div class="gauge-mark-val">${p.val} µg/m³</div></div>`;
+  }).join('');
+
+  document.getElementById('live-check-input').value = '';
+  document.getElementById('live-check-result').innerHTML = '';
+
+  m2Answers = { q1:null, q2:null, q3:null, q4:null, q5:null };
+  m2Submitted = false;
+  renderM2Quiz();
+  document.getElementById('m2-score').hidden = true;
+  document.getElementById('m2-submit').hidden = false;
+  document.getElementById('m2-submit').disabled = true;
+  document.getElementById('m2-continue').hidden = true;
+  document.getElementById('m2-retry').hidden = true;
+}
+/* ---------------- Trend + forecast (shared, Modules 2 & 4) ---------------- */
+function pm25Dot(pm){ return pm >= 35 ? '#C0392B' : (pm >= 15 ? '#C9922F' : '#1E8A5F'); }
+function aggregateDailyPM25(hourly){
+  if (!hourly || !hourly.time || !hourly.pm2_5) return [];
+  const byDate = {};
+  hourly.time.forEach((t, i) => {
+    const v = hourly.pm2_5[i];
+    if (typeof v !== 'number') return;
+    const d = t.slice(0, 10);
+    (byDate[d] = byDate[d] || []).push(v);
+  });
+  const todayStr = new Date().toISOString().slice(0, 10);
+  return Object.keys(byDate).sort().map(d => ({
+    date: d,
+    avg: Math.round((byDate[d].reduce((a,b) => a+b, 0) / byDate[d].length) * 10) / 10,
+    forecast: d > todayStr,
+  }));
+}
+async function fetchTrendPoints(lat, lng){
+  const res = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&hourly=pm2_5&past_days=5&forecast_days=4&timezone=auto`);
+  const data = await res.json();
+  return aggregateDailyPM25(data.hourly);
+}
+async function fetchTrendPointsMulti(lats, lngs){
+  const res = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lngs}&hourly=pm2_5&past_days=5&forecast_days=4&timezone=auto`);
+  const data = await res.json();
+  const arr = Array.isArray(data) ? data : [data];
+  return arr.map(d => aggregateDailyPM25(d.hourly));
+}
+function trendChartSvg(points, opts){
+  opts = opts || {};
+  const width = opts.width || 260, dots = opts.dots !== false, labels = !!opts.labels;
+  const topPad = labels ? 22 : 4;
+  const height = (opts.height || 64) + (labels ? 18 : 0);
+  if (!points.length) return '';
+  const vals = points.map(p => p.avg);
+  const max = Math.max(...vals, 15) * 1.15;
+  const stepX = width / Math.max(1, points.length - 1);
+  const y = v => (height - 6) - (v / max) * (height - topPad - 6);
+  const whoY = y(15);
+  const path = points.map((p,i) => `${i===0?'M':'L'}${(i*stepX).toFixed(1)},${y(p.avg).toFixed(1)}`).join(' ');
+  const todayIdx = points.findIndex(p => p.forecast);
+  const splitX = todayIdx > 0 ? todayIdx * stepX : null;
+  const dotEls = dots ? points.map((p,i) => {
+    const isToday = todayIdx > 0 ? i === todayIdx - 1 : (todayIdx === -1 && i === points.length - 1);
+    return `<circle cx="${(i*stepX).toFixed(1)}" cy="${y(p.avg).toFixed(1)}" r="${isToday ? 3.5 : 2.5}" fill="${isToday ? 'var(--ink)' : 'var(--accent)'}"/>`;
+  }).join('') : '';
+  const labelEls = labels ? points.map((p,i) => `<text x="${(i*stepX).toFixed(1)}" y="${(y(p.avg)-8).toFixed(1)}" font-size="9" fill="var(--muted)" text-anchor="middle">${p.avg}</text>`).join('') : '';
+  return `<svg class="trend-svg" viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="none">
+    <line x1="0" y1="${whoY.toFixed(1)}" x2="${width}" y2="${whoY.toFixed(1)}" stroke="var(--line)" stroke-width="1" stroke-dasharray="3,3"/>
+    ${splitX !== null ? `<line x1="${splitX.toFixed(1)}" y1="${topPad-16}" x2="${splitX.toFixed(1)}" y2="${height-6}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2,3"/>` : ''}
+    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    ${dotEls}
+    ${labelEls}
+  </svg>`;
+}
+async function renderTrendInto(containerId, lat, lng){
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  try {
+    const points = await fetchTrendPoints(lat, lng);
+    if (!points.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <div class="trend-label">5-Day Trend + 4-Day Forecast &middot; PM2.5 (µg/m&sup3;)</div>
+      ${trendChartSvg(points, { labels:true, height:64 })}
+      <div class="trend-legend"><span>${points[0].date.slice(5)} (recorded)</span><span class="trend-legend-mid">&#9679; Today</span><span>${points[points.length-1].date.slice(5)} (forecast)</span></div>
+      <p class="small-muted" style="margin-top:8px;">Solid line: daily average PM2.5, recorded up to today, then forecast. Dotted grey line: WHO guideline (15 µg/m&sup3;). Dotted vertical line: today.</p>`;
+  } catch (e) {
+    el.innerHTML = `<p class="small-muted">Trend unavailable right now.</p>`;
+  }
+}
+async function showLiveAirFor(lat, lng, placeLabel){
+  const resultEl = document.getElementById('live-check-result');
+  try {
+    const aqRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=pm2_5`);
+    const aqData = await aqRes.json();
+    const pm = aqData.current && aqData.current.pm2_5;
+    if (typeof pm !== 'number') {
+      resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">No live reading available for that spot right now.</p>`;
+      return;
+    }
+    const overGuideline = pm > 15;
+    const color = pm >= 35 ? 'var(--wrong)' : (pm >= 15 ? '#C9922F' : 'var(--correct)');
+    const pct = Math.min(96, Math.max(2, (pm / 60) * 100));
+    resultEl.innerHTML = `
+      <div class="live-result" style="border-color:${color};">
+        <div class="live-result-place">${placeLabel}</div>
+        <div class="live-result-value" style="color:${color};">${pm.toFixed(1)} µg/m³</div>
+        <div class="gauge-track" style="margin:18px 4px 10px;"><div class="gauge-dot" style="left:${pct}%;"></div></div>
+        <div class="live-result-note">${overGuideline ? 'That is above the WHO guideline of 15. This is real, live air, not illustrative.' : 'That is under the WHO guideline of 15. This is real, live air, not illustrative.'}</div>
+        <div class="trend-wrap" id="live-trend"><p class="small-muted">Loading trend + forecast...</p></div>
+      </div>`;
+    renderTrendInto('live-trend', lat, lng);
+  } catch (e) {
+    resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">Live check is unavailable right now. Please try again in a moment.</p>`;
+  }
+}
+async function checkLiveAir(){
+  const input = document.getElementById('live-check-input');
+  const place = input.value.trim();
+  const resultEl = document.getElementById('live-check-result');
+  if (!place) return;
+  resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">Looking up ${place}...</p>`;
+  try {
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1`);
+    const geoData = await geoRes.json();
+    const hit = geoData.results && geoData.results[0];
+    if (!hit) {
+      resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">Couldn't find "${place}". Try a bigger nearby city or check the spelling.</p>`;
+      return;
+    }
+    const placeLabel = hit.name + (hit.country ? ', ' + hit.country : '');
+    await showLiveAirFor(hit.latitude, hit.longitude, placeLabel);
+  } catch (e) {
+    resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">Live check is unavailable right now. Please try again in a moment.</p>`;
+  }
+}
+function useMyLocation(){
+  const resultEl = document.getElementById('live-check-result');
+  if (!navigator.geolocation) {
+    resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">Your browser doesn't support location lookup here. Try typing a place name instead.</p>`;
+    return;
+  }
+  resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">Finding your location...</p>`;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { showLiveAirFor(pos.coords.latitude, pos.coords.longitude, 'Your Current Location'); },
+    () => { resultEl.innerHTML = `<p class="small-muted" style="margin-top:14px;">Couldn't get your location (you may need to allow permission). Try typing a place name instead.</p>`; },
+    { timeout: 8000 }
+  );
+}
+const M2_QUIZ = [
+  { key:'q1', text:'What does PM2.5 measure?', options:['The temperature of the air', 'How windy a place is', 'Tiny particles small enough to get deep into your lungs'], correct:2 },
+  { key:'q2', text:'What does a satellite actually measure to estimate air pollution?', options:['The sound of traffic', 'How much sunlight gets scattered or blocked by particles (AOD)', 'The number of cars on the road'], correct:1 },
+  { key:'q3', text:"If a neighborhood's PM2.5 is above the WHO guideline, what does that mean?", options:['It never has clean air days', "Its air quality is considered a health concern", 'It has too much rainfall'], correct:1 },
+  { key:'q4', text:'Two cities both measure PM2.5 at 20 µg/m³, but City A gets most of its PM2.5 from wildfire smoke and City B from vehicle exhaust. What can you honestly say using only the PM2.5 numbers?', options:["City B's air is automatically safer because it's not from fire", 'Both cities have the same measured PM2.5 level, even though the sources differ', 'City A definitely has worse health effects than City B'], correct:1 },
+  { key:'q5', text:'What does AQI do that a raw PM2.5 number by itself does not?', options:['Combines pollutant levels into one simple scale most people can read at a glance', 'Predicts next week’s weather', 'Measures how many people live in a city'], correct:0 },
+];
+let m2Answers = { q1:null, q2:null, q3:null, q4:null, q5:null };
+let m2Submitted = false;
+function renderM2Quiz(){
+  const wrap = document.getElementById('m2-quiz');
+  wrap.innerHTML = '';
+  M2_QUIZ.forEach(q => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'quiz-q';
+    qDiv.innerHTML = `<div class="quiz-q-text">${q.text}</div><div class="quiz-opts" id="m2-opts-${q.key}"></div>`;
+    wrap.appendChild(qDiv);
+    const optsWrap = qDiv.querySelector(`#m2-opts-${q.key}`);
+    q.options.forEach((label, oi) => {
+      const opt = document.createElement('div');
+      opt.className = 'quiz-opt';
+      opt.textContent = label;
+      opt.onclick = () => { if (!m2Submitted) { m2Answers[q.key] = oi; renderM2Quiz(); checkM2Ready(); } };
+      const selected = m2Answers[q.key] === oi;
+      if (m2Submitted && selected) opt.classList.add(oi === q.correct ? 'correct' : 'wrong');
+      else if (m2Submitted && oi === q.correct) opt.classList.add('correct');
+      else if (!m2Submitted && selected) opt.classList.add('selected');
+      if (m2Submitted) opt.classList.add('disabled');
+      optsWrap.appendChild(opt);
+    });
+  });
+}
+function checkM2Ready(){
+  const allAnswered = M2_QUIZ.every(q => m2Answers[q.key] !== null);
+  document.getElementById('m2-submit').disabled = !allAnswered;
+}
+function m2Submit(){
+  m2Submitted = true;
+  const score = M2_QUIZ.filter(q => m2Answers[q.key] === q.correct).length;
+  const allCorrect = score === M2_QUIZ.length;
+  postQuizAttempt('m2', M2_QUIZ, m2Answers, score, allCorrect);
+  renderM2Quiz();
+  const scoreEl = document.getElementById('m2-score');
+  scoreEl.hidden = false;
+  scoreEl.textContent = allCorrect ? `You got ${score}/${M2_QUIZ.length}. Nice work!` : `You got ${score}/${M2_QUIZ.length}. Take another look and try again.`;
+  document.getElementById('m2-submit').hidden = true;
+  document.getElementById('m2-continue').hidden = !allCorrect;
+  document.getElementById('m2-retry').hidden = allCorrect;
+}
+function m2Retry(){
+  m2Submitted = false;
+  m2Answers = { q1:null, q2:null, q3:null, q4:null, q5:null };
+  renderM2Quiz();
+  document.getElementById('m2-score').hidden = true;
+  document.getElementById('m2-submit').hidden = false;
+  document.getElementById('m2-submit').disabled = true;
+  document.getElementById('m2-continue').hidden = true;
+  document.getElementById('m2-retry').hidden = true;
+}
+
+/* ==================================================================
+   STOP 3 - Eyes in the Sky
+   ================================================================== */
+function renderM3(){
+  document.getElementById('m3-slider').value = 30;
+  m3Update();
+
+  m3Answers = { q1:null, q2:null, q3:null, q4:null };
+  m3Submitted = false;
+  renderM3Quiz();
+  document.getElementById('m3-score').hidden = true;
+  document.getElementById('m3-submit').hidden = false;
+  document.getElementById('m3-submit').disabled = true;
+  document.getElementById('m3-continue').hidden = true;
+  document.getElementById('m3-retry').hidden = true;
+}
+function renderM3Particles(count){
+  const field = document.getElementById('m3-particle-field');
+  const n = Math.round(count / 2);
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    const left = Math.random() * 94;
+    const top = Math.random() * 78 + 8;
+    const size = 2 + Math.random() * 3;
+    const dur = 2 + Math.random() * 2.5;
+    const delay = Math.random() * 2;
+    html += `<div class="particle" style="left:${left}%;top:${top}%;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s;"></div>`;
+  }
+  field.innerHTML = html;
+}
+function m3Update(){
+  const particles = Number(document.getElementById('m3-slider').value);
+  const lightPct = Math.max(8, 100 - particles);
+  const aod = (particles / 100 * 0.85 + 0.05).toFixed(2);
+  document.getElementById('m3-particles').textContent = particles;
+  document.getElementById('m3-light').textContent = lightPct + '%';
+  document.getElementById('m3-aod').textContent = aod;
+  renderM3Particles(particles);
+
+  const msgEl = document.getElementById('m3-challenge-msg');
+  if (msgEl) {
+    const diff = aod - 0.50;
+    if (Math.abs(diff) <= 0.03) msgEl.textContent = `Nailed it! ${aod} is right around 0.50.`;
+    else msgEl.textContent = `Current AOD: ${aod}. ${diff < 0 ? 'Try adding more particles.' : 'Try fewer particles.'}`;
+  }
+}
+const M3_QUIZ = [
+  { key:'q1', text:'What does AOD (Aerosol Optical Depth) actually measure?', options:['The wind speed at ground level', 'How much sunlight is blocked or scattered by particles in the air', 'The temperature of the atmosphere'], correct:1 },
+  { key:'q2', text:'Why do researchers rely on satellites instead of only ground sensors?', options:['Ground sensors cannot measure PM2.5 at all', 'Satellites are cheaper to launch than a sensor costs to buy', 'Satellites give rough coverage everywhere, even where no sensor has ever been installed'], correct:2 },
+  { key:'q3', text:'A satellite reads a high AOD over a city on a clear, cloud-free day. What is the most likely explanation?', options:['A lot of aerosol particles, smoke, dust, or haze, are scattering the sunlight', "The satellite's sensor is broken", 'It is definitely raining heavily right at that moment'], correct:0 },
+  { key:'q4', text:"Why can't a satellite just hand you an exact PM2.5 number straight away?", options:['It measures light scattering (AOD), which has to be calibrated into an estimated PM2.5 using models and real ground data', 'Satellites cannot see through any haze at all, ever', 'Satellites only operate at night'], correct:0 },
+];
+let m3Answers = { q1:null, q2:null, q3:null, q4:null };
+let m3Submitted = false;
+function renderM3Quiz(){
+  const wrap = document.getElementById('m3-quiz');
+  wrap.innerHTML = '';
+  M3_QUIZ.forEach(q => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'quiz-q';
+    qDiv.innerHTML = `<div class="quiz-q-text">${q.text}</div><div class="quiz-opts" id="m3-opts-${q.key}"></div>`;
+    wrap.appendChild(qDiv);
+    const optsWrap = qDiv.querySelector(`#m3-opts-${q.key}`);
+    q.options.forEach((label, oi) => {
+      const opt = document.createElement('div');
+      opt.className = 'quiz-opt';
+      opt.textContent = label;
+      opt.onclick = () => { if (!m3Submitted) { m3Answers[q.key] = oi; renderM3Quiz(); checkM3Ready(); } };
+      const selected = m3Answers[q.key] === oi;
+      if (m3Submitted && selected) opt.classList.add(oi === q.correct ? 'correct' : 'wrong');
+      else if (m3Submitted && oi === q.correct) opt.classList.add('correct');
+      else if (!m3Submitted && selected) opt.classList.add('selected');
+      if (m3Submitted) opt.classList.add('disabled');
+      optsWrap.appendChild(opt);
+    });
+  });
+}
+function checkM3Ready(){
+  const allAnswered = M3_QUIZ.every(q => m3Answers[q.key] !== null);
+  document.getElementById('m3-submit').disabled = !allAnswered;
+}
+function m3Submit(){
+  m3Submitted = true;
+  const score = M3_QUIZ.filter(q => m3Answers[q.key] === q.correct).length;
+  const allCorrect = score === M3_QUIZ.length;
+  postQuizAttempt('m3', M3_QUIZ, m3Answers, score, allCorrect);
+  renderM3Quiz();
+  const scoreEl = document.getElementById('m3-score');
+  scoreEl.hidden = false;
+  scoreEl.textContent = allCorrect ? `You got ${score}/${M3_QUIZ.length}. Nice work!` : `You got ${score}/${M3_QUIZ.length}. Take another look and try again.`;
+  document.getElementById('m3-submit').hidden = true;
+  document.getElementById('m3-continue').hidden = !allCorrect;
+  document.getElementById('m3-retry').hidden = allCorrect;
+}
+function m3Retry(){
+  m3Submitted = false;
+  m3Answers = { q1:null, q2:null, q3:null, q4:null };
+  renderM3Quiz();
+  document.getElementById('m3-score').hidden = true;
+  document.getElementById('m3-submit').hidden = false;
+  document.getElementById('m3-submit').disabled = true;
+  document.getElementById('m3-continue').hidden = true;
+  document.getElementById('m3-retry').hidden = true;
+}
+
+/* ==================================================================
+   Shared dataset - Module 4 (real Harare-area coordinates)
+   ================================================================== */
+/* ==================================================================
+   STOP 4 - Explore Your Exposure (user-added places + real reference cities)
+   ================================================================== */
+const M4_REFERENCE = [
+  { name:'Lahore, Pakistan', lat:31.5497, lng:74.3436, reference:true },
+  { name:'Reykjavík, Iceland', lat:64.1466, lng:-21.9426, reference:true },
+];
+const M4_MAX_PLACES = 5;
+let m4Places = [];
+let m4Dataset = [];
+let m4LastHighlight = [];
+let m4Loading = false;
+function mapColor(p){ return p >= 30 ? '#C0392B' : (p >= 15 ? '#E2725B' : '#2F8F8C'); }
+let m4LeafletMap = null;
+let m4MarkerLayer = null;
+function renderMap(elId, highlightNames){
+  if (!m4LeafletMap) {
+    m4LeafletMap = L.map(elId, { scrollWheelZoom:false }).setView([15, 15], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(m4LeafletMap);
+    m4MarkerLayer = L.layerGroup().addTo(m4LeafletMap);
+  }
+  m4MarkerLayer.clearLayers();
+  if (!m4Dataset.length) { setTimeout(() => m4LeafletMap.invalidateSize(), 60); return; }
+  const hiSet = new Set(highlightNames || []);
+  const bounds = [];
+  m4Dataset.forEach(d => {
+    const hi = hiSet.has(d.name);
+    const marker = L.circleMarker([d.lat, d.lng], {
+      radius: d.reference ? 12 : 10, color: hi ? '#12213B' : '#fff', weight: hi ? 3 : 2,
+      fillColor: d.pm25_ugm3 == null ? '#9aa5b1' : mapColor(d.pm25_ugm3), fillOpacity: 0.85,
+      dashArray: d.reference ? '4,3' : null
+    }).addTo(m4MarkerLayer);
+    marker.bindTooltip(d.name, { permanent:true, direction:'top', className:'map-tip', offset:[0, -12] });
+    bounds.push([d.lat, d.lng]);
+  });
+  if (bounds.length === 1) m4LeafletMap.setView(bounds[0], 9);
+  else m4LeafletMap.fitBounds(bounds, { padding:[30,30] });
+  setTimeout(() => m4LeafletMap.invalidateSize(), 60);
+}
+function renderTable(elId, highlightNames){
+  const el = document.getElementById(elId);
+  const hiSet = new Set(highlightNames||[]);
+  el.innerHTML = `<thead><tr><th>Place</th><th>Live PM2.5 (µg/m³)</th><th>vs. WHO Guideline (15)</th><th>5-Day Trend + Forecast</th></tr></thead><tbody>${
+    m4Dataset.map(d => `<tr class="${hiSet.has(d.name)?'hi':''}"><td>${d.name}${d.reference ? ' <span class="small-muted">(reference)</span>' : ''}</td><td>${d.pm25_ugm3 != null ? d.pm25_ugm3 : '—'}</td><td class="${d.pm25_ugm3 == null ? '' : (d.over_who?'flag-bad':'flag-ok')}">${d.pm25_ugm3 == null ? 'n/a' : (d.over_who?'Over':'Under')}</td><td class="spark-td">${d.trend && d.trend.length ? trendChartSvg(d.trend, {width:84,height:28,dots:false}) : '<span class="small-muted">…</span>'}</td></tr>`).join('')
+  }</tbody>`;
+}
+let m4Missions = { addPlace:false, compare:false, ask:false };
+const MISSION_DEFS = [
+  { key:'addPlace', text:'Add at least one real place of your own, your home, your school, or any city you are curious about' },
+  { key:'compare', text:'See it compared live against Lahore, Reykjavík, and the WHO guideline in the table above' },
+  { key:'ask', text:'Ask the AI assistant a question about what you see' },
+];
+function renderMissions(){
+  document.getElementById('mission-list').innerHTML = MISSION_DEFS.map(m => `
+    <div class="mission-item ${m4Missions[m.key]?'done':''}">
+      <span class="mission-check">${m4Missions[m.key]?'✓':''}</span>
+      <span>${m.text}</span>
+    </div>`).join('');
+}
+function renderM4Chips(){
+  const wrap = document.getElementById('m4-place-chips');
+  wrap.innerHTML = m4Places.length
+    ? m4Places.map((p,i) => `<span class="chip" style="cursor:pointer;" onclick="removeM4Place(${i})" title="Remove">${p.name} &times;</span>`).join('')
+    : '<span class="small-muted">No places added yet, try your own town or school.</span>';
+  document.getElementById('m4-add-btn').disabled = m4Places.length >= M4_MAX_PLACES;
+}
+async function addM4Place(){
+  const input = document.getElementById('m4-place-input');
+  const statusEl = document.getElementById('m4-add-status');
+  const q = input.value.trim();
+  if (!q) return;
+  if (m4Places.length >= M4_MAX_PLACES) { statusEl.textContent = `You've added the max of ${M4_MAX_PLACES} places. Remove one to add another.`; return; }
+  statusEl.textContent = `Looking up ${q}...`;
+  try {
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1`);
+    const geoData = await geoRes.json();
+    const hit = geoData.results && geoData.results[0];
+    if (!hit) { statusEl.textContent = `Couldn't find "${q}". Try a bigger nearby city or check the spelling.`; return; }
+    const placeLabel = hit.name + (hit.country ? ', ' + hit.country : '');
+    if (m4Places.some(p => p.name === placeLabel) || M4_REFERENCE.some(p => p.name === placeLabel)) {
+      statusEl.textContent = `${placeLabel} is already in your list.`; return;
+    }
+    m4Places.push({ name: placeLabel, lat: hit.latitude, lng: hit.longitude });
+    input.value = '';
+    statusEl.textContent = '';
+    m4Missions.addPlace = true;
+    renderM4Chips();
+    await rebuildM4Dataset();
+  } catch (e) {
+    statusEl.textContent = 'Lookup unavailable right now. Please try again in a moment.';
+  }
+}
+function removeM4Place(i){
+  m4Places.splice(i,1);
+  renderM4Chips();
+  rebuildM4Dataset();
+}
+function useM4Location(){
+  const statusEl = document.getElementById('m4-add-status');
+  if (!navigator.geolocation) {
+    statusEl.textContent = "Your browser doesn't support location lookup here. Try typing a place name instead.";
+    return;
+  }
+  if (m4Places.length >= M4_MAX_PLACES) {
+    statusEl.textContent = `You've added the max of ${M4_MAX_PLACES} places. Remove one to add another.`;
+    return;
+  }
+  statusEl.textContent = 'Finding your location...';
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const label = 'Your Current Location';
+      if (m4Places.some(p => p.name === label)) { statusEl.textContent = 'Your current location is already in your list.'; return; }
+      m4Places.push({ name: label, lat: pos.coords.latitude, lng: pos.coords.longitude });
+      statusEl.textContent = '';
+      m4Missions.addPlace = true;
+      renderM4Chips();
+      await rebuildM4Dataset();
+    },
+    () => { statusEl.textContent = "Couldn't get your location (you may need to allow permission). Try typing a place name instead."; },
+    { timeout: 8000 }
+  );
+}
+async function rebuildM4Dataset(){
+  const all = [...m4Places, ...M4_REFERENCE];
+  const statusEl = document.getElementById('m4-live-status');
+  if (!m4Places.length) {
+    m4Dataset = [];
+    renderMap('m4-map', []);
+    renderTable('m4-table', []);
+    statusEl.textContent = 'Add at least one place above to see live data and unlock the map.';
+    return;
+  }
+  statusEl.textContent = 'Loading live air quality for ' + all.length + ' place(s)...';
+  m4Loading = true;
+  updateChatAvailability();
+  const lats = all.map(d => d.lat).join(',');
+  const lngs = all.map(d => d.lng).join(',');
+  try {
+    const res = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lngs}&current=pm2_5`);
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : [data];
+    m4Dataset = all.map((d,i) => {
+      const pm = arr[i] && arr[i].current && arr[i].current.pm2_5;
+      const pm25 = typeof pm === 'number' ? Math.round(pm*10)/10 : null;
+      return {
+        name: d.name, lat: d.lat, lng: d.lng, reference: !!d.reference,
+        pm25_ugm3: pm25, over_who: pm25 !== null ? pm25 > 15 : null, trend: null,
+      };
+    });
+    statusEl.textContent = 'Live PM2.5 pulled just now for ' + all.length + ' place(s).';
+    m4Missions.compare = true;
+    loadM4Trends(all, lats, lngs);
+  } catch (e) {
+    m4Dataset = all.map(d => ({ name:d.name, lat:d.lat, lng:d.lng, reference:!!d.reference, pm25_ugm3:null, over_who:null, trend:null }));
+    statusEl.textContent = 'Live data unavailable right now. Try again in a moment.';
+  } finally {
+    m4Loading = false;
+    updateChatAvailability();
+  }
+  renderMap('m4-map', []);
+  renderTable('m4-table', []);
+  renderMissions();
+}
+async function loadM4Trends(all, lats, lngs){
+  try {
+    const trends = await fetchTrendPointsMulti(lats, lngs);
+    all.forEach((d,i) => {
+      const entry = m4Dataset.find(e => e.name === d.name);
+      if (entry) entry.trend = trends[i] || [];
+    });
+    renderTable('m4-table', m4LastHighlight);
+  } catch (e) { /* sparklines are a nice-to-have, table still works without them */ }
+}
+
+function updateChatAvailability(){
+  const send = document.getElementById('chat-send');
+  const hint = document.getElementById('chat-loading-hint');
+  if (!send) return;
+  send.disabled = m4Loading || !m4Dataset.length;
+  if (hint) hint.hidden = !m4Loading;
+}
+function renderM4(){
+  document.getElementById('m4-place-input').value = '';
+  document.getElementById('m4-add-status').textContent = '';
+  m4LastHighlight = [];
+  renderM4Chips();
+  m4Missions = { addPlace: m4Places.length > 0, compare: m4Dataset.length > 0, ask:false };
+  renderMissions();
+  chatMessages = [];
+  renderChatLog();
+  renderSuggested();
+  updateChatAvailability();
+  rebuildM4Dataset();
+}
+let chatMessages = [];
+function renderSuggested(){
+  const wrap = document.getElementById('chat-suggested');
+  if (chatMessages.length) { wrap.innerHTML = ''; wrap.hidden = true; return; }
+  wrap.hidden = false;
+  const qs = [
+    "Which of my places has the worst air right now?",
+    'How does my place compare to Lahore?',
+    'How does my place compare to Reykjavík?',
+    'Which of these is safest for kids?',
+    'Are any of these above the WHO guideline?',
+    'What can I do to breathe better air?',
+  ];
+  wrap.innerHTML = '';
+  qs.forEach(q => {
+    const chip = document.createElement('div');
+    chip.className = 'suggested-chip';
+    chip.textContent = q;
+    chip.onclick = () => { document.getElementById('chat-input').value = q; sendChat(); };
+    wrap.appendChild(chip);
+  });
+}
+function renderChatLog(){
+  const log = document.getElementById('chat-log');
+  log.innerHTML = chatMessages.map(m => `
+    <div class="chat-msg ${m.role}">
+      <div class="chat-bubble">${m.content}</div>
+    </div>`).join('');
+  log.scrollTop = log.scrollHeight;
+}
+async function sendChat(){
+  const input = document.getElementById('chat-input');
+  const q = input.value.trim();
+  if (!q) return;
+  if (!m4Dataset.length) {
+    chatMessages.push({ role:'assistant', content: 'Add at least one place above first, then I can compare it for you.' });
+    renderChatLog();
+    return;
+  }
+  if (m4Loading) {
+    chatMessages.push({ role:'assistant', content: "Still pulling live data for your newest place, one second, then ask me again." });
+    renderChatLog();
+    return;
+  }
+  chatMessages.push({ role:'user', content: q });
+  input.value = '';
+  renderChatLog();
+  renderSuggested();
+  document.getElementById('chat-thinking').hidden = false;
+  document.getElementById('chat-send').disabled = true;
+  m4Missions.ask = true;
+  renderMissions();
+
+  let answerText;
+  try {
+    const payload = {
+      question: q,
+      dataset: m4Dataset.filter(d => d.pm25_ugm3 != null).map(d => ({
+        name: d.name, pm25: d.pm25_ugm3, above_who_guideline: d.over_who, reference_city: d.reference
+      }))
+    };
+    const res = await fetch('/precise-api/api/geoai-explorer/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    answerText = data.answer || data.error || "Sorry, I couldn't get an answer just now. Please try again.";
+  } catch (e) {
+    answerText = 'The assistant is temporarily unavailable. Please try again in a moment.';
+  }
+
+  chatMessages.push({ role:'assistant', content: answerText });
+  document.getElementById('chat-thinking').hidden = true;
+  document.getElementById('chat-send').disabled = false;
+  renderChatLog();
+
+  const mentioned = m4Dataset.filter(d => answerText.includes(d.name)).map(d => d.name);
+  m4LastHighlight = mentioned;
+  renderMap('m4-map', mentioned);
+  renderTable('m4-table', mentioned);
+}
+
+/* ---------------- Boot ---------------- */
+renderHeader();
+if (state.signup) { go('list'); } else { go('signup'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research - Place Alert Labs</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;600;700;800;900&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.research-intro { max-width: 680px; margin: 20px 0 70px; }
+.research-intro p { font-size: 17px; line-height: 1.75; color: var(--muted); }
+.focus-grid { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .focus-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .focus-grid { grid-template-columns: 1fr; } }
+
+.project-list { display: flex; flex-direction: column; }
+.project-item { border-top: 1px solid var(--line); padding: 32px 0; }
+.project-item:last-child { border-bottom: 1px solid var(--line); }
+.project-item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.project-item-head h3 { font-size: 19px; margin: 0; max-width: 700px; }
+.project-meta-text { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.project-item p { font-size: 15px; line-height: 1.7; color: var(--text); max-width: 780px; margin-bottom: 14px; }
+.project-item .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.quick-link-row-btn:hover { border-color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="floating-chat"><button class="chat-button whatsapp-btn" onclick="openWhatsApp()" title="Chat on WhatsApp"><i class="bi bi-whatsapp"></i><div class="chat-tooltip">Chat on WhatsApp</div></button></div>
+
+<header class="header">
+    <div class="header-main"><div class="container"><div class="header-content">
+        <a href="/" class="logo">
+            <img src="/images/backgrounds/pals.png" alt="Midlands State University — Place Alert Labs" class="logo-img">
+        </a>
+        <nav class="nav">
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item has-submenu"><a href="/about.html" class="nav-link">About Us <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/about.html#vision">Vision Statement</a></li><li><a href="/about.html#mission">Mission Statement</a></li><li><a href="/about.html#strategic-pillars">Strategic Pillars</a></li><li><a href="/about.html#values">Values</a></li><li><a href="/about.html#principles">Principles</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/research.html" class="nav-link">Research <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/research.html#focus-areas">Focus Areas</a></li><li><a href="/research.html#current-projects">Current Projects</a></li><li><a href="/research.html#previous-projects">Previous Projects</a></li><li><a href="/publications.html">Publications</a></li></ul></li>
+                <li class="nav-item"><a href="/team.html" class="nav-link">Team</a></li>
+                <li class="nav-item has-submenu"><a href="/partners.html" class="nav-link">Our Partners <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/partners.html#funding-partners">Funding Partners</a></li><li><a href="/partners.html#research-partners">Research Partners</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/news.html" class="nav-link">Media <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/news.html#webinars-podcasts">Webinars &amp; Podcasts</a></li><li><a href="/news.html#latest-news">Latest News</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/courses.html" class="nav-link">Courses <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/courses.html#open-enrolment">Open for Enrolment</a></li><li><a href="/courses.html#recurring-programme">Recurring Programme</a></li><li><a href="/courses.html#coming-soon">Coming Soon</a></li></ul></li>
+                <li class="nav-item"><a href="/contact.html" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="https://portal.placealert.org" target="_blank" class="nav-portal-btn"><i class="bi bi-database"></i> Data Portal &rarr;</a><a href="/" class="pals-logo-secondary"><img src="/images/backgrounds/PALs_Logo.png" alt="Place Alert Labs" class="pals-logo-secondary-img"></a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle"><i class="bi bi-list"></i></button>
+        </nav>
+    </div></div></div>
+</header>
+
+<main class="page-main" style="max-width: 1180px; margin: 0 auto;">
+
+    <div class="page-header-band">
+    <span class="kicker">Research</span>
+    <h1>Evidence for Africa's toughest environment-health challenges.</h1>
+    <div class="heading-divider"></div>
+    </div>
+    <div class="research-intro">
+        <p>We utilize advanced Geographical Information Science (GISc) to transform complex spatial and health data into actionable insights that guide policy, empower communities, and protect public health in Africa's toughest health and climate challenges.</p>
+    </div>
+
+    <div style="margin-bottom: 90px;" id="focus-areas">
+        <span class="kicker">Research Focus Areas</span>
+        <div class="hairline-grid focus-grid">
+            <div><div class="title">Maternal &amp; Child Health</div><div class="body">Spatial patterns in maternal mortality, healthcare access, and community-based interventions across Africa.</div></div>
+            <div><div class="title">Environmental Health</div><div class="body">Air quality monitoring, climate-health interactions, and environmental exposure assessment using advanced spatial methods.</div></div>
+            <div><div class="title">Geospatial Analysis</div><div class="body">GIS applications, remote sensing, and spatial data science across diverse African contexts.</div></div>
+            <div><div class="title">Machine Learning &amp; AI</div><div class="body">Predictive modeling and AI-driven tools for health and environmental decision-making.</div></div>
+            <div><div class="title">Community Engagement</div><div class="body">Participatory research with communities, policymakers, and institutions to ensure relevant, real-world impact.</div></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 90px;" id="current-projects">
+        <span class="kicker">Current Research Projects</span>
+        <div class="project-list">
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>PRECISE — PREgnancy Care Integrating translational Science Everywhere</h3>
+                    <span class="project-meta-text">Active &middot; 2020 – Present</span>
+                </div>
+                <p>The PRECISE Network is a broadly-based group of research scientists and health advocates mainly based in the UK and Africa, including the World Health Organization. PALs leads the health geography component and aims to understand geographical influences on placental disorders of pregnancy — including hypertension, fetal growth restriction, and stillbirth — across the Gambia, Mozambique, and Kenya. Funded by UK Research and Innovation (UKRI) Global Challenge Research Fund (GCRF).</p>
+                <div class="tag-row"><span class="tag">Maternal Health</span><span class="tag">Geospatial Analysis</span><span class="tag">Africa</span><span class="tag">Pregnancy</span><span class="tag">Health Geography</span></div>
+            </div>
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>CHEAQI-MNCH — Climate, Health, Environment, Air Quality, and Maternal, Newborn and Child Health</h3>
+                    <span class="project-meta-text">Active &middot; 2021 – Present</span>
+                </div>
+                <p>This data science project quantifies the current and future impacts of air pollution on maternal and neonatal health in sub-Saharan Africa, where air quality is deteriorating with accelerated urbanization and population growth. It focuses on the synergistic association between heat waves and air pollution, developing adaptive interventions for vulnerable populations. Partners include NIH, Wellcome Trust, WITS, HE²AT Centre, and University of California Berkeley.</p>
+                <div class="tag-row"><span class="tag">Air Pollution</span><span class="tag">Machine Learning</span><span class="tag">Climate Health</span><span class="tag">Maternal Health</span><span class="tag">Data Science</span></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div style="margin-bottom: 90px;" id="previous-projects">
+        <span class="kicker">Previous Projects</span>
+        <div class="project-list">
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>CHEAQI Landscape Fire Smoke Supplement — Fire Smoke &amp; Birth Outcomes in Sub-Saharan Africa</h3>
+                    <span class="project-meta-text">Completed &middot; Oct 2024 – Oct 2025</span>
+                </div>
+                <p>Sub-Saharan Africa is the most fire-affected region globally, responsible for nearly 70% of the world's burned area each year — 41% of fires being agricultural. This NIH-funded supplement addressed the knowledge gap in fire smoke exposure and birth outcomes in Africa, integrating SILAM atmospheric composition data with machine learning and distributed lag models. Partners: NIH, WITS, Finnish Meteorological Institute.</p>
+                <div class="tag-row"><span class="tag">Fire Smoke</span><span class="tag">Birth Outcomes</span><span class="tag">PM2.5</span><span class="tag">NIH Funded</span><span class="tag">Agricultural Fires</span></div>
+            </div>
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>ETIQUET — Extrapolating Temperature and Air Quality Exposure in Space and Time</h3>
+                    <span class="project-meta-text">Completed &middot; Feb 2024 – Jun 2025</span>
+                </div>
+                <p>An initiative addressing the persistent scarcity of environmental exposure data in sub-Saharan Africa. ETIQUET develops scalable models to estimate exposure to air pollution (PM₂.₅, NO₂) and temperature at a daily resolution across unsampled locations, integrating high-resolution satellite data, sensor networks, and epidemiological surveillance datasets using spatio-temporal kriging, land use regression, and semi-supervised deep learning. Partners: HE²AT Centre, WITS University, Midlands State University.</p>
+                <div class="tag-row"><span class="tag">Environmental Data</span><span class="tag">Deep Learning</span><span class="tag">Spatial Analysis</span><span class="tag">Air Quality</span><span class="tag">Temperature</span></div>
+            </div>
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>RoadMApp</h3>
+                    <span class="project-meta-text">Completed</span>
+                </div>
+                <p>A mobile app project helping women access maternal health care by accounting for road and weather conditions in near-real time and linking them to available local transport. In Zimbabwe, 73% of maternal deaths are attributed to delays in accessing care caused by long distances, limited transport options, and roads that become impassable in the wet season. Road-MApp aimed to establish micro-savings groups to finance transport, targeting a 25% increase in antenatal facility use and a 10% increase in in-facility deliveries.</p>
+                <div class="tag-row"><span class="tag">Maternal Health</span><span class="tag">Mobile App</span><span class="tag">Transportation</span><span class="tag">Zimbabwe</span></div>
+            </div>
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>PREEMPT / CLIP — Community Level Interventions for Pre-Eclampsia</h3>
+                    <span class="project-meta-text">Completed</span>
+                </div>
+                <p>PALs was appointed by the PRE-eclampsia-Eclampsia Monitoring, Prevention and Treatment (PRE-EMPT) initiative — a multi-million-dollar programme coordinated by the University of British Columbia's Department of Obstetrics and Gynaecology — to lead geospatial analyses for the Community Level Interventions for Pre-Eclampsia (CLIP) trials across India, Pakistan, and Mozambique. The work assessed the spatial epidemiology of adverse maternal and perinatal outcomes, identified communities and individuals showing better-than-expected resilience, and produced geo-visualizations communicating trial progress and impact.</p>
+                <div class="tag-row"><span class="tag">Pre-Eclampsia</span><span class="tag">Maternal Health</span><span class="tag">Geospatial Analysis</span><span class="tag">Clinical Trials</span></div>
+            </div>
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>Mapping Outcomes for Mothers (MOM)</h3>
+                    <span class="project-meta-text">Completed</span>
+                </div>
+                <p>Using Geographical Information Systems and a social determinants of health framework, MOM described the contextual factors — maternal characteristics, health systems and services, and socio-economic and environmental determinants — that elevate risk for adverse maternal outcomes, giving policymakers a geographically precise basis for targeted, community-level action.</p>
+                <div class="tag-row"><span class="tag">Maternal Health</span><span class="tag">GIS</span><span class="tag">Social Determinants of Health</span></div>
+            </div>
+
+            <div class="project-item">
+                <div class="project-item-head">
+                    <h3>Injury Surveillance — Elsies River, Cape Town</h3>
+                    <span class="project-meta-text">Completed</span>
+                </div>
+                <p>Dr. Makanga was appointed as a consultant to map injury risks and outcomes linked to the off-license sale of alcohol in Elsies River, a low-to-middle income community in Cape Town, South Africa, producing map-based products communicating the spatial prevalence of illegal liquor outlets and their relationship to alcohol-related violence.</p>
+                <div class="tag-row"><span class="tag">Injury Surveillance</span><span class="tag">GIS</span><span class="tag">South Africa</span></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div style="border-top: 1px solid var(--line); padding-top: 50px;">
+        <span class="kicker">Publications</span>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap;">
+            <p style="max-width: 560px; color: var(--muted); font-size: 15px; line-height: 1.7; margin: 0;">42 peer-reviewed articles and preprints, and one forthcoming book, from Place Alert Labs and collaborators — spanning maternal health, environmental exposure, and health geography.</p>
+            <a href="/publications.html" class="quick-link-row-btn" style="display: inline-flex; align-items: center; gap: 8px; padding: .8rem 1.4rem; border: 1px solid var(--line); border-radius: 3px; color: var(--text); text-decoration: none; font-size: .9rem; font-weight: 600; white-space: nowrap;">View All Publications <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+
+</main>
+
+<footer class="modern-footer">
+    <div class="sponsors-section"></div>
+    <div class="footer-main"><div class="container"><div class="footer-content">
+        <div class="footer-section footer-about">
+            <div class="footer-logo-container"><div class="footer-logo"><img src="/images/backgrounds/PALs_Logo.png" alt="PALs Logo" class="footer-logo-img"></div><div class="footer-brand"><h3>Place Alert Labs</h3><p>Geospatial Health Research</p></div></div>
+            <p class="footer-description">An African-led environment-health research laboratory based at Midlands State University, driving evidence-based solutions for health challenges across Africa.</p>
+            <div class="footer-contact">
+                <div><i class="bi bi-geo-alt"></i><span>Private Bag 9055, Senga, Gweru, Zimbabwe</span></div>
+                <div><i class="bi bi-telephone"></i><span>+263 78 231 9736</span></div>
+                <div><i class="bi bi-envelope"></i><span>pals@staff.msu.ac.zw</span></div>
+            </div>
+        </div>
+        <div class="footer-section"><h4>Explore</h4><ul class="footer-menu"><li><a href="/about.html">About Us</a></li><li><a href="/research.html">Research</a></li><li><a href="/team.html">Our Team</a></li><li><a href="/partners.html">Our Partners</a></li><li><a href="/courses.html">Courses</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://portal.placealert.org" target="_blank">Data Portal</a></li></ul></div>
+        <div class="footer-section footer-social">
+            <h4>Connect</h4>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/company/place-alert-labs/" target="_blank" class="social-link linkedin"><i class="bi bi-linkedin"></i><span>LinkedIn</span></a>
+                <a href="https://twitter.com/placealertlabs" target="_blank" class="social-link twitter"><i class="bi bi-twitter-x"></i><span>Twitter</span></a>
+                <a href="https://bsky.app/profile/place-alert-lab.bsky.social" target="_blank" class="social-link bluesky"><i class="bi bi-globe"></i><span>Bluesky</span></a>
+                <a href="mailto:pals@staff.msu.ac.zw" class="social-link email"><i class="bi bi-envelope"></i><span>Email</span></a>
+            </div>
+        </div>
+    </div></div></div>
+    <div class="footer-bottom"><div class="container"><div class="footer-bottom-content">
+        <div class="copyright"><p>&copy; 2026 Place Alert Labs · Midlands State University</p></div>
+        <div class="footer-legal"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Accessibility</a></div>
+    </div></div></div>
+</footer>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="/assets/main.js"></script>
+<script src="/pa/pa.js" defer></script>
+</body>
+</html>

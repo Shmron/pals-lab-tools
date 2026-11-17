@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Place Alert Labs - Geospatial Health Research for Africa</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;600;700;800;900&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+/* ── Home hero ── */
+.aas-hero-section {
+    position: relative;
+    background: var(--ink);
+    padding: 130px 40px 100px;
+    overflow: hidden;
+}
+.aas-hero-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+        radial-gradient(circle at 80% 25%, rgba(224,122,95,.30) 0%, transparent 42%),
+        radial-gradient(circle at 92% 62%, rgba(184,115,51,.28) 0%, transparent 40%),
+        radial-gradient(circle at 68% 88%, rgba(26,83,92,.32) 0%, transparent 38%);
+    pointer-events: none;
+}
+.aas-hero-section::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480' viewBox='0 0 480 480'%3E%3Cpath d='M-40 100 Q80 50 200 100 T440 100 T680 100' stroke='%23B87333' stroke-width='1' fill='none' opacity='.55'/%3E%3Cpath d='M-40 190 Q80 140 200 190 T440 190 T680 190' stroke='%23E07A5F' stroke-width='1' fill='none' opacity='.45'/%3E%3Cpath d='M-40 280 Q80 230 200 280 T440 280 T680 280' stroke='%23B87333' stroke-width='1' fill='none' opacity='.35'/%3E%3Cpath d='M-40 370 Q80 320 200 370 T440 370 T680 370' stroke='%231A535C' stroke-width='1' fill='none' opacity='.4'/%3E%3C/svg%3E");
+    background-size: 480px 480px;
+    background-repeat: repeat;
+    opacity: .5;
+    pointer-events: none;
+}
+.hero-inner { max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
+.hero-content { max-width: 640px; color: #fdfcfa; }
+.hero-title  { font-family: var(--font-head); font-size: 3.4rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 1.5rem; line-height: 1.1; color: #fdfcfa; }
+.hero-subtitle { font-size: 1.1rem; margin-bottom: 2.25rem; color: #b9c2d1; font-weight: 400; line-height: 1.6; }
+.hero-cta-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.hero-read-more-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: var(--accent); color: var(--ink);
+    padding: .9rem 1.75rem; border-radius: 3px; text-decoration: none;
+    font-weight: 600; font-size: .95rem;
+}
+.hero-read-more-btn:hover { opacity: .88; color: var(--ink); text-decoration: none; }
+.hero-secondary-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: transparent; color: #fdfcfa; border: 1px solid rgba(253,252,250,.35);
+    padding: .9rem 1.75rem; border-radius: 3px; text-decoration: none;
+    font-weight: 600; font-size: .95rem;
+}
+.hero-secondary-btn:hover { border-color: #fdfcfa; color: #fdfcfa; text-decoration: none; }
+@media (max-width: 768px) {
+    .aas-hero-section { padding: 100px 24px 70px; }
+    .hero-title { font-size: 2.3rem; }
+}
+
+/* About section */
+.aas-about-section { padding: 8rem 0; background: #ffffff; }
+.about-content { max-width: 1200px; margin: 0 auto; text-align: left; padding: 40px; background: linear-gradient(135deg, var(--sand) 0%, var(--paper) 100%); border-radius: 4px; border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(45,52,54,.05); }
+.about-content h2 { margin-bottom: .5rem; text-align: right; position: relative; }
+.about-content .heading-divider { margin-left: auto; margin-right: 0; }
+.about-content p  { font-size: 1.1rem; line-height: 1.7; color: var(--muted); margin-bottom: 1.5rem; }
+.about-read-more-btn { display: inline-flex; align-items: center; gap: .5rem; background: var(--accent); color: var(--ink); padding: .75rem 1.5rem; border-radius: 3px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: opacity .2s ease; margin-top: 1rem; }
+.about-read-more-btn:hover { opacity: .88; color: var(--ink); text-decoration: none; }
+
+/* LinkedIn news */
+.aas-linkedin-news-section { padding: 100px 0; background: var(--paper); }
+.aas-linkedin-news-section h2 { margin-bottom: .5rem; }
+.aas-linkedin-news-section .heading-divider { margin-bottom: 3rem; }
+.linkedin-news-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-bottom: 2rem; }
+.linkedin-news-item {
+    background: var(--card-bg); border: 1px solid var(--line); border-top: 3px solid var(--accent);
+    border-radius: 2px; position: relative; overflow: hidden;
+    display: flex; align-items: flex-start; padding: 1.5rem; gap: 1rem;
+    transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);
+}
+.linkedin-news-item::after { content: ''; position: absolute; inset: 0; background: var(--sand); opacity: 0; transition: opacity .25s; pointer-events: none; }
+.linkedin-news-item:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(45,52,54,.1); }
+.linkedin-news-item:hover::after { opacity: .35; }
+.linkedin-news-item > * { position: relative; z-index: 1; }
+.linkedin-icon { display: none; }
+.linkedin-content { flex: 1; }
+.news-meta { display: flex; align-items: center; gap: .75rem; margin-bottom: .6rem; flex-wrap: wrap; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-family: var(--font-mono); }
+.news-date { color: var(--muted); }
+.linkedin-category { color: var(--accent); font-weight: 700; }
+.linkedin-content h3 { font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: .5rem; line-height: 1.4; font-family: var(--font-head); }
+.linkedin-content p  { font-size: .875rem; line-height: 1.6; color: var(--muted); margin-bottom: .75rem; }
+.news-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+.linkedin-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: .85rem; }
+.linkedin-link:hover { text-decoration: underline; }
+.linkedin-footer { text-align: center; margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+.view-more-news, .view-all-linkedin { display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.6rem; border-radius: 3px; text-decoration: none; font-weight: 600; font-size: .9rem; border: 1px solid var(--line); color: var(--text); }
+.view-more-news:hover, .view-all-linkedin:hover { border-color: var(--ink); }
+
+/* Data portal CTA banner */
+@media (max-width:768px) {
+    .linkedin-news-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Floating Chat -->
+<div class="floating-chat">
+    <button class="chat-button whatsapp-btn" onclick="openWhatsApp()" title="Chat on WhatsApp">
+        <i class="bi bi-whatsapp"></i>
+        <div class="chat-tooltip">Chat on WhatsApp</div>
+    </button>
+</div>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-main"><div class="container"><div class="header-content">
+        <a href="/" class="logo">
+            <img src="/images/backgrounds/pals.png" alt="Midlands State University — Place Alert Labs" class="logo-img">
+        </a>
+        <nav class="nav">
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item has-submenu"><a href="/about.html" class="nav-link">About Us <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/about.html#vision">Vision Statement</a></li><li><a href="/about.html#mission">Mission Statement</a></li><li><a href="/about.html#strategic-pillars">Strategic Pillars</a></li><li><a href="/about.html#values">Values</a></li><li><a href="/about.html#principles">Principles</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/research.html" class="nav-link">Research <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/research.html#focus-areas">Focus Areas</a></li><li><a href="/research.html#current-projects">Current Projects</a></li><li><a href="/research.html#previous-projects">Previous Projects</a></li><li><a href="/publications.html">Publications</a></li></ul></li>
+                <li class="nav-item"><a href="/team.html" class="nav-link">Team</a></li>
+                <li class="nav-item has-submenu"><a href="/partners.html" class="nav-link">Our Partners <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/partners.html#funding-partners">Funding Partners</a></li><li><a href="/partners.html#research-partners">Research Partners</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/news.html" class="nav-link">Media <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/news.html#webinars-podcasts">Webinars &amp; Podcasts</a></li><li><a href="/news.html#latest-news">Latest News</a></li></ul></li>
+                <li class="nav-item has-submenu"><a href="/courses.html" class="nav-link">Courses <i class="bi bi-chevron-down dropdown-arrow"></i></a><ul class="sub-menu"><li><a href="/courses.html#open-enrolment">Open for Enrolment</a></li><li><a href="/courses.html#recurring-programme">Recurring Programme</a></li><li><a href="/courses.html#coming-soon">Coming Soon</a></li></ul></li>
+                <li class="nav-item"><a href="/contact.html" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="https://portal.placealert.org" target="_blank" class="nav-portal-btn"><i class="bi bi-database"></i> Data Portal &rarr;</a><a href="/" class="pals-logo-secondary"><img src="/images/backgrounds/PALs_Logo.png" alt="Place Alert Labs" class="pals-logo-secondary-img"></a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle"><i class="bi bi-list"></i></button>
+        </nav>
+    </div></div></div>
+</header>
+
+<!-- Main Content -->
+<main>
+
+<!-- Hero -->
+<section class="aas-hero-section">
+    <div class="hero-inner">
+        <div class="hero-content">
+            <span class="kicker" style="color: var(--accent);">Geospatial Health Research</span>
+            <h1 class="hero-title">We use geospatial data to understand how climate and environment affect health across Africa.</h1>
+            <p class="hero-subtitle">Turning spatial science into decision-support tools that inform policy, strengthen capacity, and protect public health in data-scarce regions.</p>
+            <div class="hero-cta-row">
+                <a href="/research.html" class="hero-read-more-btn">Explore Our Research <i class="bi bi-arrow-right"></i></a>
+                <a href="/about.html" class="hero-secondary-btn">Read About Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="aas-about-section">
+    <div class="container">
+        <div class="about-content">
+            <h2>Who We Are</h2>
+            <div class="heading-divider"></div>
+            <p>Place Alert Labs (PALs) is a research laboratory at Midlands State University dedicated to advancing geospatial health research across Africa. We are committed to transforming lives through innovative scientific research that addresses the continent's most pressing health challenges.</p>
+            <p>Our vision is to see transformed lives on the African continent through science. We focus on geospatial health research, maternal and child health, environmental health, and capacity building for African researchers.</p>
+            <a href="/about.html" class="about-read-more-btn">Read more <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- Latest News Section -->
+<section class="aas-linkedin-news-section">
+    <div class="container">
+        <span class="kicker">Media</span>
+        <h2>Latest News</h2>
+        <div class="heading-divider"></div>
+        <div class="linkedin-news-grid" data-news-feed data-news-layout="home" data-news-limit="3">
+
+            <div class="linkedin-news-item">
+                <div class="linkedin-icon"><i class="bi bi-linkedin"></i></div>
+                <div class="linkedin-content">
+                    <div class="news-meta">
+                        <span class="news-date">June 2026</span>
+                        <span class="linkedin-category pill-badge pill-badge--teal">TRAINING</span>
+                    </div>
+                    <h3><strong>GeoAI Surveying Workshop with the Survey Institute of Zimbabwe's Young Surveyors</strong></h3>
+                    <p>PALs delivered a hands-on GeoAI and surveying skills workshop in partnership with the Survey Institute of Zimbabwe, facilitated by Prestige Tatenda Makanga, Zororo Chinwadzimba, Rutendo Sibanda, and Bongani Handsome Nyoni.</p>
+                    <div class="news-tags"><span class="tag">GeoAI</span><span class="tag">Surveying</span><span class="tag">Young Surveyors</span></div>
+                    <a href="https://www.linkedin.com/posts/place-alert-labs_cheaqi-geoai-surveying-activity-7477156784600756224-8-uC" target="_blank" rel="noopener noreferrer" class="linkedin-link">Read More on LinkedIn &rarr;</a>
+                </div>
+            </div>
+
+            <div class="linkedin-news-item">
+                <div class="linkedin-icon"><i class="bi bi-linkedin"></i></div>
+                <div class="linkedin-content">
+                    <div class="news-meta">
+                        <span class="news-date">May 2026</span>
+                        <span class="linkedin-category pill-badge">RESEARCH</span>
+                    </div>
+                    <h3><strong>Early Career Researchers Spotlight at the 6th DS-I Africa Consortium Meeting</strong></h3>
+                    <p>Place Alert Labs celebrated Anotida Marrian Chapunza's work on the ETIQUET project, using semi-supervised learning to improve environmental exposure prediction in data-scarce settings.</p>
+                    <div class="news-tags"><span class="tag">DS-I Africa</span><span class="tag">ETIQUET</span><span class="tag">AI for Africa</span></div>
+                    <a href="https://www.linkedin.com/company/place-alert-labs/posts/?feedView=all" target="_blank" rel="noopener noreferrer" class="linkedin-link">Read More on LinkedIn &rarr;</a>
+                </div>
+            </div>
+
+            <div class="linkedin-news-item">
+                <div class="linkedin-icon"><i class="bi bi-linkedin"></i></div>
+                <div class="linkedin-content">
+                    <div class="news-meta">
+                        <span class="news-date">May 2026</span>
+                        <span class="linkedin-category pill-badge pill-badge--terracotta">CONFERENCE</span>
+                    </div>
+                    <h3><strong>Place Alert Labs at the DS-I Africa Health Datathon in Mombasa</strong></h3>
+                    <p>Prestige Tatenda Makanga and Anotida Marrian Chapunza represented the lab in discussions on fair, context-aware artificial intelligence for African healthcare.</p>
+                    <div class="news-tags"><span class="tag">Health Datathon</span><span class="tag">AI in Healthcare</span><span class="tag">Mombasa</span></div>
+                    <a href="https://www.linkedin.com/posts/place-alert-labs_cheaqi-placealertlabs-dsiafrica2026-activity-7464987491444449281-w9bz" target="_blank" rel="noopener noreferrer" class="linkedin-link">Read More on LinkedIn &rarr;</a>
+                </div>
+            </div>
+
+        </div>
+        <p class="news-feed-status" data-news-status aria-live="polite">Pulling the latest updates from LinkedIn.</p>
+        <div class="linkedin-footer">
+            <a href="/news.html" class="view-more-news">View More News &rarr;</a>
+            <a href="https://www.linkedin.com/company/place-alert-labs/posts/?feedView=all" target="_blank" class="view-all-linkedin">Follow us on LinkedIn &rarr;</a>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer class="modern-footer">
+    <div class="sponsors-section"></div>
+    <div class="footer-main">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section footer-about">
+                    <div class="footer-logo-container">
+                        <div class="footer-logo"><img src="/images/backgrounds/PALs_Logo.png" alt="PALs Logo" class="footer-logo-img"></div>
+                        <div class="footer-brand"><h3>Place Alert Labs</h3><p>Geospatial Health Research</p></div>
+                    </div>
+                    <p class="footer-description">An African-led environment-health research laboratory based at Midlands State University, driving evidence-based solutions for health challenges across Africa.</p>
+                    <div class="footer-contact">
+                        <div><i class="bi bi-geo-alt"></i><span>Private Bag 9055, Senga, Gweru, Zimbabwe</span></div>
+                        <div><i class="bi bi-telephone"></i><span>+263 78 231 9736</span></div>
+                        <div><i class="bi bi-envelope"></i><span>pals@staff.msu.ac.zw</span></div>
+                    </div>
+                </div>
+                <div class="footer-section footer-links">
+                    <h4>Explore</h4>
+                    <ul class="footer-menu">
+                        <li><a href="/about.html">About Us</a></li>
+                        <li><a href="/research.html">Research</a></li>
+                        <li><a href="/team.html">Our Team</a></li>
+                        <li><a href="/partners.html">Our Partners</a></li>
+                        <li><a href="/courses.html">Courses</a></li>
+                        <li><a href="/contact.html">Contact</a></li>
+                        <li><a href="https://portal.placealert.org" target="_blank">Data Portal</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section footer-social">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="https://www.linkedin.com/company/place-alert-labs/" target="_blank" class="social-link linkedin"><i class="bi bi-linkedin"></i><span>LinkedIn</span></a>
+                        <a href="https://twitter.com/placealertlabs" target="_blank" class="social-link twitter"><i class="bi bi-twitter-x"></i><span>Twitter</span></a>
+                        <a href="https://bsky.app/profile/place-alert-lab.bsky.social" target="_blank" class="social-link bluesky"><i class="bi bi-globe"></i><span>Bluesky</span></a>
+                        <a href="mailto:pals@staff.msu.ac.zw" class="social-link email"><i class="bi bi-envelope"></i><span>Email</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="container">
+            <div class="footer-bottom-content">
+                <div class="copyright">
+                    <p>&copy; 2026 Place Alert Labs · Midlands State University</p>
+                </div>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Accessibility</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="/assets/main.js"></script>
+<script src="/pa/pa.js" defer></script>
+</body>
+</html>

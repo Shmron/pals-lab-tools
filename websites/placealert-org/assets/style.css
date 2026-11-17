@@ -1,0 +1,532 @@
+/* ============================================================
+   Place Alert Labs — Shared Stylesheet
+   Redesign 2026: flat / hairline / editorial design system
+   ============================================================ */
+
+/* Bootstrap Icons ensure correct rendering */
+.bi, i[class*="bi-"] {
+    font-family: "bootstrap-icons" !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    display: inline-block !important;
+    line-height: 1 !important;
+}
+
+/* ── CSS Custom Properties ─────────────────────────────── */
+:root {
+    font-size: 14px;
+
+    /* Design tokens — copied 1:1 from the Data Portal's palette for consistency */
+    --ink:    #2D3436; /* charcoal */
+    --paper:  #FFFBF5; /* cream — page background */
+    --text:   #2D3436; /* charcoal */
+    --muted:  #3D5A73; /* slate */
+    --line:   rgba(45,52,54,0.08);
+    --accent: #B87333; /* copper */
+    --teal:       #1A535C; /* teal-deep */
+    --terracotta: #E07A5F; /* coral */
+    --sage:   #6B8E6B;
+    --lavender: #7B6BA8;
+    --sand:   #F4E9D8; /* card hover wash */
+    --mist:   #E8EEF2; /* badge background */
+    --font-head: 'Bodoni Moda', Georgia, serif;
+    --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Legacy tokens — kept for any not-yet-migrated inline styles */
+    --msu-primary:   #1e3a8a;
+    --msu-secondary: #1e40af;
+    --msu-accent:    #3b82f6;
+    --msu-orange:    #f59e0b;
+    --msu-gold:      #fbbf24;
+    --msu-success:   #059669;
+    --msu-danger:    #dc2626;
+    --msu-dark:      #1f2937;
+    --msu-medium:    #4b5563;
+    --msu-light:     #9ca3af;
+    --msu-lighter:   #f3f4f6;
+    --msu-white:     #ffffff;
+    --bg-primary:    #ffffff;
+    --bg-secondary:  #f8fafc;
+    --bg-tertiary:   #f1f5f9;
+    --text-primary:   #1f2937;
+    --text-secondary: #4b5563;
+    --text-muted:     #9ca3af;
+    --border-color:   #e5e7eb;
+    --card-bg:        #FDFCFA; /* ivory — slightly whiter than the page cream, for card depth */
+    --shadow-nav: none;
+}
+
+/* ── Reset ────────────────────────────────────────────── */
+*  { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+[id] { scroll-margin-top: 96px; } /* keeps anchored sections clear of the fixed header */
+
+body {
+    font-family: var(--font-body);
+    line-height: 1.65;
+    color: var(--text);
+    background: var(--paper);
+    font-size: 15px;
+}
+
+.news-feed-status {
+    margin: -1.5rem 0 2rem;
+    color: var(--muted);
+    font-size: .8rem;
+    text-align: center;
+}
+
+/* ── Typography ───────────────────────────────────────────────────────
+   Bolder editorial scale (2026 refresh) — bigger, heavier headlines with
+   tighter tracking, inspired by the MSU main-site redesign, dialed back
+   to fit our narrower single-column page headers. */
+h1,.h1,h2,.h2,h3,.h3,h4,.h4,h5,.h5,h6,.h6 { font-family: var(--font-head); font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
+h1,.h1 { font-size:3.1rem; line-height:1.08; margin-bottom:1rem; }
+h2,.h2 { font-size:2.4rem; line-height:1.15; margin-bottom:.875rem; }
+h3,.h3 { font-size:1.85rem;line-height:1.25; margin-bottom:.75rem; }
+h4,.h4 { font-size:1.35rem;line-height:1.3; margin-bottom:.625rem; }
+h5,.h5 { font-size:1.125rem;line-height:1.4; margin-bottom:.5rem; }
+h6,.h6 { font-size:1rem;   line-height:1.5; margin-bottom:.5rem; }
+p,.p   { font-size:.95rem; line-height:1.7; margin-bottom:1rem; }
+.lead  { font-size:1.15rem; line-height:1.6; margin-bottom:1rem; color: var(--muted); }
+.text-primary   { color:var(--text)  !important; }
+.text-secondary { color:var(--muted) !important; }
+.text-muted     { color:var(--muted) !important; }
+
+/* Kicker + H1 + accent underline — the standard page-header block.
+   Drop a <div class="heading-divider"></div> right after the h1. */
+.heading-divider {
+    width: 64px; height: 4px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--terracotta));
+    margin: 4px 0 22px;
+}
+
+/* Premium header band — the framed, gradient-tinted card that sits behind
+   a page's kicker + h1 + divider (Direction C from the typography review). */
+.page-header-band {
+    background: linear-gradient(180deg, var(--sand) 0%, var(--paper) 100%);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 44px 48px 40px;
+    margin-bottom: 48px;
+}
+.page-header-band .heading-divider { margin-bottom: 0; }
+
+/* Solid-fill category pill — the "pop" tag treatment (vs. the quieter
+   outlined .tag). Pick a color modifier or default to accent. */
+.pill-badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: #fff; background: var(--accent);
+    padding: .35rem .75rem; border-radius: 20px; line-height: 1;
+}
+.pill-badge--terracotta { background: var(--terracotta); }
+.pill-badge--teal       { background: var(--teal); }
+.pill-badge--sage       { background: var(--sage); }
+.pill-badge--lavender   { background: var(--lavender); }
+
+/* ── Shared component patterns ───────────────────────────
+   Kicker + heading, pull-quotes, numbered rows/grids, flat cards —
+   the standard building blocks for every redesigned page. */
+.kicker {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 16px;
+}
+.pull-quote {
+    font-family: var(--font-head);
+    font-weight: 500;
+    font-size: 28px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+}
+/* ── Card DNA — matches the Data Portal's project-card exactly ──────────
+   ivory bg, hairline border, 3px copper top-border, subtle sand wash on
+   hover, lift + shadow. Any element can opt in via .portal-card. */
+.portal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);
+}
+.portal-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--sand);
+    opacity: 0;
+    transition: opacity .25s;
+    pointer-events: none;
+}
+.portal-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 36px rgba(45,52,54,.1);
+}
+.portal-card:hover::after { opacity: .35; }
+.portal-card > * { position: relative; z-index: 1; }
+
+.hairline-grid {
+    display: grid;
+    gap: 20px;
+}
+/* Static info card — NOT a link, so no hover-lift/shadow (that affordance
+   is reserved for things that are actually clickable, like .news-card). */
+.hairline-grid > * {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 2px;
+    padding: 28px;
+}
+.hairline-grid .num { font-family: var(--font-head); font-size: 34px; font-weight: 800; color: var(--accent); margin-bottom: 10px; display: block; }
+.hairline-grid .title { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 8px; font-family: var(--font-head); }
+.hairline-grid .body  { font-size: 14px; line-height: 1.6; color: var(--muted); }
+
+/* Rotate a distinct identity color through each card in a grid — used on
+   the About page's Values section (4 items: accent/terracotta/teal/sage). */
+.color-rotate-grid > *:nth-child(4n+1) { border-left-color: var(--accent); }
+.color-rotate-grid > *:nth-child(4n+1) .num { color: var(--accent); }
+.color-rotate-grid > *:nth-child(4n+2) { border-left-color: var(--terracotta); }
+.color-rotate-grid > *:nth-child(4n+2) .num { color: var(--terracotta); }
+.color-rotate-grid > *:nth-child(4n+3) { border-left-color: var(--teal); }
+.color-rotate-grid > *:nth-child(4n+3) .num { color: var(--teal); }
+.color-rotate-grid > *:nth-child(4n+4) { border-left-color: var(--sage); }
+.color-rotate-grid > *:nth-child(4n+4) .num { color: var(--sage); }
+
+/* Strategic Pillars — big editorial numeral list, no card/hover affordance */
+.pillar-list { display: flex; flex-direction: column; }
+.pillar-row {
+    display: flex; align-items: baseline; gap: 28px;
+    padding: 22px 0; border-top: 1px solid var(--line);
+}
+.pillar-list .pillar-row:last-child { border-bottom: 1px solid var(--line); }
+.pillar-num { font-family: var(--font-head); font-size: 44px; font-weight: 800; color: var(--line); min-width: 64px; flex-shrink: 0; }
+.pillar-label { font-family: var(--font-head); font-size: 21px; font-weight: 600; color: var(--ink); }
+@media (max-width: 640px) {
+    .pillar-num { font-size: 32px; min-width: 48px; }
+    .pillar-label { font-size: 17px; }
+}
+
+.flat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);
+}
+.flat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(45,52,54,.1); }
+
+.chip {
+    display: inline-block;
+    font-size: 12px;
+    padding: .3rem .7rem;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    color: var(--muted);
+}
+
+/* ── Container ────────────────────────────────────────── */
+.container { max-width:1200px; margin:0 auto; padding:0 20px; }
+.page-main { padding: 110px 40px 120px; }
+@media (max-width:768px) { .page-main { padding: 90px 24px 70px; } }
+
+/* ── Header / Nav ─────────────────────────────────────── */
+.header {
+    background: rgba(247,245,240,0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    position: fixed; top:0; left:0; right:0;
+    z-index: 1000;
+}
+.header-top { display: none; } /* utility bar folded into single-row nav */
+.header-main { padding: 14px 0; }
+.header-content { display:flex; align-items:center; justify-content:space-between; gap: 20px; }
+
+/* Logo — the combined MSU + PALs lockup (single image, both marks together) */
+.logo { display:flex; align-items:center; text-decoration:none; flex-shrink: 0; color: inherit; }
+.logo-img { height: 38px; width: auto; object-fit: contain; }
+
+/* Nav */
+.nav { display:flex; align-items:center; gap: 18px; flex: 1; min-width: 0; justify-content: flex-end; }
+.nav-menu {
+    display:flex; list-style:none; gap: 4px; margin:0; align-items:center;
+    overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; min-width: 0;
+}
+.nav-menu::-webkit-scrollbar { display: none; }
+/* Setting overflow-x also computes overflow-y to "auto", which silently clips the
+   absolutely-positioned .sub-menu dropdown. Desktop viewports have room for the full
+   nav (container caps at 1200px), so let dropdowns escape there; keep the horizontal
+   scroll fallback only for the cramped tablet range just above the mobile breakpoint. */
+@media (min-width: 1000px) {
+    .nav-menu { overflow: visible; }
+}
+.nav-item { position:relative; flex-shrink: 0; }
+.nav-link {
+    color: var(--muted);
+    text-decoration:none;
+    font-weight:500;
+    font-size:.85rem;
+    padding: .5rem .65rem;
+    transition: color .2s ease;
+    display:flex; align-items:center; gap:.3rem;
+    white-space:nowrap;
+    border-bottom: 2px solid transparent;
+}
+.nav-link:hover { color: var(--ink); }
+.nav-link .dropdown-arrow { display: inline-block; font-size: 9px; margin-left: 1px; transition: transform .2s ease; position: relative; top: -1px; }
+.nav-item.active .nav-link { color: var(--ink); font-weight:600; border-bottom-color: var(--accent); }
+
+/* Dropdown submenus — About Us / Research / Our Partners */
+.nav-item.has-submenu { position: relative; }
+.nav-item.has-submenu:hover .dropdown-arrow,
+.nav-item.has-submenu:focus-within .dropdown-arrow { transform: rotate(180deg); }
+.sub-menu {
+    list-style: none; margin: 0; padding: 8px;
+    position: absolute; top: 100%; left: 0; min-width: 230px;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 3px;
+    box-shadow: 0 14px 34px rgba(45,52,54,.14);
+    opacity: 0; visibility: hidden; transform: translateY(6px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    z-index: 1100;
+}
+.nav-item.has-submenu:hover .sub-menu,
+.nav-item.has-submenu:focus-within .sub-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.sub-menu li { margin: 0; }
+.sub-menu a {
+    display: block; padding: .6rem .8rem; border-radius: 2px;
+    color: var(--text); text-decoration: none; font-size: .85rem; font-weight: 500; white-space: nowrap;
+}
+.sub-menu a:hover { background: var(--sand); color: var(--ink); }
+
+/* Secondary PALs mark — sits after the Data Portal button */
+.pals-logo-secondary { display: inline-flex; align-items: center; flex-shrink: 0; margin-left: 4px; }
+.pals-logo-secondary-img { height: 30px; width: auto; object-fit: contain; }
+
+/* Data Portal CTA button */
+.nav-portal-btn {
+    background: var(--accent) !important;
+    color: var(--ink) !important;
+    font-weight:600 !important;
+    padding:.55rem 1.1rem !important;
+    border-radius:3px !important;
+    white-space:nowrap;
+    transition: opacity .2s ease !important;
+    text-decoration:none !important;
+    display:inline-flex !important;
+    align-items:center; gap:.375rem;
+    font-size:.8rem;
+    flex-shrink: 0;
+}
+.nav-portal-btn:hover { opacity: .85; }
+
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+    display:none;
+    background:none; border:none;
+    font-size:1.4rem;
+    color: var(--ink);
+    cursor:pointer;
+    z-index:1001;
+    flex-shrink: 0;
+}
+
+
+/* ── Buttons ──────────────────────────────────────────── */
+.btn {
+    padding:.8rem 1.6rem; border-radius:3px;
+    text-decoration:none; font-weight:600; font-size:.9rem;
+    transition: transform .15s ease, opacity .2s ease, border-color .2s ease;
+    border:none; cursor:pointer;
+    display:inline-flex; align-items:center; gap:.5rem;
+    position:relative; overflow:hidden;
+    font-family: var(--font-body);
+}
+.btn::before { content: none; }
+.btn-primary   { background: var(--accent); color: var(--ink); }
+.btn-primary:hover  { opacity: .88; }
+.btn-secondary { background: transparent; color: var(--text); border:1px solid var(--line); }
+.btn-secondary:hover { border-color: var(--ink); }
+.btn-large {
+    padding: 1rem 2rem; font-size:.95rem; font-weight:600; border-radius:3px;
+    display:inline-flex; align-items:center; gap:.6rem;
+    background: var(--accent);
+    color: var(--ink); border: none; text-decoration:none; cursor:pointer;
+}
+.btn-large:hover { opacity: .88; color: var(--ink); text-decoration:none; }
+.btn-dark { background: var(--ink); color: #fdfcfa; }
+.btn-dark:hover { opacity: .88; color: #fdfcfa; }
+.btn-outline-light { background: transparent; color: #fdfcfa; border: 1px solid rgba(253,252,250,.4); }
+.btn-outline-light:hover { border-color: #fdfcfa; }
+
+/* ── Sections ─────────────────────────────────────────── */
+.section     { padding: 90px 0; background: var(--paper); }
+.section-alt { padding: 90px 0; background: #eeece4; }
+
+/* ── Section Title ────────────────────────────────────── */
+.section-title { margin-bottom: 3rem; }
+.section-title h2 { margin-bottom:.5rem; }
+.section-title h2::after { content: none; }
+.section-title .heading-divider { margin-top: 0; }
+.section-title p { font-size:1.05rem; color: var(--muted); max-width:640px; line-height:1.6; }
+
+/* ── Floating particles (retired — kept as no-op guard) ── */
+.floating-particles, .particle { display: none !important; }
+
+/* ── Floating chat ────────────────────────────────────── */
+.floating-chat { position:fixed; bottom:20px; right:20px; z-index:1000; display:flex; flex-direction:column; gap:15px; }
+.chat-button {
+    width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; color:white;
+    box-shadow: 0 4px 16px rgba(18,33,59,.25);
+    transition: transform .2s ease;
+}
+.chat-button:hover { transform: scale(1.06); }
+.whatsapp-btn { background: #25d366; }
+.chat-tooltip {
+    position:absolute; right:66px; top:50%; transform:translateY(-50%);
+    background: var(--ink); color:white;
+    padding:7px 11px; border-radius:3px; font-size:13px; font-weight:600;
+    white-space:nowrap; opacity:0; visibility:hidden; transition:all .2s ease;
+}
+.chat-button:hover .chat-tooltip { opacity:1; visibility:visible; }
+
+/* ── Footer ───────────────────────────────────────────── */
+.modern-footer { background: var(--ink); color: #b9c2d1; }
+.sponsors-section { display: none; }
+.footer-main      { padding: 64px 0 40px; }
+.footer-content   { display:grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px; margin-bottom: 40px; }
+.footer-logo-container { display:flex; align-items:center; gap:.75rem; margin-bottom:1rem; }
+.footer-logo      { display: none; }
+.footer-brand h3  { font-family: var(--font-head); font-size:1.15rem; font-weight:700; color:#fdfcfa; margin-bottom:.25rem; }
+.footer-brand p   { font-size:.8rem; color:#8d99ae; }
+.footer-description { font-size:.85rem; line-height:1.7; color:#8d99ae; margin-bottom:1rem; max-width: 340px; }
+.footer-contact   { display:flex; flex-direction:column; gap:.5rem; }
+.footer-contact > div { display:flex; align-items:center; gap:.5rem; color:#b9c2d1; font-size:.8rem; }
+.footer-contact i { color:#6d7b93; font-size:.85rem; }
+.footer-section h4 {
+    font-size:.75rem; font-weight:700; margin-bottom:1rem; color:#6d7b93;
+    text-transform:uppercase; letter-spacing:.06em; font-family: var(--font-body);
+}
+.footer-section h4::after { content: none; }
+.footer-menu      { list-style:none; padding:0; }
+.footer-menu li   { margin-bottom:.55rem; }
+.footer-menu li a { color:#b9c2d1; text-decoration:none; transition: color .2s ease; display:flex; align-items:center; gap:.3rem; font-size:.85rem; }
+.footer-menu li a:hover { color:#fdfcfa; }
+
+.social-links {
+    display:flex; flex-direction:column;
+    gap:.5rem; margin-bottom:1.25rem;
+}
+.social-link {
+    display:inline-flex !important; align-items:center; justify-content:flex-start; gap: .5rem;
+    text-decoration:none;
+    transition: color .2s ease;
+    padding: 0 !important; border-radius: 0 !important;
+    width:auto !important; height:auto !important; min-width:0 !important; min-height:0 !important;
+    box-shadow: none !important; background: transparent !important;
+    color:#b9c2d1 !important; font-size:.85rem;
+}
+.social-link:hover { transform:none; box-shadow:none !important; color:#fdfcfa !important; }
+.social-link i     { font-size:1rem !important; color:#6d7b93 !important; }
+.social-link span  { display:inline !important; }
+
+.newsletter-signup { display: none; } /* dropped — unused chrome per redesign */
+
+.footer-bottom { border-top: 1px solid #253651; padding:24px 0; }
+.footer-bottom-content { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+.copyright p   { color:#8d99ae; font-size:.8rem; margin:0; }
+.copyright-sub { font-size:.72rem !important; color:#6d7b93 !important; }
+.footer-legal  { display:flex; gap:1.25rem; }
+.footer-legal a { color:#8d99ae; text-decoration:none; font-size:.75rem; }
+.footer-legal a:hover { color:#fdfcfa; }
+
+/* ── Card base ────────────────────────────────────────── */
+.card { background: var(--card-bg); border:1px solid var(--line); border-top: 3px solid var(--accent); border-radius:2px; transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1); position:relative; overflow:hidden; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(45,52,54,.1); }
+
+/* ── Tag component ────────────────────────────────────── */
+.tag { background: var(--mist); color: var(--muted); padding:.25rem .6rem; border-radius:3px; font-size:.68rem; font-family: var(--font-mono); letter-spacing: .03em; font-weight:500; border: none; display:inline-block; }
+.tag:hover { color: var(--ink); }
+
+/* ── Animations ───────────────────────────────────────── */
+@keyframes float {
+    0%,100% { transform:translateY(0); }
+    50%     { transform:translateY(-8px); }
+}
+@keyframes fadeInUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+@keyframes shimmer {
+    0%   { transform:translateX(-100%); }
+    100% { transform:translateX(100%); }
+}
+@keyframes pulse {
+    0%,100% { transform:scale(1); }
+    50%     { transform:scale(1.05); }
+}
+@keyframes slideInUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+.fade-in { opacity:0; transform:translateY(12px); transition:all .5s ease; }
+.fade-in.visible { opacity:1; transform:translateY(0); }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width:1024px) {
+    .footer-content { grid-template-columns:1fr 1fr; gap:1.5rem; }
+    .nav-link { font-size: .8rem; padding: .5rem .5rem; }
+    .nav { gap: 10px; }
+}
+@media (max-width:768px) {
+    .nav-menu {
+        display:none;
+        position:absolute; top:100%; left:0; right:0;
+        background: var(--paper);
+        flex-direction:column; padding:1rem; gap: 2px;
+        border-bottom: 1px solid var(--line); z-index:1000;
+        overflow-y:auto; max-height:calc(100vh - 60px);
+    }
+    .nav-menu.active { display:flex !important; }
+    .nav-menu .nav-link { border-bottom: none; padding: .7rem .5rem; }
+    .nav-menu .nav-item.active .nav-link { background: rgba(201,146,47,0.08); }
+    .mobile-menu-toggle { display:block !important; }
+    .dropdown-arrow { display: none; }
+    .sub-menu {
+        position: static; opacity: 1; visibility: visible; transform: none;
+        box-shadow: none; border: none; background: transparent;
+        padding: 0 0 .3rem 1rem; min-width: 0;
+    }
+    .sub-menu a { padding: .45rem .5rem; font-size: .8rem; color: var(--muted); }
+    .pals-logo-secondary-img { height: 24px; }
+    .logo-subline { display: none; }
+    h1,.h1 { font-size:2.1rem; }
+    h2,.h2 { font-size:1.7rem; }
+    h3,.h3 { font-size:1.4rem; }
+    .footer-content { grid-template-columns:1fr; gap:2rem; }
+    .footer-bottom-content { flex-direction:column; text-align:center; }
+    .footer-legal { justify-content:center; }
+    .section, .section-alt { padding: 56px 0; }
+}
+@media (max-width:480px) {
+    .container { padding:0 15px; }
+    h1,.h1 { font-size:1.8rem; }
+    h2,.h2 { font-size:1.4rem; }
+}

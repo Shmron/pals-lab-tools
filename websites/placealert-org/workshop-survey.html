@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Feedback — GeoAI for Climate, Environment &amp; Health</title>
+    <meta name="description" content="Share your feedback on the GeoAI for Climate, Environment & Health workshop. Anonymous · Takes 2–3 minutes.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --copper: #B87333;
+            --teal-deep: #1A535C;
+            --sage: #6B8E6B;
+            --slate: #3D5A73;
+            --coral: #E07A5F;
+            --sand: #F4E9D8;
+            --charcoal: #2D3436;
+            --cream: #FFFBF5;
+            --ivory: #FDFCFA;
+            --lavender: #7B6BA8;
+            --green: #10b981;
+            --nav-h: 64px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color: var(--charcoal); line-height: 1.7; }
+
+        .accent-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--copper) 0%, var(--copper) 20%,
+                var(--teal-deep) 20%, var(--teal-deep) 40%,
+                var(--coral) 40%, var(--coral) 60%,
+                var(--sage) 60%, var(--sage) 80%,
+                var(--lavender) 80%, var(--lavender) 100%);
+            position: sticky; top: 0; z-index: 200;
+        }
+
+        .site-nav {
+            position: sticky; top: 4px; z-index: 100;
+            background: rgba(253,252,250,0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            height: var(--nav-h);
+        }
+        .site-nav.scrolled { border-bottom-color: rgba(184,115,51,0.15); box-shadow: 0 2px 20px rgba(45,52,54,0.06); }
+        .nav-inner {
+            max-width: 800px; margin: 0 auto; padding: 0 2.5rem;
+            height: 100%; display: flex; align-items: center; gap: 2rem;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit; flex-shrink: 0; }
+        .nav-logo-mark { width: 36px; height: 36px; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+        .nav-logo-mark img { width: 100%; height: 100%; object-fit: contain; }
+        .nav-logo-title { font-weight: 600; font-size: 0.9rem; color: var(--charcoal); line-height: 1.2; }
+        .nav-logo-sub { font-size: 0.7rem; color: var(--slate); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+        .nav-back {
+            margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+            letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate);
+            text-decoration: none; display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.4rem 0.9rem; border: 1px solid rgba(61,90,115,0.2); border-radius: 6px; transition: all 0.2s;
+        }
+        .nav-back:hover { color: var(--teal-deep); border-color: var(--teal-deep); }
+        @media (max-width: 600px) { .nav-inner { padding: 0 1.25rem; } }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(160deg, var(--ivory) 0%, var(--sand) 60%, rgba(244,233,216,0.5) 100%);
+            padding: 3rem 2.5rem 2.5rem; position: relative; overflow: hidden;
+            border-bottom: 1px solid rgba(184,115,51,0.12);
+        }
+        .hero::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: radial-gradient(circle at 1px 1px, rgba(184,115,51,0.09) 1px, transparent 0);
+            background-size: 28px 28px; pointer-events: none;
+        }
+        .hero-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+        .hero-label {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.25em;
+            text-transform: uppercase; color: var(--copper); font-weight: 600; margin-bottom: 1.1rem;
+            display: inline-flex; align-items: center; gap: 0.85rem;
+        }
+        .hero-label::before { content: ''; display: inline-block; width: 30px; height: 2px; background: var(--copper); }
+        .hero-title {
+            font-family: 'Bodoni Moda', serif; font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 700; line-height: 1.12; letter-spacing: -0.02em; color: var(--charcoal); margin-bottom: 0.9rem;
+        }
+        .hero-title em { font-style: italic; color: var(--teal-deep); }
+        .hero-sub { font-size: 1rem; color: var(--slate); max-width: 560px; line-height: 1.75; }
+        .hero-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; }
+        .chip {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.06em;
+            padding: 0.3rem 0.75rem; border-radius: 20px; background: rgba(26,83,92,0.09); color: var(--teal-deep); font-weight: 600;
+        }
+        .chip.copper { background: rgba(184,115,51,0.1); color: var(--copper); }
+        .chip.green  { background: rgba(16,185,129,0.1); color: #065f46; }
+
+        /* Layout */
+        .survey-wrap { max-width: 800px; margin: 0 auto; padding: 3rem 2.5rem 5rem; }
+        @media (max-width: 600px) { .hero { padding: 2.5rem 1.25rem 2rem; } .survey-wrap { padding: 2rem 1.25rem 4rem; } }
+
+        /* Anonymity banner */
+        .anon-banner {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-left: 4px solid var(--green);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.75rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            color: #166534;
+            line-height: 1.6;
+        }
+        .anon-banner-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+
+        /* Card */
+        .survey-card {
+            background: white; border: 1px solid rgba(184,115,51,0.12); border-top: 3px solid var(--teal-deep);
+            border-radius: 12px; padding: 2.25rem 2.5rem; box-shadow: 0 4px 24px rgba(45,52,54,0.07);
+        }
+        @media (max-width: 600px) { .survey-card { padding: 1.5rem 1.25rem; } }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em;
+            text-transform: uppercase; color: var(--slate); margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(61,90,115,0.15); }
+
+        .form-field { margin-bottom: 1.25rem; }
+        .form-field label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--charcoal); margin-bottom: 0.4rem; }
+        .form-field .label-hint { font-size: 0.78rem; font-weight: 400; color: var(--slate); margin-left: 0.4rem; }
+        .form-field input[type="text"],
+        .form-field input[type="email"],
+        .form-field select,
+        .form-field textarea {
+            width: 100%; padding: 0.65rem 0.9rem;
+            border: 1px solid rgba(61,90,115,0.25); border-radius: 8px;
+            font-family: 'Source Sans 3', sans-serif; font-size: 0.9rem;
+            background: #fafafa; color: var(--charcoal);
+            transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+            appearance: none; -webkit-appearance: none;
+        }
+        .form-field select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%233D5A73' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 0.9rem center; padding-right: 2.5rem; cursor: pointer;
+        }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+            border-color: var(--teal-deep); box-shadow: 0 0 0 3px rgba(26,83,92,0.1); background: white;
+        }
+        .form-field textarea { resize: vertical; min-height: 68px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+
+        /* Stars */
+        .star-row { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+        .star-btn { font-size: 1.6rem; background: none; border: none; cursor: pointer; color: #d1d5db; line-height: 1; transition: color 0.15s, transform 0.1s; padding: 0; }
+        .star-btn.active { color: #d97706; }
+        .star-btn:hover { transform: scale(1.15); }
+        .star-label { font-size: 0.8rem; color: var(--slate); margin-top: 0.35rem; min-height: 1.2em; }
+
+        /* Likert */
+        .likert-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.25rem; }
+        .likert-btn {
+            width: 44px; height: 44px; border: 2px solid rgba(61,90,115,0.25); border-radius: 8px;
+            background: #fafafa; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 600;
+            color: var(--slate); cursor: pointer; transition: all 0.15s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .likert-btn:hover { border-color: var(--teal-deep); background: rgba(26,83,92,0.05); }
+        .likert-btn.active { border-color: var(--teal-deep); background: var(--teal-deep); color: white; }
+        .likert-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--slate); margin-top: 0.3rem; padding: 0 2px; }
+
+        /* Checkboxes */
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem; margin-top: 0.4rem; }
+        .check-item { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.87rem; color: var(--charcoal); cursor: pointer; line-height: 1.4; }
+        .check-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--teal-deep); flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+
+        /* Radios */
+        .radio-group { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.4rem; }
+        .radio-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--charcoal); cursor: pointer; }
+        .radio-item input[type="radio"] { width: 16px; height: 16px; accent-color: var(--teal-deep); cursor: pointer; }
+        .radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1.5rem; margin-top: 0.4rem; }
+        @media (max-width: 520px) { .radio-grid { grid-template-columns: 1fr; } }
+
+        .form-divider { border: none; border-top: 1px solid rgba(45,52,54,0.08); margin: 1.75rem 0 1.5rem; }
+
+        .submit-btn {
+            width: 100%; padding: 0.9rem 1rem; background: var(--teal-deep); color: white;
+            border: none; border-radius: 8px; font-family: 'Source Sans 3', sans-serif;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: background 0.2s, transform 0.15s, opacity 0.2s; margin-top: 0.5rem;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .submit-btn:hover:not(:disabled) { background: #123b42; transform: translateY(-1px); }
+        .submit-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        .form-msg { font-size: 0.85rem; padding: 0.7rem 0.9rem; border-radius: 8px; margin-bottom: 1rem; display: none; line-height: 1.5; }
+        .form-msg.error { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; display: block; }
+
+        /* Success */
+        .survey-success { display: none; text-align: center; padding: 3rem 1rem; }
+        .survey-success.visible { display: block; }
+        .success-icon {
+            width: 64px; height: 64px; background: rgba(16,185,129,0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;
+        }
+        .success-icon svg { width: 32px; height: 32px; fill: var(--green); }
+        .success-title { font-family: 'Bodoni Moda', serif; font-size: 1.5rem; font-weight: 700; color: var(--charcoal); margin-bottom: 0.6rem; }
+        .success-body { font-size: 0.95rem; color: var(--slate); line-height: 1.75; max-width: 420px; margin: 0 auto; }
+
+        footer { background: var(--charcoal); color: rgba(255,255,255,0.6); padding: 2rem 2.5rem; }
+        .footer-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .footer-inner a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+        .footer-inner a:hover { color: white; }
+        .footer-copy { font-size: 0.8rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="accent-bar"></div>
+
+<nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+        <a href="https://placealert.org" class="nav-logo">
+            <div class="nav-logo-mark"><img src="/images/place_alert_labs_logo.jpg" alt="Place Alert Labs"></div>
+            <div>
+                <div class="nav-logo-title">Place Alert Labs</div>
+                <div class="nav-logo-sub">GeoAI Workshop</div>
+            </div>
+        </a>
+        <a href="https://placealert.org" class="nav-back">← PALs Website</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-label">Post-Workshop Feedback</div>
+        <h1 class="hero-title">How was the<br><em>GeoAI Workshop?</em></h1>
+        <p class="hero-sub">
+            Thank you for taking part in <strong>GeoAI for Climate, Environment &amp; Health</strong>.
+            Your feedback helps us improve this course for the next cohort. Completely anonymous. Takes 2–3 minutes.
+        </p>
+        <div class="hero-chips">
+            <span class="chip green">100% Anonymous</span>
+            <span class="chip">2–3 minutes</span>
+            <span class="chip copper">6 Modules</span>
+        </div>
+    </div>
+</section>
+
+<div class="survey-wrap">
+
+    <!-- Anonymity notice -->
+    <div class="anon-banner">
+        <span class="anon-banner-icon">🔒</span>
+        <div>
+            <strong>Your responses are completely anonymous.</strong> We do not track who submits this form, log IP addresses, or link responses to your JupyterHub account. Your name and email fields below are entirely optional — leave them blank if you prefer. Nothing you write here will ever be shared outside the course team at Place Alert Labs / CeSHHAR.
+        </div>
+    </div>
+
+    <div class="survey-card">
+
+        <div class="form-msg" id="formMsg"></div>
+
+        <div class="survey-success" id="surveySuccess">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+            </div>
+            <div class="success-title">Thank you!</div>
+            <div class="success-body">
+                Your feedback has been recorded anonymously. We really appreciate you taking the time —
+                it directly shapes how we improve this course for the next cohort.
+            </div>
+        </div>
+
+        <form id="surveyForm" novalidate>
+
+            <!-- Section 1: About you (optional) -->
+            <div class="section-label">About you <span style="font-weight:400;color:#9ca3af;font-size:0.75em;letter-spacing:0">(all optional)</span></div>
+
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="name">Name <span class="label-hint">(optional)</span></label>
+                    <input type="text" id="name" name="name" placeholder="e.g. Tendai Moyo" autocomplete="off">
+                </div>
+                <div class="form-field">
+                    <label for="email">Email <span class="label-hint">(optional)</span></label>
+                    <input type="email" id="email" name="email" placeholder="you@institution.org" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="background">What best describes your background?</label>
+                <select id="background" name="background">
+                    <option value="">Select…</option>
+                    <option>GIS / Earth Observation / Geomatics</option>
+                    <option>Public health / Epidemiology</option>
+                    <option>Student</option>
+                    <option>Data science / Statistics</option>
+                    <option>Research / Academia</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <hr class="form-divider">
+
+            <!-- Section 2: Overall experience -->
+            <div class="section-label">Your experience</div>
+
+            <div class="form-field">
+                <label>Overall rating</label>
+                <div class="star-row" id="starRow">
+                    <button type="button" class="star-btn" data-val="1" aria-label="1 star">★</button>
+                    <button type="button" class="star-btn" data-val="2" aria-label="2 stars">★</button>
+                    <button type="button" class="star-btn" data-val="3" aria-label="3 stars">★</button>
+                    <button type="button" class="star-btn" data-val="4" aria-label="4 stars">★</button>
+                    <button type="button" class="star-btn" data-val="5" aria-label="5 stars">★</button>
+                </div>
+                <div class="star-label" id="starLabel">Tap a star to rate</div>
+                <input type="hidden" id="overall_rating" value="">
+            </div>
+
+            <div class="form-field">
+                <label>Did the workshop meet your expectations?</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="met_expectations" value="Yes — exceeded my expectations"> Yes — exceeded my expectations</label>
+                    <label class="radio-item"><input type="radio" name="met_expectations" value="Yes — met my expectations"> Yes — met my expectations</label>
+                    <label class="radio-item"><input type="radio" name="met_expectations" value="Partially — some parts did, some didn't"> Partially — some parts did, some didn't</label>
+                    <label class="radio-item"><input type="radio" name="met_expectations" value="No — it did not meet my expectations"> No — it did not meet my expectations</label>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label>Which modules did you complete?</label>
+                <div class="checkbox-grid">
+                    <label class="check-item"><input type="checkbox" name="modules_done" value="01 — Spatial Health Data"> 01 — Spatial Health Data</label>
+                    <label class="check-item"><input type="checkbox" name="modules_done" value="02 — Environmental Datasets"> 02 — Environmental Datasets</label>
+                    <label class="check-item"><input type="checkbox" name="modules_done" value="03 — Spatial Join"> 03 — Spatial Join</label>
+                    <label class="check-item"><input type="checkbox" name="modules_done" value="04 — Exposure Windows"> 04 — Exposure Windows</label>
+                    <label class="check-item"><input type="checkbox" name="modules_done" value="05 — Earth Engine"> 05 — Earth Engine</label>
+                    <label class="check-item"><input type="checkbox" name="modules_done" value="06 — GeoAI &amp; Results"> 06 — GeoAI &amp; Results</label>
+                </div>
+            </div>
+
+            <hr class="form-divider">
+
+            <!-- Section 3: Confidence -->
+            <div class="section-label">Your confidence with geospatial health data</div>
+
+            <div class="form-field">
+                <label>BEFORE the workshop</label>
+                <div class="likert-row">
+                    <button type="button" class="likert-btn" data-group="pre" data-val="1">1</button>
+                    <button type="button" class="likert-btn" data-group="pre" data-val="2">2</button>
+                    <button type="button" class="likert-btn" data-group="pre" data-val="3">3</button>
+                    <button type="button" class="likert-btn" data-group="pre" data-val="4">4</button>
+                    <button type="button" class="likert-btn" data-group="pre" data-val="5">5</button>
+                </div>
+                <div class="likert-labels"><span>Not at all confident</span><span>Very confident</span></div>
+                <input type="hidden" id="confidence_pre" value="">
+            </div>
+
+            <div class="form-field">
+                <label>AFTER the workshop</label>
+                <div class="likert-row">
+                    <button type="button" class="likert-btn" data-group="post" data-val="1">1</button>
+                    <button type="button" class="likert-btn" data-group="post" data-val="2">2</button>
+                    <button type="button" class="likert-btn" data-group="post" data-val="3">3</button>
+                    <button type="button" class="likert-btn" data-group="post" data-val="4">4</button>
+                    <button type="button" class="likert-btn" data-group="post" data-val="5">5</button>
+                </div>
+                <div class="likert-labels"><span>Not at all confident</span><span>Very confident</span></div>
+                <input type="hidden" id="confidence_post" value="">
+            </div>
+
+            <hr class="form-divider">
+
+            <!-- Section 4: Future learning -->
+            <div class="section-label">Looking ahead</div>
+
+            <div class="form-field">
+                <label>Which topic would you most like to explore further?</label>
+                <div class="radio-grid">
+                    <label class="radio-item"><input type="radio" name="next_topic" value="Machine learning for spatial health"> Machine learning for spatial health</label>
+                    <label class="radio-item"><input type="radio" name="next_topic" value="Google Earth Engine in-depth"> Google Earth Engine in-depth</label>
+                    <label class="radio-item"><input type="radio" name="next_topic" value="Epidemiology &amp; study design"> Epidemiology &amp; study design</label>
+                    <label class="radio-item"><input type="radio" name="next_topic" value="R for spatial analysis"> R for spatial analysis</label>
+                    <label class="radio-item"><input type="radio" name="next_topic" value="Advanced DuckDB / SQL"> Advanced DuckDB / SQL</label>
+                    <label class="radio-item"><input type="radio" name="next_topic" value="Other / Not sure"> Other / Not sure</label>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label>Would you recommend this workshop to a colleague?</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="recommend" value="Yes, absolutely"> Yes, absolutely</label>
+                    <label class="radio-item"><input type="radio" name="recommend" value="Probably"> Probably</label>
+                    <label class="radio-item"><input type="radio" name="recommend" value="Not sure"> Not sure</label>
+                    <label class="radio-item"><input type="radio" name="recommend" value="Probably not"> Probably not</label>
+                </div>
+            </div>
+
+            <hr class="form-divider">
+
+            <!-- Section 5: Open feedback -->
+            <div class="section-label">Open feedback</div>
+
+            <div class="form-field">
+                <label for="highlight">What was the highlight of the workshop for you?</label>
+                <textarea id="highlight" name="highlight" placeholder="e.g. The GeoAI assistant in Module 6, the spatial join exercise, working with real Zimbabwe DHS data…" rows="2"></textarea>
+            </div>
+
+            <div class="form-field">
+                <label for="improve">What could be improved?</label>
+                <textarea id="improve" name="improve" placeholder="e.g. More time on Module 4, clearer Earth Engine instructions, additional practice exercises…" rows="2"></textarea>
+            </div>
+
+            <hr class="form-divider" style="margin-top:1rem">
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:white;flex-shrink:0"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                Submit feedback anonymously
+            </button>
+            <p style="font-size:0.75rem;color:#9ca3af;text-align:center;margin-top:0.75rem;line-height:1.5;">
+                🔒 Anonymous submission. No tracking. Responses go only to the Place Alert Labs / CeSHHAR course team.
+            </p>
+
+        </form>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-inner">
+        <span class="footer-copy">&copy; 2026 Place Alert Labs</span>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+            <a href="https://placealert.org">Place Alert Labs</a>
+            <a href="https://placealert.org/course-enrol.html">GeoAI Course</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+const nav = document.getElementById('siteNav');
+window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 10); }, { passive: true });
+
+// Stars
+const starLabels = ['','Poor — not what I expected','Below average','Average — met expectations','Good — I learned a lot','Excellent — exceeded my expectations'];
+document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const val = parseInt(btn.dataset.val);
+        document.getElementById('overall_rating').value = val;
+        document.getElementById('starLabel').textContent = starLabels[val];
+        document.querySelectorAll('.star-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.val) <= val));
+    });
+    btn.addEventListener('mouseenter', () => {
+        const val = parseInt(btn.dataset.val);
+        document.querySelectorAll('.star-btn').forEach(b => { b.style.color = parseInt(b.dataset.val) <= val ? '#d97706' : ''; });
+    });
+});
+document.getElementById('starRow').addEventListener('mouseleave', () => {
+    const cur = parseInt(document.getElementById('overall_rating').value) || 0;
+    document.querySelectorAll('.star-btn').forEach(b => { b.style.color = ''; b.classList.toggle('active', parseInt(b.dataset.val) <= cur); });
+});
+
+// Likert
+document.querySelectorAll('.likert-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const group = btn.dataset.group, val = btn.dataset.val;
+        document.querySelectorAll(`.likert-btn[data-group="${group}"]`).forEach(b => b.classList.toggle('active', b.dataset.val === val));
+        document.getElementById(`confidence_${group}`).value = val;
+    });
+});
+
+// Submit
+document.getElementById('surveyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const btn  = document.getElementById('submitBtn');
+    const msg  = document.getElementById('formMsg');
+    msg.className = 'form-msg';
+    msg.textContent = '';
+
+    const radio = name => (form.querySelector(`input[name="${name}"]:checked`) || {}).value || null;
+
+    const payload = {
+        name:             form.name.value.trim(),
+        email:            form.email.value.trim(),
+        background:       form.background.value || null,
+        overall_rating:   document.getElementById('overall_rating').value || null,
+        modules_done:     [...form.querySelectorAll('input[name="modules_done"]:checked')].map(c => c.value),
+        confidence_pre:   document.getElementById('confidence_pre').value || null,
+        confidence_post:  document.getElementById('confidence_post').value || null,
+        met_expectations: radio('met_expectations'),
+        next_topic:       radio('next_topic'),
+        highlight:        document.getElementById('highlight').value.trim(),
+        improve:          document.getElementById('improve').value.trim(),
+        recommend:        radio('recommend'),
+    };
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:white;animation:spin 1s linear infinite"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" opacity=".3"/><path d="M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8z"/></svg> Submitting…';
+
+    try {
+        const res  = await fetch('/duckrequest/workshop-survey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+            document.getElementById('surveyForm').style.display = 'none';
+            const el = document.getElementById('surveySuccess');
+            el.classList.add('visible');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            msg.className = 'form-msg error';
+            msg.textContent = data.error || 'Something went wrong. Please try again.';
+            btn.disabled = false;
+            resetBtn();
+        }
+    } catch (_) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Could not reach the server. Please try again or email rutendo.sibanda@ceshhar.org.';
+        btn.disabled = false;
+        resetBtn();
+    }
+});
+
+function resetBtn() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:white;flex-shrink:0"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Submit feedback anonymously';
+}
+</script>
+<script src="/pa/pa.js" defer></script>
+</body>
+</html>

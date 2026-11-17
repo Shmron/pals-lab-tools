@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrol — GeoAI for Climate, Environment & Health | Place Alert Labs</title>
+    <meta name="description" content="Free open-access course on GeoAI, satellite environmental data, and spatial health research workflows. Enrol anytime — no prior GIS experience required.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --copper: #B87333;
+            --copper-light: #D4956A;
+            --teal-deep: #1A535C;
+            --teal-mid: #4ECDC4;
+            --sage: #6B8E6B;
+            --slate: #3D5A73;
+            --coral: #E07A5F;
+            --sand: #F4E9D8;
+            --charcoal: #2D3436;
+            --cream: #FFFBF5;
+            --ivory: #FDFCFA;
+            --mist: #E8EEF2;
+            --lavender: #7B6BA8;
+            --green: #10b981;
+            --nav-h: 64px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+        }
+
+        /* ── Accent bar ─────────────────────────────────────────────────────── */
+        .accent-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--copper) 0%, var(--copper) 20%,
+                var(--teal-deep) 20%, var(--teal-deep) 40%,
+                var(--coral) 40%, var(--coral) 60%,
+                var(--sage) 60%, var(--sage) 80%,
+                var(--lavender) 80%, var(--lavender) 100%);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        /* ── Nav ─────────────────────────────────────────────────────────────── */
+        .site-nav {
+            position: sticky;
+            top: 4px;
+            z-index: 100;
+            background: rgba(253, 252, 250, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            height: var(--nav-h);
+        }
+        .site-nav.scrolled {
+            border-bottom-color: rgba(184, 115, 51, 0.15);
+            box-shadow: 0 2px 20px rgba(45, 52, 54, 0.06);
+        }
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 2.5rem;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: inherit;
+            flex-shrink: 0;
+        }
+        .nav-logo-mark {
+            width: 36px; height: 36px;
+            border-radius: 6px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .nav-logo-mark img { width: 100%; height: 100%; object-fit: contain; }
+        .nav-logo-title { font-weight: 600; font-size: 0.9rem; color: var(--charcoal); line-height: 1.2; }
+        .nav-logo-sub { font-size: 0.7rem; color: var(--slate); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+        .nav-back {
+            margin-left: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--slate);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.9rem;
+            border: 1px solid rgba(61,90,115,0.2);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .nav-back:hover { color: var(--teal-deep); border-color: var(--teal-deep); }
+        @media (max-width: 600px) { .nav-inner { padding: 0 1.25rem; } }
+
+        /* ── Hero ───────────────────────────────────────────────────────────── */
+        .hero {
+            background: linear-gradient(160deg, var(--ivory) 0%, var(--sand) 60%, rgba(244,233,216,0.5) 100%);
+            padding: 3.5rem 2.5rem 3rem;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(184,115,51,0.12);
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(184,115,51,0.09) 1px, transparent 0),
+                radial-gradient(circle at 1px 1px, rgba(26,83,92,0.05) 1px, transparent 0);
+            background-size: 28px 28px, 56px 56px;
+            pointer-events: none;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: 60px;
+            width: 380px; height: 380px;
+            border: 1.5px solid var(--copper);
+            border-radius: 50%;
+            opacity: 0.07;
+            pointer-events: none;
+        }
+        .hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 3.5rem;
+            align-items: center;
+        }
+        .hero-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--copper);
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+        .hero-label::before {
+            content: '';
+            display: inline-block;
+            width: 30px; height: 2px;
+            background: var(--copper);
+        }
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -0.02em;
+            color: var(--charcoal);
+            margin-bottom: 1rem;
+        }
+        .hero-title em { font-style: italic; color: var(--teal-deep); }
+        .hero-sub {
+            font-size: 1.02rem;
+            font-weight: 400;
+            color: var(--slate);
+            max-width: 540px;
+            line-height: 1.8;
+            margin-bottom: 1.75rem;
+        }
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .meta-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            background: rgba(26,83,92,0.09);
+            color: var(--teal-deep);
+            font-weight: 600;
+        }
+        .meta-chip.copper { background: rgba(184,115,51,0.1); color: var(--copper); }
+        .meta-chip.coral  { background: rgba(224,122,95,0.1); color: var(--coral); }
+
+        /* Quick-info card in hero */
+        .hero-info-card {
+            background: white;
+            border: 1px solid rgba(184,115,51,0.15);
+            border-left: 3px solid var(--copper);
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 24px rgba(45,52,54,0.08);
+        }
+        .info-card-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--copper);
+            font-weight: 600;
+            margin-bottom: 1.1rem;
+        }
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid rgba(45,52,54,0.06);
+            font-size: 0.88rem;
+        }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-row:first-of-type { padding-top: 0; }
+        .info-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
+            margin-top: 1px;
+        }
+        .info-key { font-weight: 600; color: var(--charcoal); }
+        .info-val { color: var(--slate); font-size: 0.84rem; }
+        @media (max-width: 860px) {
+            .hero-inner { grid-template-columns: 1fr; gap: 2rem; }
+            .hero { padding: 2.75rem 1.5rem 2.5rem; }
+        }
+
+        /* ── Body layout ─────────────────────────────────────────────────────── */
+        .page-body {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3.5rem 2.5rem 5rem;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 3.5rem;
+            align-items: start;
+        }
+        @media (max-width: 860px) {
+            .page-body { grid-template-columns: 1fr; gap: 2.5rem; padding: 2.5rem 1.5rem 4rem; }
+        }
+
+        /* ── Left: course details ────────────────────────────────────────────── */
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--slate);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(61,90,115,0.15);
+        }
+        .about-pullquote {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--teal-deep);
+            line-height: 1.6;
+            border-left: 3px solid var(--copper);
+            padding-left: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .body-text {
+            font-size: 0.95rem;
+            color: #3a3a3a;
+            line-height: 1.9;
+        }
+        .body-text p { margin-bottom: 1rem; }
+        .body-text p:last-child { margin-bottom: 0; }
+
+        /* Module list */
+        .module-list {
+            margin: 2rem 0 0;
+        }
+        .module-list-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--slate);
+            margin-bottom: 1rem;
+        }
+        .module-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid rgba(45,52,54,0.07);
+        }
+        .module-item:last-child { border-bottom: none; }
+        .module-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: white;
+            background: var(--teal-deep);
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+            letter-spacing: 0.04em;
+        }
+        .module-name { font-weight: 600; font-size: 0.92rem; color: var(--charcoal); line-height: 1.3; }
+        .module-desc { font-size: 0.82rem; color: var(--slate); line-height: 1.5; margin-top: 0.2rem; }
+
+        /* Prerequisites */
+        .prereq-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .prereq-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            color: var(--charcoal);
+        }
+        .prereq-list li::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--sage);
+            flex-shrink: 0;
+        }
+
+        /* ── Right: enrollment form ──────────────────────────────────────────── */
+        .enrol-card {
+            background: white;
+            border: 1px solid rgba(184,115,51,0.15);
+            border-top: 3px solid var(--teal-deep);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 24px rgba(45,52,54,0.07);
+            position: sticky;
+            top: calc(var(--nav-h) + 4px + 1.5rem);
+        }
+        .enrol-card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 0.3rem;
+        }
+        .enrol-card-sub {
+            font-size: 0.84rem;
+            color: var(--slate);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        .enrol-card-sub strong { color: var(--teal-deep); }
+        .form-field { margin-bottom: 1rem; }
+        .form-field label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--slate);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.02em;
+        }
+        .form-field label .req { color: var(--coral); margin-left: 2px; }
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            border: 1px solid rgba(61,90,115,0.25);
+            border-radius: 8px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.9rem;
+            background: #fafafa;
+            color: var(--charcoal);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .form-field select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%233D5A73' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.9rem center;
+            padding-right: 2.5rem;
+            cursor: pointer;
+        }
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            border-color: var(--teal-deep);
+            box-shadow: 0 0 0 3px rgba(26,83,92,0.1);
+            background: white;
+        }
+        .form-field textarea { resize: vertical; min-height: 72px; }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .form-divider {
+            border: none;
+            border-top: 1px solid rgba(45,52,54,0.08);
+            margin: 1.25rem 0 1rem;
+        }
+        .form-hint {
+            font-size: 0.76rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+        .enrol-btn {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: var(--teal-deep);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, opacity 0.2s;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .enrol-btn:hover:not(:disabled) { background: #123b42; transform: translateY(-1px); }
+        .enrol-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        .enrol-btn svg { width: 18px; height: 18px; fill: white; flex-shrink: 0; }
+        .form-msg {
+            font-size: 0.85rem;
+            padding: 0.7rem 0.9rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            line-height: 1.5;
+        }
+        .form-msg.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; display: block; }
+        .form-msg.success { background: #f0fdf4; color: #166534; border: 1px solid #86efac; display: block; }
+        .form-privacy {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 0.75rem;
+            line-height: 1.5;
+        }
+
+        /* Success state */
+        .enrol-success {
+            display: none;
+            text-align: center;
+            padding: 1rem 0;
+        }
+        .enrol-success.visible { display: block; }
+        .success-icon {
+            width: 56px; height: 56px;
+            background: rgba(16,185,129,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .success-icon svg { width: 28px; height: 28px; fill: var(--green); }
+        .success-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 0.5rem;
+        }
+        .success-body {
+            font-size: 0.88rem;
+            color: var(--slate);
+            line-height: 1.7;
+        }
+        .success-body strong { color: var(--teal-deep); }
+
+        /* ── Footer ─────────────────────────────────────────────────────────── */
+        footer {
+            background: var(--charcoal);
+            color: rgba(255,255,255,0.6);
+            padding: 2rem 2.5rem;
+        }
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .footer-inner a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+        .footer-inner a:hover { color: white; }
+        .footer-copy { font-size: 0.8rem; }
+
+        /* ── Module 06 finale (crescendo) ──────────────────────────────────────── */
+        .module-item.finale {
+            background: linear-gradient(135deg, rgba(184,115,51,0.06) 0%, rgba(26,83,92,0.03) 100%);
+            border: 1px solid rgba(184,115,51,0.22);
+            border-left: 3px solid var(--copper);
+            border-radius: 8px;
+            padding: 0.9rem 1rem 0.9rem 0;
+            margin-top: 0.35rem;
+        }
+        .module-item.finale .module-num { background: var(--copper); }
+        .finale-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--copper);
+            background: rgba(184,115,51,0.12);
+            padding: 0.15rem 0.55rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 0.6rem;
+            vertical-align: middle;
+        }
+
+        /* ── Already-enrolled panel ─────────────────────────────────────────── */
+        .already-toggle-row {
+            text-align: center;
+            margin-top: 0.9rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(45,52,54,0.08);
+        }
+        .already-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--teal-deep);
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.84rem;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            padding: 0;
+        }
+        .already-toggle-btn:hover { color: var(--copper); }
+        .already-panel {
+            display: none;
+            margin-top: 0.85rem;
+            background: rgba(26,83,92,0.04);
+            border: 1px solid rgba(26,83,92,0.12);
+            border-radius: 8px;
+            padding: 1.1rem;
+        }
+        .already-panel.open { display: block; }
+        .already-panel-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--slate);
+            margin-bottom: 0.8rem;
+        }
+        .hub-login-link {
+            display: block;
+            padding: 0.6rem 1rem;
+            background: var(--teal-deep);
+            color: white;
+            border-radius: 7px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            margin-bottom: 0.85rem;
+            transition: background 0.2s;
+        }
+        .hub-login-link:hover { background: #123b42; }
+        .status-check-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+        .status-check-row input {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid rgba(61,90,115,0.25);
+            border-radius: 7px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            background: white;
+        }
+        .status-check-row input:focus { border-color: var(--teal-deep); }
+        .status-check-btn {
+            padding: 0.5rem 0.9rem;
+            background: var(--slate);
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Source Sans 3', sans-serif;
+            transition: background 0.2s;
+        }
+        .status-check-btn:hover { background: var(--teal-deep); }
+        .status-result {
+            font-size: 0.81rem;
+            padding: 0.5rem 0.7rem;
+            border-radius: 6px;
+            margin-top: 0.45rem;
+            line-height: 1.5;
+            display: none;
+        }
+        .status-result.show { display: block; }
+        .status-result.pending  { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+        .status-result.approved { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+        .status-result.miss,
+        .status-result.rejected { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+        .already-hint {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.7rem;
+            line-height: 1.5;
+        }
+        .already-hint a { color: var(--teal-deep); }
+
+        /* ── Scroll reveal ──────────────────────────────────────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 0.55s ease, transform 0.55s ease;
+        }
+        .reveal.visible { opacity: 1; transform: none; }
+    </style>
+</head>
+<body>
+
+<div class="accent-bar"></div>
+
+<!-- ── Nav ──────────────────────────────────────────────────────────────────── -->
+<nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-mark"><img src="/images/place_alert_labs_logo.jpg" alt="Place Alert Labs"></div>
+            <div>
+                <div class="nav-logo-title">Place Alert Labs</div>
+                <div class="nav-logo-sub">GeoAI Course</div>
+            </div>
+        </a>
+        <a href="https://placealert.org" class="nav-back">
+            ← PALs Website
+        </a>
+    </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
+<section class="hero">
+    <div class="hero-inner">
+        <div>
+            <div class="hero-label">Free Open-Access Course</div>
+            <h1 class="hero-title">GeoAI for Climate,<br><em>Environment & Health</em></h1>
+            <p class="hero-sub">
+                A practical course on geospatial data science, satellite-derived environmental
+                exposures, and AI-powered data querying — built on real Zimbabwe DHS 2015 birth records.
+                Open to surveyors, GIS analysts, researchers, students, and public health professionals.
+            </p>
+            <div class="hero-meta">
+                <span class="meta-chip">Self-paced</span>
+                <span class="meta-chip">Open enrolment</span>
+                <span class="meta-chip copper">6 Modules</span>
+                <span class="meta-chip coral">Free</span>
+            </div>
+        </div>
+
+        <div class="hero-info-card">
+            <div class="info-card-title">Course at a Glance</div>
+            <div class="info-row">
+                <div class="info-icon">⏱</div>
+                <div>
+                    <div class="info-key">Duration</div>
+                    <div class="info-val">~3 hours across 6 modules</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">💻</div>
+                <div>
+                    <div class="info-key">Format</div>
+                    <div class="info-val">Jupyter notebooks · browser-based</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">🎓</div>
+                <div>
+                    <div class="info-key">Developed by</div>
+                    <div class="info-val">CeSHHAR · Place Alert Labs · MSU</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Page body ─────────────────────────────────────────────────────────────── -->
+<div class="page-body">
+
+    <!-- ── Left column: course details ──────────────────────────────────────── -->
+    <div>
+
+        <div class="section-label reveal">About This Course</div>
+
+        <p class="about-pullquote reveal">
+            "From Zimbabwe DHS birth records to satellite climate exposures to AI-powered SQL — the full pipeline, step by step."
+        </p>
+
+        <div class="body-text reveal">
+            <p>
+                Zimbabwe spans dramatic environmental gradients: the cool Eastern Highlands of Manicaland,
+                the hot dry lowveld of Masvingo and Matabeleland South, and the urban centres of Harare
+                and Bulawayo. These gradients translate directly into differences in heat stress, drought,
+                vegetation cover, and ultimately birth outcomes — patterns that spatial data science can
+                reveal and quantify.
+            </p>
+            <p>
+                This course is built around the <strong>Zimbabwe DHS 2015 birth records</strong> — a nationally
+                representative dataset of births collected from women aged 15–49. Working through real
+                geocoded DHS clusters, you will learn how researchers link individual birth outcomes
+                (birthweight, preterm delivery, low birthweight) to satellite-derived environmental
+                exposures at the time and place of pregnancy.
+            </p>
+            <p>
+                You will learn to construct trimester-specific exposure windows, perform spatial joins
+                between DHS clusters and gridded climate products, and build a logistic regression
+                model predicting low birthweight from heat, drought, and vegetation — all inside
+                pre-configured Jupyter notebooks with no local setup required.
+            </p>
+            <p>
+                The course closes with a GeoAI assistant that lets you query the full exposure dataset
+                in plain English. You leave with six complete notebooks, reusable geospatial code, and
+                a concrete understanding of how environmental epidemiology is done with real survey data.
+            </p>
+        </div>
+
+        <!-- Module list -->
+        <div class="module-list reveal" style="transition-delay:0.1s">
+            <div class="module-list-title">Course Modules</div>
+
+            <div class="module-item">
+                <div class="module-num">01</div>
+                <div>
+                    <div class="module-name">Spatial Health Data — Zimbabwe DHS 2015</div>
+                    <div class="module-desc">Load and inspect real geocoded DHS birth records. Understand DHS cluster-level geocoding, deliberate coordinate displacement, CMC date encoding, and sentinel values in birthweight. Map the 400 survey clusters across Zimbabwe's provinces.</div>
+                </div>
+            </div>
+            <div class="module-item">
+                <div class="module-num">02</div>
+                <div>
+                    <div class="module-name">Environmental Datasets — Zimbabwe's Climate in Context</div>
+                    <div class="module-desc">Explore monthly gridded climate data covering Zimbabwe: ERA5 temperature, CHIRPS rainfall, MODIS NDVI, and SPEI drought index. Visualise the sharp environmental gradients between the Eastern Highlands and the lowveld.</div>
+                </div>
+            </div>
+            <div class="module-item">
+                <div class="module-num">03</div>
+                <div>
+                    <div class="module-name">Spatial Join — Linking Births to Environmental Data</div>
+                    <div class="module-desc">Implement a spatial join linking DHS clusters to gridded climate data using cKDTree nearest-neighbour search. Attach temperature, rainfall, NDVI, and drought variables to every birth record.</div>
+                </div>
+            </div>
+            <div class="module-item">
+                <div class="module-num">04</div>
+                <div>
+                    <div class="module-name">Exposure Windows — When During Pregnancy Matters</div>
+                    <div class="module-desc">Reconstruct trimester-specific exposure windows from DHS conception and birth dates. Compute T1, T2, and T3 mean exposures — because a heat shock at 8 weeks has different biological consequences than one at 32 weeks.</div>
+                </div>
+            </div>
+            <div class="module-item">
+                <div class="module-num">05</div>
+                <div>
+                    <div class="module-name">Earth Engine Concepts &amp; Pre-extracted Data</div>
+                    <div class="module-desc">Understand which satellite and reanalysis products were used and how they were extracted via Google Earth Engine. Work with the pre-extracted dataset and optionally run a live Earth Engine script for a Zimbabwe study area.</div>
+                </div>
+            </div>
+            <div class="module-item finale">
+                <div class="module-num">06</div>
+                <div>
+                    <div class="module-name">
+                        Characterisation, EDA &amp; GeoAI
+                        <span class="finale-badge">&#9733; Capstone</span>
+                    </div>
+                    <div class="module-desc">Everything converges here. Map adverse birth outcomes across Zimbabwe's provinces, fit a logistic regression — P(LBW) ~ heat + drought + NDVI + wealth — and query the full Zimbabwe DHS exposure dataset with a natural-language GeoAI assistant: plain English becomes verified SQL. The full pipeline, complete.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prerequisites -->
+        <div class="module-list reveal" style="transition-delay:0.15s;margin-top:2.5rem;">
+            <div class="section-label" style="margin-bottom:1rem;">Who This Course Is For</div>
+            <div class="body-text">
+                <p>Designed for young surveyors, GIS practitioners, students, and early-career geomatics or public health professionals. No prior GIS or environmental science background is required — basic Python familiarity is enough to get started.</p>
+            </div>
+            <ul class="prereq-list">
+                <li>A laptop with a modern browser (Chrome or Firefox recommended)</li>
+                <li>Basic Python experience — loops, functions, pandas DataFrames</li>
+                <li>Familiarity with Jupyter notebooks is helpful but not required</li>
+                <li>A Google Earth Engine account (optional — for Module 05 only)</li>
+            </ul>
+            <p style="font-size:0.84rem;color:var(--slate);margin-top:1rem;line-height:1.7;">
+                A pre-configured JupyterHub environment is provided. All required libraries
+                (pandas, scipy, duckdb, matplotlib) are pre-installed — nothing to set up locally.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- ── Right column: enrolment form ─────────────────────────────────────── -->
+    <div>
+        <div class="enrol-card" id="enrolCard">
+            <div class="enrol-card-title">Enrol in This Course</div>
+            <p class="enrol-card-sub">
+                <strong>You will be contacted once your enrolment is reviewed.</strong>
+            </p>
+
+            <div class="form-msg" id="formMsg"></div>
+            <div class="enrol-success" id="enrolSuccess">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                </div>
+                <div class="success-title">Request submitted!</div>
+                <div class="success-body">
+                    Thank you for your interest. Your enrolment request has been received
+                    and is under review.<br><br>
+                    You will be contacted with further information if your request is approved.
+                </div>
+            </div>
+
+            <form id="enrolForm" novalidate>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="firstName">First name <span class="req">*</span></label>
+                        <input type="text" id="firstName" name="first_name" placeholder="Tendai" autocomplete="given-name" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="lastName">Last name <span class="req">*</span></label>
+                        <input type="text" id="lastName" name="last_name" placeholder="Moyo" autocomplete="family-name" required>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="email">Email address <span class="req">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="you@institution.org" autocomplete="email" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="institution">Institution / Organisation <span class="req">*</span></label>
+                    <input type="text" id="institution" name="institution" placeholder="e.g. University of Zimbabwe, Ministry of Health, WHO" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="country">Country <span class="req">*</span></label>
+                    <input type="text" id="country" name="country" placeholder="e.g. Zimbabwe" autocomplete="country-name" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="password">Choose a password <span class="req">*</span></label>
+                        <input type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="passwordConfirm">Confirm password <span class="req">*</span></label>
+                        <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="Re-enter password" autocomplete="new-password" minlength="8" required>
+                    </div>
+                </div>
+                <p class="form-privacy" style="margin-top:-0.5rem;">
+                    This will be your login password for the PALSlab Hub once your enrolment is approved.
+                </p>
+
+                <button type="submit" class="enrol-btn" id="enrolBtn">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                    Enrol in This Course
+                </button>
+                <p class="form-privacy">
+                    Your details are used only to support your course access and will not be shared
+                    with third parties. Place Alert Labs privacy policy applies.
+                </p>
+            </form>
+
+            <!-- Already enrolled? -->
+            <div class="already-toggle-row">
+                <button type="button" class="already-toggle-btn" id="alreadyToggleBtn" onclick="toggleAlreadyPanel()">
+                    Already enrolled? Check your status or log in &rarr;
+                </button>
+            </div>
+            <div class="already-panel" id="alreadyPanel">
+                <div class="already-panel-label">Already enrolled</div>
+                <a href="https://pals.placealert.org" target="_blank" rel="noopener" class="hub-login-link">
+                    Log in to PALSlab Hub &rarr;
+                </a>
+                <div class="form-field" style="margin-bottom:0">
+                    <label style="font-size:0.78rem;color:var(--slate);font-weight:600;display:block;margin-bottom:0.35rem;">Check enrolment status</label>
+                    <div class="status-check-row">
+                        <input type="email" id="statusEmail" placeholder="your@email.com" autocomplete="email">
+                        <button type="button" class="status-check-btn" onclick="checkEnrolStatus()">Check</button>
+                    </div>
+                    <div class="status-result" id="statusResult"></div>
+                </div>
+                <p class="already-hint">
+                    Forgot your password? Visit the
+                    <a href="https://pals.placealert.org/hub/auth/forgot-password" target="_blank" rel="noopener">PALSlab Hub password reset</a>,
+                    or email <a href="mailto:rutendo.sibanda@ceshhar.org">rutendo.sibanda@ceshhar.org</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Footer ────────────────────────────────────────────────────────────────── -->
+<footer>
+    <div class="footer-inner">
+        <span class="footer-copy">&copy; 2026 Place Alert Labs</span>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+            <a href="https://placealert.org">Place Alert Labs</a>
+            <a href="https://portal.placealert.org">Research Portal</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Nav scroll
+const nav = document.getElementById('siteNav');
+window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Enrolment form
+document.getElementById('enrolForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const btn  = document.getElementById('enrolBtn');
+    const msg  = document.getElementById('formMsg');
+
+    // Basic validation
+    const firstName = form.first_name.value.trim();
+    const lastName  = form.last_name.value.trim();
+    const email     = form.email.value.trim();
+    const institution = form.institution.value.trim();
+    const country   = form.country.value.trim();
+    const password  = form.password.value;
+    const passwordConfirm = form.passwordConfirm.value;
+
+    msg.className = 'form-msg';
+    msg.textContent = '';
+
+    if (!firstName || !lastName) { showError('Please enter your full name.'); return; }
+    if (!email || !email.includes('@')) { showError('Please enter a valid email address.'); return; }
+    if (!institution) { showError('Please enter your institution or organisation.'); return; }
+    if (!country) { showError('Please enter your country.'); return; }
+    if (!password || password.length < 8) { showError('Password must be at least 8 characters.'); return; }
+    if (password !== passwordConfirm) { showError('Passwords do not match.'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" opacity=".3"/><path d="M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8z"/></svg> Submitting…';
+
+    const payload = {
+        name:        `${firstName} ${lastName}`,
+        email:       email,
+        institution: institution,
+        country:     country,
+        password:    password,
+        course_id:   'geoai2026',
+    };
+
+    try {
+        const res = await fetch('/duckrequest/course-enrol', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+            showSuccess(email);
+        } else {
+            showError(data.error || 'Something went wrong. Please try again or email us directly.');
+            btn.disabled = false;
+            resetBtn();
+        }
+    } catch (err) {
+        showError('Could not reach the server. Please email <a href="mailto:rutendo.sibanda@ceshhar.org">rutendo.sibanda@ceshhar.org</a> directly to enrol.');
+        resetBtn();
+    }
+});
+
+function showError(msg) {
+    const el = document.getElementById('formMsg');
+    el.innerHTML = msg;
+    el.className = 'form-msg error';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showSuccess(email) {
+    document.getElementById('enrolForm').style.display = 'none';
+    document.getElementById('formMsg').className = 'form-msg';
+    document.getElementById('alreadyToggleBtn').style.display = 'none';
+    document.getElementById('alreadyPanel').style.display = 'none';
+    const el = document.getElementById('enrolSuccess');
+    el.classList.add('visible');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function toggleAlreadyPanel() {
+    const panel = document.getElementById('alreadyPanel');
+    const btn   = document.getElementById('alreadyToggleBtn');
+    const open  = panel.classList.toggle('open');
+    btn.textContent = open
+        ? 'Already enrolled? ↑ Hide'
+        : 'Already enrolled? Check your status or log in →';
+    if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function checkEnrolStatus() {
+    const email  = document.getElementById('statusEmail').value.trim();
+    const result = document.getElementById('statusResult');
+    result.className = 'status-result';
+    result.innerHTML = '';
+    if (!email || !email.includes('@')) {
+        result.className = 'status-result miss show';
+        result.textContent = 'Please enter a valid email address.';
+        return;
+    }
+    result.className = 'status-result pending show';
+    result.textContent = 'Checking…';
+    try {
+        const res  = await fetch('/duckrequest/course-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, course_id: 'geoai2026' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+            result.className = 'status-result miss show';
+            result.textContent = 'Could not check status. Please email rutendo.sibanda@ceshhar.org.';
+            return;
+        }
+        const name = data.name ? `Hi ${data.name} — ` : '';
+        if (data.status === 'not_found') {
+            result.className = 'status-result miss show';
+            result.textContent = 'No enrolment found for this email. Check the spelling or submit the form above to enrol.';
+        } else if (data.status === 'pending') {
+            result.className = 'status-result pending show';
+            result.textContent = `${name}your enrolment is under review. You will receive an email once approved (usually within 24 hours).`;
+        } else if (data.status === 'approved') {
+            result.className = 'status-result approved show';
+            result.innerHTML = `${name}your enrolment is <strong>approved</strong>! Log in at <a href="https://pals.placealert.org" target="_blank" style="color:var(--teal-deep)">pals.placealert.org</a> with your chosen password.`;
+        } else if (data.status === 'rejected') {
+            result.className = 'status-result rejected show';
+            result.textContent = `${name}your enrolment was not approved. Email rutendo.sibanda@ceshhar.org if you think this is an error.`;
+        } else {
+            result.className = 'status-result pending show';
+            result.textContent = `Status: ${data.status}. Contact rutendo.sibanda@ceshhar.org for help.`;
+        }
+    } catch (_) {
+        result.className = 'status-result miss show';
+        result.textContent = 'Could not reach the server. Please email rutendo.sibanda@ceshhar.org.';
+    }
+}
+
+function resetBtn() {
+    const btn = document.getElementById('enrolBtn');
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Enrol in This Course';
+}
+</script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</body>
+</html>

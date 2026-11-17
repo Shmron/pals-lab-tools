@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Alert Labs | PALs Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --copper: #B87333;
+            --copper-light: #D4956A;
+            --copper-text: var(--copper);
+            --teal-deep: #1A535C;
+            --teal-mid: #4ECDC4;
+            --sage: #6B8E6B;
+            --slate: #3D5A73;
+            --coral: #E07A5F;
+            --sand: #F4E9D8;
+            --charcoal: #2D3436;
+            --cream: #FFFBF5;
+            --ivory: #FDFCFA;
+            --mist: #E8EEF2;
+            --lavender: #7B6BA8;
+            --green: #10b981;
+            --nav-h: 64px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-weight: 400;
+            background: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: clip;
+        }
+
+        /* ── Accent bar ─────────────────────────────────────────────────────── */
+        .accent-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--copper) 0%, var(--copper) 20%,
+                var(--teal-deep) 20%, var(--teal-deep) 40%,
+                var(--coral) 40%, var(--coral) 60%,
+                var(--sage) 60%, var(--sage) 80%,
+                var(--lavender) 80%, var(--lavender) 100%);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        /* ── Sticky nav ─────────────────────────────────────────────────────── */
+        .site-nav {
+            position: sticky;
+            top: 4px;
+            z-index: 100;
+            background: rgba(253, 252, 250, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            height: var(--nav-h);
+        }
+
+        .site-nav.scrolled {
+            border-bottom-color: rgba(184, 115, 51, 0.15);
+            box-shadow: 0 2px 20px rgba(45, 52, 54, 0.06);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2.5rem;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: inherit;
+            flex-shrink: 0;
+        }
+
+        .nav-logo-mark {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .nav-logo-mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .nav-logo-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--charcoal);
+            line-height: 1.2;
+        }
+
+        .nav-logo-sub {
+            font-size: 0.7rem;
+            color: var(--slate);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.25rem;
+            margin-left: auto;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--slate);
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--teal-deep);
+            background: rgba(26, 83, 92, 0.07);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-inner { padding: 0 1.25rem; }
+        }
+
+        /* ── Hero ───────────────────────────────────────────────────────────── */
+        .hero {
+            background: linear-gradient(180deg, var(--ivory) 0%, var(--sand) 100%);
+            padding: 4.5rem 2.5rem 5.5rem;
+            position: relative;
+            border-bottom: 1px solid rgba(184,115,51,0.12);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 400px; height: 400px;
+            border: 2px solid var(--copper);
+            border-radius: 50%;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2.25rem;
+        }
+
+        .hero-copy { max-width: 760px; }
+
+        .hero-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: var(--copper);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .hero-label::before {
+            content: '';
+            display: inline-block;
+            width: 30px; height: 2px;
+            background: var(--copper);
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(2.1rem, 3.6vw, 3.1rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: var(--charcoal);
+            margin: 1.1rem 0 1.15rem;
+        }
+
+        .hero-title em {
+            font-style: italic;
+            color: var(--copper);
+        }
+
+        .hero-sub {
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: var(--slate);
+            max-width: 560px;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 900px) {
+            .hero-sub { max-width: 100%; }
+        }
+
+
+        /* ── Section wrapper ────────────────────────────────────────────────── */
+        .section-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2.5rem;
+        }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--slate);
+            margin-bottom: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(61, 90, 115, 0.15);
+        }
+
+        /* ── Team ───────────────────────────────────────────────────────────── */
+        .team-section {
+            padding: 3rem 2.5rem;
+            background: #fff;
+            border-top: 1px solid rgba(26,83,92,0.08);
+        }
+        .team-names {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem 0;
+            font-size: 0.85rem;
+            color: var(--charcoal);
+            line-height: 1.9;
+        }
+        .team-name {
+            white-space: nowrap;
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.15s;
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            cursor: pointer;
+        }
+        .team-name:hover { color: var(--teal-deep); text-decoration: underline; }
+        .team-name:not(:last-child)::after {
+            content: '\00b7';
+            margin: 0 0.7rem;
+            color: var(--slate);
+            opacity: 0.45;
+        }
+
+        /* ── Team bio modal ────────────────────────────────────────────────── */
+        .team-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9500;
+            background: rgba(45,52,54,0.72);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .team-modal.show { display: flex; }
+        .team-modal-content {
+            position: relative;
+            background: var(--ivory);
+            border-radius: 16px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            max-width: 720px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .team-modal-close {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(184,115,51,0.12);
+            border: none;
+            color: var(--copper);
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            z-index: 1;
+        }
+        .team-modal-close:hover { background: var(--teal-deep); color: white; }
+        .team-modal-header {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1.75rem;
+            padding: 2rem;
+            border-bottom: 1px solid rgba(184,115,51,0.15);
+            background: linear-gradient(135deg, rgba(184,115,51,0.10), rgba(26,83,92,0.08));
+            border-radius: 16px 16px 0 0;
+        }
+        .team-modal-photo {
+            width: 100%;
+            height: 220px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid rgba(184,115,51,0.2);
+            flex-shrink: 0;
+            background: var(--mist);
+        }
+        .team-modal-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+        .team-modal-title h3 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 0.3rem;
+        }
+        .team-modal-title p {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--copper);
+        }
+        .team-modal-body { padding: 1.5rem 2rem 2rem; }
+        .team-modal-desc p { font-size: 0.9rem; color: var(--slate); line-height: 1.7; margin-bottom: 0.85rem; }
+        .team-modal-desc p:last-child { margin-bottom: 0; }
+        .team-modal-links { margin-top: 1.5rem; }
+        .team-modal-links h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--teal-deep);
+            margin-bottom: 0.85rem;
+        }
+        .team-modal-link-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+        .team-modal-link-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(184,115,51,0.08);
+            border: 1px solid rgba(184,115,51,0.15);
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--copper);
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .team-modal-link-item:hover { background: var(--teal-deep); border-color: var(--teal-deep); color: white; }
+        @media (max-width: 600px) {
+            .team-modal-header { grid-template-columns: 1fr; }
+            .team-modal-photo { height: 200px; }
+        }
+
+        /* ── Projects ───────────────────────────────────────────────────────── */
+        .projects-section {
+            padding: 4rem 2.5rem 5rem;
+            background: var(--cream);
+            border-top: 1px solid rgba(26,83,92,0.08);
+        }
+
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 2.25rem;
+        }
+
+        .filter-tab {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            border: 1px solid rgba(61, 90, 115, 0.2);
+            background: transparent;
+            color: var(--slate);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover {
+            border-color: var(--teal-deep);
+            color: var(--teal-deep);
+        }
+
+        .filter-tab.active {
+            background: var(--teal-deep);
+            border-color: var(--teal-deep);
+            color: white;
+        }
+
+        /* Projects grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+
+
+        /* In-grid divider between sections */
+        .grid-divider {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0 0.5rem;
+            color: var(--slate);
+            opacity: 0.55;
+        }
+        .grid-divider::before, .grid-divider::after {
+            content: '';
+            flex: 1;
+            border-top: 1px solid rgba(45,52,54,0.10);
+        }
+        .grid-divider span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .project-card {
+            background: var(--ivory);
+            border: 1px solid rgba(45, 52, 54, 0.08);
+            border-top: 3px solid var(--teal-deep);
+            padding: 1.75rem;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        .project-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--sand);
+            opacity: 0;
+            transition: opacity 0.25s;
+            pointer-events: none;
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 36px rgba(45, 52, 54, 0.1);
+        }
+
+        .project-card:hover::after { opacity: 0.35; }
+        .project-card > * { position: relative; z-index: 1; }
+
+        .project-card[data-hidden="true"] { display: none; }
+
+        .project-card.accent-coral  { border-top-color: var(--coral); }
+        .project-card.accent-copper { border-top-color: var(--copper); }
+        .project-card.accent-lavender { border-top-color: var(--lavender); }
+        .project-card.accent-sage   { border-top-color: var(--sage); }
+        .project-card.accent-teal   { border-top-color: var(--teal-mid); }
+        .project-card.accent-slate  { border-top-color: var(--slate); }
+        .project-card.accent-green  { border-top-color: var(--green); }
+
+        .card-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--teal-deep);
+            font-weight: 600;
+        }
+
+        .accent-coral .card-tag    { color: var(--coral); }
+        .accent-copper .card-tag   { color: var(--copper); }
+        .accent-lavender .card-tag { color: var(--lavender); }
+        .accent-sage .card-tag     { color: var(--sage); }
+        .accent-teal .card-tag     { color: var(--teal-mid); }
+        .accent-slate .card-tag    { color: var(--slate); }
+        .accent-green .card-tag    { color: var(--green); }
+
+        .card-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--slate);
+            line-height: 1.75;
+            flex: 1;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .card-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            background: var(--mist);
+            color: var(--slate);
+            letter-spacing: 0.04em;
+        }
+
+        .card-stat { display: inline-flex; align-items: center; font-size: 0.76rem; font-weight: 600; color: var(--teal-deep); background: rgba(26,83,92,0.08); padding: 0.3rem 0.75rem; border-radius: 999px; margin-bottom: 0.6rem; }
+        .card-arrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--teal-deep);
+            font-weight: 600;
+            transition: gap 0.2s;
+            width: fit-content;
+        }
+
+        .accent-coral .card-arrow    { color: var(--coral); }
+        .accent-copper .card-arrow   { color: var(--copper); }
+        .accent-lavender .card-arrow { color: var(--lavender); }
+        .accent-sage .card-arrow     { color: var(--sage); }
+        .accent-teal .card-arrow     { color: var(--teal-mid); }
+        .accent-slate .card-arrow    { color: var(--slate); }
+        .accent-green .card-arrow    { color: var(--green); }
+
+        .project-card:hover .card-arrow { gap: 0.75rem; }
+        .card-arrow::after { content: '→'; font-size: 0.95rem; }
+
+        /* ── Footer ─────────────────────────────────────────────────────────── */
+        footer {
+            background: var(--charcoal);
+            color: rgba(255,255,255,0.7);
+            padding: 3rem 2.5rem 2rem;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer-brand .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo-mark {
+            width: 38px; height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .footer-logo-mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .footer-logo-text .footer-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: white;
+        }
+
+        .footer-logo-text .footer-url {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.05em;
+        }
+
+        .footer-desc {
+            font-size: 0.88rem;
+            line-height: 1.75;
+            max-width: 380px;
+        }
+
+        .footer-nav {}
+
+        .footer-nav-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 0.9rem;
+        }
+
+        .footer-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .footer-nav-links a {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-nav-links a:hover { color: white; }
+
+        .footer-nav-links a::before {
+            content: '';
+            display: inline-block;
+            width: 14px; height: 1px;
+            background: var(--copper);
+            flex-shrink: 0;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .footer-bottom-left {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.35);
+        }
+
+        .footer-funders {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .funder-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 768px) {
+            .hero { padding: 3.5rem 1.5rem 3rem; }
+            .team-section { padding: 2.25rem 1.5rem; }
+            .projects-section { padding: 3rem 1.5rem 4rem; }
+            .projects-grid { grid-template-columns: 1fr; }
+            .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+            footer { padding: 2.5rem 1.5rem 1.75rem; }
+        }
+
+        /* ── Scroll reveal ──────────────────────────────────────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* ── Mobile hamburger ────────────────────────────────────────────── */
+        .nav-hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.4rem;
+            margin-left: 0.5rem;
+        }
+        .nav-hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--charcoal);
+            border-radius: 2px;
+            transition: all 0.25s ease;
+        }
+        .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+        .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            background: rgba(253,252,250,0.98);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(184,115,51,0.12);
+            padding: 0.75rem 1.25rem 1.25rem;
+            position: sticky;
+            top: 68px;
+            z-index: 99;
+        }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a {
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--slate);
+            padding: 0.65rem 0.5rem;
+            border-bottom: 1px solid rgba(45,52,54,0.06);
+            transition: color 0.2s;
+        }
+        .mobile-menu a:last-child { border-bottom: none; }
+        .mobile-menu a:hover { color: var(--teal-deep); }
+        @media (max-width: 768px) {
+            .nav-hamburger { display: flex; }
+        }
+
+        /* ── Nav scroll-spy active link ──────────────────────────────────── */
+        .nav-links a.nav-active {
+            color: var(--teal-deep);
+            background: rgba(26,83,92,0.07);
+        }
+
+        /* ── Back-to-top ─────────────────────────────────────────────────── */
+        .back-to-top {
+            position: fixed;
+            bottom: 6.5rem;
+            right: 2rem;
+            z-index: 8999;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--ivory);
+            border: 1px solid rgba(184,115,51,0.25);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.25s, transform 0.25s, background 0.2s;
+            pointer-events: none;
+            box-shadow: 0 2px 12px rgba(45,52,54,0.1);
+        }
+        .back-to-top.visible { opacity: 1; transform: none; pointer-events: auto; }
+        .back-to-top:hover { background: var(--sand); }
+        .back-to-top svg { width: 16px; height: 16px; fill: var(--copper); }
+
+        /* ── Contact section ─────────────────────────────────────────────── */
+        .contact-section {
+            padding: 3.5rem 2.5rem;
+            background: var(--sand);
+            border-top: 1px solid rgba(184,115,51,0.12);
+        }
+        .contact-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .contact-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 0.4rem;
+        }
+        .contact-sub {
+            font-size: 0.9rem;
+            color: var(--slate);
+            max-width: 500px;
+            line-height: 1.75;
+        }
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.75rem 1.5rem;
+            background: var(--teal-deep);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .contact-btn:hover { background: var(--copper); transform: translateY(-1px); }
+        .contact-btn svg { width: 15px; height: 15px; fill: white; }
+        @media (max-width: 768px) {
+            .contact-section { padding: 2.5rem 1.5rem; }
+            .contact-inner { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* ── Card radius + accent-coloured hover shadows ─────────────────── */
+        .project-card          { border-radius: 8px !important; }
+        .project-card:hover    { box-shadow: 0 12px 40px rgba(45,52,54,0.10) !important; }
+
+        .accent-coral:hover    { box-shadow: 0 12px 40px rgba(224,122,95,0.18) !important; }
+        .accent-copper:hover   { box-shadow: 0 12px 40px rgba(184,115,51,0.18) !important; }
+        .accent-lavender:hover { box-shadow: 0 12px 40px rgba(123,107,168,0.18) !important; }
+        .accent-sage:hover     { box-shadow: 0 12px 40px rgba(107,142,107,0.18) !important; }
+        .accent-teal:hover     { box-shadow: 0 12px 40px rgba(78,205,196,0.18) !important; }
+        .accent-slate:hover    { box-shadow: 0 12px 40px rgba(61,90,115,0.18) !important; }
+        .accent-green:hover    { box-shadow: 0 12px 40px rgba(16,185,129,0.18) !important; }
+
+        /* ── Website link in nav ─────────────────────────────────────────── */
+        .nav-website-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+            color: var(--copper);
+            text-decoration: none;
+            padding: 0.35rem 0.75rem;
+            border: 1px solid rgba(184,115,51,0.3);
+            border-radius: 5px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-website-link:hover {
+            background: rgba(184,115,51,0.08);
+            border-color: var(--copper);
+            color: var(--copper);
+        }
+
+
+        /* ── Collaborators band (kept compact — a visible strip, not a full section) ── */
+        .collab-section { padding: 2.25rem 2rem; background: linear-gradient(180deg, #EAF1FD 0%, #F8FAFC 100%); border-top: 1px solid rgba(26,83,92,0.08); border-bottom: 1px solid rgba(26,83,92,0.08); }
+        .collab-intro { max-width: 640px; margin: 0.4rem 0 1.1rem; color: var(--slate); font-size: 0.88rem; line-height: 1.5; }
+        .collab-group { margin-bottom: 1rem; }
+        .collab-group:last-child { margin-bottom: 0; }
+        .collab-group-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 0.55rem; }
+        @media (max-width: 640px) { .collab-section { padding: 1.75rem 1.25rem; } }
+        .collab-logos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 0.5rem; }
+        .collab-logo-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 1px solid rgba(26,83,92,0.12);
+            border-radius: 8px;
+            padding: 0.5rem 0.6rem;
+            height: 56px;
+            text-decoration: none;
+            transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+        }
+        .collab-logo-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(26,83,92,0.14); border-color: rgba(26,83,92,0.32); }
+        .collab-logo-card--funder:hover { box-shadow: 0 6px 16px rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.35); }
+        .collab-logo-img { max-width: 100%; max-height: 28px; object-fit: contain; }
+        .collab-logo-fallback {
+            display: none;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
+            color: var(--teal-deep);
+            font-size: 0.7rem;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .collab-logo-card.text-only .collab-logo-fallback { display: block; }
+
+        /* ── Hero label row + launch badge ─────────────────────────────────── */
+        .hero-label-row { display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+        .hero-label-row .hero-label { margin-bottom: 0; }
+        .hero-launch-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--teal-deep);
+            background: rgba(26,83,92,0.08);
+            border: 1px solid rgba(26,83,92,0.2);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ── AI-powered search bar ────────────────────────────────────────── */
+        .portal-search {
+            position: relative;
+            background: white;
+            border: 1px solid rgba(26,83,92,0.1);
+            border-radius: 18px;
+            padding: 1.75rem 1.75rem 1.5rem;
+            box-shadow: 0 24px 60px rgba(26,83,92,0.12), 0 2px 10px rgba(26,83,92,0.05);
+        }
+        .portal-search::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 1.75rem; right: 1.75rem;
+            height: 3px;
+            border-radius: 0 0 3px 3px;
+            background: linear-gradient(90deg, var(--teal-deep) 0%, var(--copper) 100%);
+        }
+        .portal-search-kicker {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--slate);
+            margin-bottom: 0.9rem;
+        }
+        .portal-search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--cream);
+            border: 1px solid rgba(26,83,92,0.14);
+            border-radius: 12px;
+            padding: 0.8rem 1.1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .portal-search-box:focus-within {
+            border-color: var(--teal-deep);
+            box-shadow: 0 0 0 3px rgba(26,83,92,0.12);
+        }
+        .portal-search-icon { width: 20px; height: 20px; fill: var(--teal-deep); flex-shrink: 0; }
+        .portal-search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--charcoal);
+            background: transparent;
+        }
+        .portal-search-input::placeholder { color: #94a3b8; }
+        .portal-search-results {
+            display: none;
+            margin-top: 0.75rem;
+            background: white;
+            border: 1px solid rgba(26,83,92,0.14);
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(30,58,134,0.08);
+            overflow-x: hidden;
+            overflow-y: auto;
+            max-height: 360px;
+        }
+        /* In-flow, not floating — so the page (and the Tools & Platforms section
+           below it) actually grows to make room, instead of the panel overlaying
+           whatever happens to sit underneath it. */
+        .portal-search-results.visible { display: block; }
+        .portal-search-results.is-answer { max-height: none; }
+        .portal-search-result {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            padding: 0.7rem 1.1rem;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(45,52,54,0.06);
+            transition: background 0.15s;
+        }
+        .portal-search-result:last-child { border-bottom: none; }
+        .portal-search-result:hover, .portal-search-result:focus { background: var(--sand); }
+        .portal-search-result-title { font-weight: 700; color: var(--teal-deep); font-size: 0.92rem; }
+        .portal-search-result-desc { font-size: 0.8rem; color: var(--slate); line-height: 1.4; }
+        .portal-search-result-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--copper); }
+
+        /* ── Rotating suggestion overlay, sits inside the search box ──────── */
+        .portal-search-rotator {
+            position: absolute;
+            left: 3.15rem;
+            right: 1.1rem;
+            display: none;
+            align-items: center;
+            font-size: 1rem;
+            color: #94a3b8;
+            background: transparent;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
+        }
+        .portal-search-rotator span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: opacity 0.25s;
+        }
+        .portal-search-rotator:hover span { color: var(--teal-deep); }
+
+        /* ── Inline assistant answer, rendered inside the results panel ───── */
+        .portal-search-answer { display: flex; flex-direction: column; min-height: 0; }
+        .portal-search-answer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            padding: 0.6rem 0.7rem 0.6rem 1.1rem;
+            border-bottom: 1px solid rgba(45,52,54,0.08);
+        }
+        .portal-search-answer-header span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.66rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--slate);
+        }
+        .portal-search-answer-close {
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--sand);
+            color: var(--slate);
+            border: none;
+            font-size: 1.05rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .portal-search-answer-close:hover { background: var(--teal-deep); color: white; }
+        .portal-search-answer-msgs {
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+        .psa-msg { font-size: 0.9rem; line-height: 1.65; }
+        .psa-msg.user {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: var(--copper-text);
+        }
+        .psa-msg.assistant { color: var(--charcoal); }
+        .psa-msg.assistant.loading { color: var(--slate); font-style: italic; }
+        .psa-msg.assistant a { color: var(--teal-deep); font-weight: 600; text-decoration: underline; }
+        .psa-msg.assistant strong { color: var(--charcoal); }
+        .portal-search-answer-followup {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+            padding: 0.85rem 1.1rem;
+            border-top: 1px solid rgba(45,52,54,0.08);
+        }
+        .portal-search-answer-followup input {
+            flex: 1;
+            border: 1px solid rgba(26,83,92,0.16);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .portal-search-answer-followup input:focus { border-color: var(--teal-deep); }
+        .portal-search-answer-followup button {
+            background: var(--teal-deep);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .portal-search-answer-followup button:hover { background: var(--copper); }
+
+        /* ── Nav dropdown (Resources) ─────────────────────────────────────── */
+        .nav-dropdown { position: relative; }
+        .nav-dropdown-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: none;
+            border: none;
+            font: inherit;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--slate);
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: color 0.2s, background 0.2s;
+        }
+        .nav-dropdown-toggle:hover, .nav-dropdown.open .nav-dropdown-toggle {
+            color: var(--teal-deep);
+            background: rgba(26,83,92,0.07);
+        }
+        .nav-dropdown-caret { font-size: 0.6rem; transition: transform 0.2s; }
+        .nav-dropdown.open .nav-dropdown-caret { transform: rotate(180deg); }
+        .nav-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.4rem);
+            left: 0;
+            min-width: 240px;
+            background: white;
+            border: 1px solid rgba(26,83,92,0.14);
+            border-radius: 10px;
+            box-shadow: 0 12px 34px rgba(26,83,92,0.16);
+            padding: 0.4rem;
+            z-index: 150;
+        }
+        .nav-dropdown.open .nav-dropdown-menu { display: block; }
+        .nav-dropdown-item {
+            display: block;
+            text-decoration: none;
+            font-size: 0.86rem;
+            font-weight: 500;
+            color: var(--charcoal);
+            padding: 0.55rem 0.75rem;
+            border-radius: 6px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .nav-dropdown-item:hover { background: var(--sand); color: var(--teal-deep); }
+
+        /* ── Anchor offset for sticky nav ─────────────────────────────────── */
+        [id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
+
+        .project-card--placeholder { border-style: dashed; opacity: 0.85; }
+        .project-card--placeholder:hover { opacity: 1; }
+        .card-badge--soon { background: rgba(245,158,11,0.14); color: var(--copper-text); font-weight: 700; }
+
+        /* Jumping here from an assistant answer link should be obvious at a glance */
+        .project-card:target { animation: cardJumpHighlight 2.2s ease-out; }
+        @keyframes cardJumpHighlight {
+            0%   { box-shadow: 0 0 0 4px rgba(184,115,51,0.55), 0 12px 40px rgba(45,52,54,0.10); }
+            100% { box-shadow: 0 12px 40px rgba(45,52,54,0.10); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="accent-bar"></div>
+
+    <!-- ── Navigation ──────────────────────────────────────────────────────── -->
+    <nav class="site-nav" id="siteNav">
+        <div class="nav-inner">
+            <a href="#" class="nav-logo">
+                <div class="nav-logo-mark"><img src="/place_alert_labs_logo.jpg" alt="Place Alert Labs"></div>
+                <div>
+                    <div class="nav-logo-title">Place Alert Labs</div>
+                    <div class="nav-logo-sub">PALs Portal</div>
+                </div>
+            </a>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Home</a>
+                <div class="nav-dropdown" id="navResourcesDropdown">
+                    <button type="button" class="nav-dropdown-toggle" id="navResourcesToggle">
+                        Resources <span class="nav-dropdown-caret">&#9660;</span>
+                    </button>
+                    <div class="nav-dropdown-menu">
+                        <a href="#policy-decision-support" class="nav-dropdown-item">Policy &amp; Decision Support</a>
+                        <a href="#tools" class="nav-dropdown-item">Tools</a>
+                        <a href="#data-access" class="nav-dropdown-item">Data</a>
+                        <a href="#workflow" class="nav-dropdown-item">Workflow</a>
+                        <a href="#courses" class="nav-dropdown-item">Courses</a>
+                    </div>
+                </div>
+            </div>
+            <a href="https://placealert.org" class="nav-website-link" title="Go to Place Alert Labs website">PALs Website</a>
+            <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#">Home</a>
+        <a href="#policy-decision-support">Policy &amp; Decision Support</a>
+        <a href="#tools">Tools</a>
+        <a href="#data-access">Data</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#courses">Courses</a>
+    </div>
+
+    <!-- ── Hero ────────────────────────────────────────────────────────────── -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-copy">
+                <div class="hero-label">Geospatial Climate and Health Intelligence Platform</div>
+                <h1 class="hero-title">Welcome to the PALs Portal</h1>
+                <p class="hero-sub">
+                    The PALs Portal is an evolving climate-health data science and training
+                    platform. It brings together research pipelines, exposure models,
+                    analytic workflows, data resources and learning materials into one
+                    accessible space. Use the portal to discover, learn, run and reuse
+                    climate-health tools emerging from our research — whether you are a
+                    researcher, trainee, data scientist, policymaker or decision-maker
+                    working to turn climate and environmental evidence into public health
+                    action.
+                </p>
+            </div>
+
+            <!-- AI-powered search / tour guide — the entry point to the portal -->
+            <div class="portal-search" id="portalSearch">
+                <div class="portal-search-kicker">Search or ask</div>
+                <div class="portal-search-box">
+                    <svg class="portal-search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <input type="text" id="portalSearchInput" class="portal-search-input" placeholder="" autocomplete="off" aria-label="Search tools, data, courses, or ask a question">
+                    <button type="button" class="portal-search-rotator" id="portalSearchRotator" tabindex="-1">
+                        <span id="portalSearchRotatorText"></span>
+                    </button>
+                </div>
+                <div class="portal-search-results" id="portalSearchResults"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Projects ────────────────────────────────────────────────────────── -->
+    <section class="projects-section" id="projects">
+        <div class="section-wrap">
+            <div class="section-label">Tools &amp; Platforms</div>
+
+            <div class="filter-tabs" role="group" aria-label="Filter projects">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="policy">Policy &amp; Decision Support</button>
+                <button class="filter-tab" data-filter="tools">Tools</button>
+                <button class="filter-tab" data-filter="data">Data Access</button>
+                <button class="filter-tab" data-filter="workflow">Workflow</button>
+                <button class="filter-tab" data-filter="courses">Courses</button>
+            </div>
+
+            <div class="projects-grid">
+
+                <!-- HE²AT Catalogue — FEATURED -->
+                <a href="/heat-catalogue/" id="policy-decision-support" class="project-card accent-coral reveal" data-category="policy">
+                    <div class="card-tag">HE²AT Centre</div>
+                    <div class="card-title">Environmental Exposure Catalogue</div>
+                    <p class="card-desc">
+                        An open platform for researchers to explore 35+ environmental exposure
+                        variables shaping the health of mothers and newborns across Sub-Saharan
+                        Africa. The reference inventory for climate-and-health analysis in the
+                        region — environmental data only, personal health information excluded.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">9 Countries</span>
+                        <span class="card-badge">74K+ Participants</span>
+                        <span class="card-badge">Heat &amp; Health</span>
+                        <span class="card-badge">Climate</span>
+                    </div>
+                    <div class="card-arrow">View Catalogue</div>
+                </a>
+
+                <!-- PRECISE Catalogue — FEATURED -->
+                <a href="/catalogue/" class="project-card reveal" data-category="policy" id="tool-precise-catalogue">
+                    <div class="card-tag">PRECISE Network</div>
+                    <div class="card-title">Environmental &amp; Social Determinants of Maternal Health</div>
+                    <p class="card-desc">
+                        An open geospatial catalogue mapping the environmental and social
+                        determinants of maternal health across three PRECISE sites (health
+                        outcome data included), with a built-in AI assistant to query the
+                        participant dataset directly — linking place to maternal outcomes.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">Kenya</span>
+                        <span class="card-badge">Mozambique</span>
+                        <span class="card-badge">The Gambia</span>
+                        <span class="card-badge">GIS</span>
+                        <span class="card-badge">Maternal Health</span>
+                    </div>
+                    <div class="card-arrow">View Catalogue</div>
+                </a>
+
+                <!-- Landscape Fire Smoke & Pregnancy Risk -->
+                <a href="/firesmoke/" class="project-card accent-coral reveal" data-category="policy" id="tool-firesmoke">
+                    <div class="card-tag">Climate &amp; Maternal Health</div>
+                    <div class="card-title">Landscape Fire Smoke &amp; Pregnancy Risk</div>
+                    <p class="card-desc">
+                        Maps daily landscape-fire smoke (PM₂.₅) across Africa and links it to
+                        pregnancy risk — turning satellite fire and smoke signals into an
+                        exposure measure for maternal health. An openly available view of
+                        wildfire smoke and pregnancy at continental scale.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">Wildfire Smoke</span>
+                        <span class="card-badge">PM₂.₅</span>
+                        <span class="card-badge">Africa-wide</span>
+                        <span class="card-badge">Maternal Health</span>
+                    </div>
+                    <div class="card-arrow">Open Dashboard</div>
+                </a>
+
+                <!-- Road Network Density -->
+                <a href="/roadnet/" class="project-card accent-teal reveal" data-category="policy" id="tool-roadnet">
+                    <div class="card-tag">Geospatial Analysis</div>
+                    <div class="card-title">Africa Road Network Density</div>
+                    <p class="card-desc">
+                        Africa-wide H3 hexagon map of road density from OpenStreetMap — a
+                        continent-scale proxy for traffic-related air-pollution exposure at
+                        ~5&thinsp;km². An openly available layer of its kind for the whole
+                        continent.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">H3 Res&nbsp;7</span>
+                        <span class="card-badge">OpenStreetMap</span>
+                        <span class="card-badge">Africa-wide</span>
+                    </div>
+                    <div class="card-arrow">Open Map</div>
+                </a>
+
+                <!-- Road Proximity (Euclidean Distance) -->
+                <a href="/euclidean/" class="project-card accent-teal reveal" data-category="policy" id="tool-roadproximity">
+                    <div class="card-tag">Geospatial Analysis</div>
+                    <div class="card-title">Africa Road Proximity</div>
+                    <p class="card-desc">
+                        Distance to the nearest highway and major road for every H3 cell in
+                        Africa, with population-weighted admin summaries — a ready proxy for
+                        traffic pollution and road access. Continent-wide and openly available.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">H3 Res&nbsp;7</span>
+                        <span class="card-badge">WorldPop</span>
+                        <span class="card-badge">Africa-wide</span>
+                    </div>
+                    <div class="card-arrow">Open Map</div>
+                </a>
+
+                <!-- ── divider ── -->
+                <div class="grid-divider" id="tools" data-category-divider="true"><span>Tools</span></div>
+
+                <!-- SPECTRA -->
+                <a href="/apex/" class="project-card accent-copper reveal" data-category="tools" id="tool-spectra">
+                    <div class="card-tag">CHEAQI-MNCH</div>
+                    <div class="card-title">SPECTRA</div>
+                    <p class="card-desc">
+                        Turns raw GPS tracks and wearable-sensor readings into personal,
+                        minute-by-minute environmental exposure — indoors vs outdoors, where and
+                        when. Makes individual exposure measurable in African epidemiology,
+                        not just modelled.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">R Shiny</span>
+                        <span class="card-badge">GPS Trajectory</span>
+                        <span class="card-badge">Wearable Sensors</span>
+                    </div>
+                    <div class="card-arrow">Open App</div>
+                </a>
+
+                <!-- GIPEX -->
+                <a href="/gipex/" class="project-card accent-teal reveal" data-category="tools" id="tool-gipex">
+                    <div class="card-tag">CHEAQI-MNCH</div>
+                    <div class="card-title">GIPEX</div>
+                    <p class="card-desc">
+                        Generates satellite-derived exposure indicators — surface heat, NO₂,
+                        PM₂.₅, vegetation, built-up intensity and night-lights — for any study
+                        area lacking ground monitors. Puts exposure science within reach where
+                        no monitoring network exists.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">Satellite-derived</span>
+                        <span class="card-badge">Air Pollution</span>
+                        <span class="card-badge">Earth Engine</span>
+                    </div>
+                    <div class="card-arrow">Open App</div>
+                </a>
+
+                <!-- HarmonAIze -->
+                <a href="/harmonaize/geolocation/dashboard/" class="project-card accent-sage reveal" data-category="tools" id="tool-harmonaize">
+                    <div class="card-tag">HarmonAIze</div>
+                    <div class="card-title">Geolocation Validation</div>
+                    <p class="card-desc">
+                        AI-assisted geocoding and coordinate validation that turns messy
+                        facility and address records into research-ready locations. Built for
+                        the low-resource settings where reliable geocoding is otherwise
+                        out of reach.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">AI-assisted</span>
+                        <span class="card-badge">Geolocation</span>
+                        <span class="card-badge">Open Source</span>
+                    </div>
+                    <div class="card-arrow">Open App</div>
+                </a>
+
+                <!-- PALSearth -->
+                <a href="/palsearth/" class="project-card accent-green reveal" data-category="tools" id="tool-palsearth">
+                    <div class="card-tag">Geospatial Extraction</div>
+                    <div class="card-title">PALSearth</div>
+                    <p class="card-desc">
+                        Point-and-extract environmental data for any location and date — NDVI,
+                        land-surface temperature, rainfall, elevation, soil and more, delivered
+                        analysis-ready. Puts continental Earth-observation data one click from a
+                        coordinate list.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">Earth Engine</span>
+                        <span class="card-badge">Climate</span>
+                        <span class="card-badge">Africa</span>
+                    </div>
+                    <div class="card-arrow">Open PALSearth</div>
+                </a>
+
+                <!-- ECRI poster judging -->
+                <a href="https://portal.placealert.org/ecri/judging/" class="project-card accent-coral reveal" data-category="tools" id="tool-poster-judging">
+                    <div class="card-tag">ECRI 2026</div>
+                    <div class="card-title">Poster Judging</div>
+                    <p class="card-desc">
+                        Score conference posters on five criteria, then vote on the winner.
+                        Adjudicators open it on any device and tap their number.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">ECRI 2026</span>
+                        <span class="card-badge">Scoring</span>
+                        <span class="card-badge">Any device</span>
+                    </div>
+                    <div class="card-arrow">Open Poster Judging</div>
+                </a>
+
+                <!-- Zimbabwe Address Database — placeholder -->
+                <a href="#contact" class="project-card project-card--placeholder accent-slate reveal" data-category="tools" id="tool-zad">
+                    <div class="card-tag">Zimbabwe Programme</div>
+                    <div class="card-title">Zimbabwe Address Database (ZAD)</div>
+                    <p class="card-desc">
+                        A geocoding registry built from our Zimbabwe fieldwork, turning addresses
+                        and facility records into research-ready coordinates. Documentation and
+                        open access are on the way.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge card-badge--soon">Coming Soon</span>
+                        <span class="card-badge">Geocoding</span>
+                        <span class="card-badge">Zimbabwe</span>
+                    </div>
+                    <div class="card-arrow">Read More</div>
+                </a>
+
+                <!-- ── divider ── -->
+                <div class="grid-divider" id="data-access" data-category-divider="true"><span>Data Access</span></div>
+
+                <!-- CHEAQI data catalogue (added by scripts/deploy_portal_data_page.py) -->
+                <a href="/cheaqi-data/" class="project-card accent-teal reveal" data-category="data" id="tool-cheaqi-data">
+                    <div class="card-tag">CHEAQI-MNCH &middot; FAIR</div>
+                    <div class="card-title">CHEAQI Data Catalogue</div>
+                    <p class="card-desc">
+                        Metadata for the CHEAQI-MNCH datasets, with downloads for the data we created
+                        (district exposure-vulnerability index, road and fire indicators, teaching data)
+                        and links to every source we used.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">FAIR</span>
+                        <span class="card-badge">CC BY 4.0</span>
+                        <span class="card-badge">Open Downloads</span>
+                    </div>
+                    <div class="card-arrow">Browse Catalogue</div>
+                </a>
+
+                <!-- Database API Access (PostgreSQL) -->
+                <a href="/dbrequest/request" class="project-card accent-slate reveal" data-category="data" id="tool-bigtable-api">
+                    <div class="card-tag">PostgreSQL · API Token</div>
+                    <div class="card-title">Big Table API Access</div>
+                    <p class="card-desc">
+                        Request a personal API token for programmatic access to the PALs Lab
+                        research database — authenticated queries against the PRECISE Big Table
+                        from the Hub, notebooks, or any HTTP client.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">API Token</span>
+                        <span class="card-badge">PostgreSQL</span>
+                        <span class="card-badge">Authentication</span>
+                    </div>
+                    <div class="card-arrow">Request Access</div>
+                </a>
+
+                <!-- Fast Query Access (DuckDB) -->
+                <a href="/duckrequest/request" class="project-card accent-green reveal" data-category="data" id="tool-duckdb-access">
+                    <div class="card-tag">DuckDB · High-Speed</div>
+                    <div class="card-title">Fast Query Access (DuckDB)</div>
+                    <p class="card-desc">
+                        Fast in-process analytical access to the PRECISE Big Table via DuckDB.
+                        Receive a Python or R connection snippet ready for your PALSlab
+                        notebook — designed for large queries across ~3.2M records.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">DuckDB</span>
+                        <span class="card-badge">Python / R</span>
+                        <span class="card-badge">3.2M Records</span>
+                    </div>
+                    <div class="card-arrow">Request Access</div>
+                </a>
+
+                <!-- ── divider ── -->
+                <div class="grid-divider" id="workflow" data-category-divider="true"><span>Workflow</span></div>
+
+                <!-- PALSlab Hub -->
+                <a href="https://pals.placealert.org" class="project-card accent-lavender reveal" data-category="workflow" id="tool-palslab-hub">
+                    <div class="card-tag">PALs Lab</div>
+                    <div class="card-title">PALSlab Hub</div>
+                    <p class="card-desc">
+                        The shared analytical environment for the PALs Lab research group —
+                        Python and R kernels, pre-loaded libraries, shared data directories,
+                        and direct database connectivity for collaborative analysis.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">JupyterHub</span>
+                        <span class="card-badge">Python</span>
+                        <span class="card-badge">R</span>
+                        <span class="card-badge">Shared Workspace</span>
+                    </div>
+                    <div class="card-arrow">Open Hub</div>
+                </a>
+
+                <!-- ── divider ── -->
+                <div class="grid-divider" id="courses" data-category-divider="true"><span>Courses</span></div>
+
+                <!-- SPECTRA course (added by scripts/deploy_portal_data_page.py) -->
+                <a href="https://placealert.org/spectra-enrol.html" class="project-card accent-copper reveal" data-category="courses" id="tool-spectra-course">
+                    <div class="card-tag">Free &middot; Certificate</div>
+                    <div class="card-title">SPECTRA: Personal Exposure &amp; Trajectory Analysis</div>
+                    <p class="card-desc">
+                        Turn GPS tracks from wearables, phones and low-cost sensors into personal
+                        air-pollution and heat-stress exposure estimates, using the SPECTRA app. No coding.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">~2 Hours</span>
+                        <span class="card-badge">11 Lessons</span>
+                        <span class="card-badge">Certificate at 80%</span>
+                    </div>
+                    <div class="card-arrow">Enrol</div>
+                </a>
+
+                <!-- GIPEX course (added by scripts/deploy_portal_data_page.py) -->
+                <a href="https://placealert.org/gipex-enrol.html" class="project-card accent-teal reveal" data-category="courses" id="tool-gipex-course">
+                    <div class="card-tag">Free &middot; Certificate</div>
+                    <div class="card-title">GIPEX: Geospatial Indicators for Environmental Exposure</div>
+                    <p class="card-desc">
+                        Turn any study grid into 57 satellite and geospatial exposure indicators,
+                        for places with sparse ground monitoring. No coding.
+                    </p>
+                    <div class="card-meta">
+                        <span class="card-badge">2 to 3 Hours</span>
+                        <span class="card-badge">57 Indicators</span>
+                        <span class="card-badge">Certificate at 80%</span>
+                    </div>
+                    <div class="card-arrow">Enrol</div>
+                </a>
+
+                <!-- GeoAI Course -->
+                <a href="/course-enrol.html" class="project-card accent-copper reveal" data-category="courses" id="tool-geoai-course">
+                    <div class="card-tag">Free &middot; Certificate</div>
+                    <div class="card-title">GeoAI for Climate, Environment &amp; Health</div>
+                    <p class="card-desc">
+                        A free, open-enrolment course on geospatial data science,
+                        satellite-derived environmental exposures, and AI-powered data
+                        querying — built around real Zimbabwe DHS 2015 birth records.
+                        ~3 hours, self-paced, across 6 browser-based notebooks, no local setup or
+                        prior GIS experience required.
+                    </p>
+                    <div class="card-stat" id="geoai-learner-stat" data-course-id="geoai2026">42 learners have taken this course</div>
+                    <div class="card-meta">
+                        <span class="card-badge">6 Modules</span>
+                        <span class="card-badge">Jupyter Notebooks</span>
+                        <span class="card-badge">No Setup Required</span>
+                    </div>
+                    <div class="card-arrow">Enrol Now</div>
+                </a>
+
+                <!-- GeoAI: Air Quality Explorer (high-school course) -->
+                <a href="https://placealert.org/geoai-explorer/" target="_blank" rel="noopener" class="project-card accent-teal reveal" data-category="courses" id="tool-geoai-junior-course">
+                    <div class="card-tag">Free &middot; Certificate</div>
+                    <div class="card-title">GeoAI: Air Quality Explorer</div>
+                    <p class="card-desc">
+                        A lighter, high-school on-ramp to our senior GeoAI course. "Is the air
+                        around you making you sick?" — four short, visual stops covering why air
+                        pollution matters, how satellites see it from space, and a chance to ask
+                        a research assistant your own questions about real neighborhoods. No
+                        coding required.
+                    </p>
+                    <div class="card-stat" id="geoai-junior-learner-stat" data-course-id="geoai-air-quality">Just launched — be among the first to explore it</div>
+                    <div class="card-meta">
+                        <span class="card-badge">4 Modules</span>
+                        <span class="card-badge">~45 Minutes</span>
+                        <span class="card-badge">No Coding</span>
+                    </div>
+                    <div class="card-arrow">Start Course</div>
+                </a>
+
+                <!-- Health Geography Short Course -->
+                <a href="https://globalhealthtrainingcentre.tghn.org/health-geography-short-course/" target="_blank" rel="noopener" class="project-card accent-sage reveal" data-category="courses" id="tool-health-geography">
+                    <div class="card-tag">Free &middot; Certificate</div>
+                    <div class="card-title">Health Geography — A Short Course</div>
+                    <p class="card-desc">
+                        How geography mediates health outcomes and disease patterns —
+                        from disaggregating health data in space to designing more
+                        precise, locally-tailored public health interventions. Built on
+                        PALs' own published research.
+                    </p>
+                    <div class="card-stat">916 learners across 4 continents have taken this course</div>
+                    <div class="card-meta">
+                        <span class="card-badge">2 Hours</span>
+                        <span class="card-badge">Certificate at 80%</span>
+                        <span class="card-badge">Global Health Network</span>
+                    </div>
+                    <div class="card-arrow">Access Course</div>
+                </a>
+
+                <!-- Geographical Access in Healthcare Short Course -->
+                <a href="https://globalhealthtrainingcentre.tghn.org/geographical-access-healthcare-short-course/" target="_blank" rel="noopener" class="project-card accent-sage reveal" data-category="courses" id="tool-geo-access-healthcare">
+                    <div class="card-tag">Free &middot; Certificate</div>
+                    <div class="card-title">Geographical Access in Healthcare</div>
+                    <p class="card-desc">
+                        How GIS is used to quantify spatial access to care, measure
+                        disparities across populations, and support evidence-based
+                        health service planning.
+                    </p>
+                    <div class="card-stat">340 learners across 4 continents have taken this course</div>
+                    <div class="card-meta">
+                        <span class="card-badge">50 Minutes</span>
+                        <span class="card-badge">Certificate at 80%</span>
+                        <span class="card-badge">Global Health Network</span>
+                    </div>
+                    <div class="card-arrow">Access Course</div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Team ────────────────────────────────────────────────────────────── -->
+    <section class="team-section" id="team">
+        <div class="section-wrap">
+            <div class="section-label">Our Team</div>
+            <div class="team-names">
+                <button type="button" class="team-name" data-team="Prestige Tatenda Makanga">Prestige Tatenda Makanga</button>
+                <button type="button" class="team-name" data-team="Upenyu Mupfiga">Upenyu Mupfiga</button>
+                <button type="button" class="team-name" data-team="Liberty Makacha">Liberty Makacha</button>
+                <button type="button" class="team-name" data-team="Terence Mushore">Terence Mushore</button>
+                <button type="button" class="team-name" data-team="Reason Mlambo">Reason Mlambo</button>
+                <button type="button" class="team-name" data-team="Cherlynn Dumbura">Cherlynn Dumbura</button>
+                <button type="button" class="team-name" data-team="Bongani Nyoni">Bongani Nyoni</button>
+                <button type="button" class="team-name" data-team="Anotida Chapunza">Anotida Chapunza</button>
+                <a class="team-name" href="https://www.linkedin.com/in/tendai-shangwa-bb06a3181/" target="_blank" rel="noopener noreferrer">Tendai Shangwa</a>
+                <button type="button" class="team-name" data-team="Zororo Chinwadzimba">Zororo Chinwadzimba</button>
+                <button type="button" class="team-name" data-team="Laura Munthali">Laura Munthali</button>
+                <a class="team-name" href="https://www.linkedin.com/in/perkins-watambwa-a0205111a/" target="_blank" rel="noopener noreferrer">Perkins Watambwa</a>
+                <button type="button" class="team-name" data-team="Rutendo Sibanda">Rutendo Sibanda</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Collaborators ─────────────────────────────────────────────────────── -->
+    <section class="collab-section" id="collaborators">
+        <div class="section-wrap">
+            <div class="section-label">Collaborators &amp; Partners</div>
+            <p class="collab-intro">Place Alert Labs works with research institutions, implementation partners
+                and funders across Africa and beyond to build and sustain this open data and research infrastructure.</p>
+
+            <div class="collab-group">
+                <div class="collab-group-label">Research &amp; Implementation Partners</div>
+                <div class="collab-logos-grid">
+                    <a class="collab-logo-card" href="https://precisenetwork.org/" target="_blank" rel="noopener" title="PRECISE Network">
+                        <img class="collab-logo-img" src="/partner-logos/precise-network.png" alt="PRECISE Network" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>PRECISE Network</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://heatcenter.wrhi.ac.za/" target="_blank" rel="noopener" title="DS-I Africa">
+                        <img class="collab-logo-img" src="/partner-logos/dsi-africa.png" alt="DS-I Africa" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>DS-I Africa</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://research.ibm.com/" target="_blank" rel="noopener" title="IBM Research">
+                        <img class="collab-logo-img" src="/partner-logos/ibm-research.jpg" alt="IBM Research" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>IBM Research</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://www.csag.uct.ac.za/" target="_blank" rel="noopener" title="CSAG">
+                        <img class="collab-logo-img" src="/partner-logos/csag.png" alt="CSAG" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>CSAG</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://www.wits.ac.za/" target="_blank" rel="noopener" title="University of the Witwatersrand">
+                        <img class="collab-logo-img" src="/partner-logos/wits.svg" alt="University of the Witwatersrand" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>University of the Witwatersrand</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://ceshhar.org/" target="_blank" rel="noopener" title="CeSHHAR Zimbabwe">
+                        <img class="collab-logo-img" src="/partner-logos/ceshhar.png" alt="CeSHHAR Zimbabwe" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>CeSHHAR Zimbabwe</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://www.kcl.ac.uk/" target="_blank" rel="noopener" title="King's College London">
+                        <img class="collab-logo-img" src="/partner-logos/kcl.png" alt="King's College London" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>King&#39;s College London</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://www.ubc.ca/" target="_blank" rel="noopener" title="University of British Columbia">
+                        <img class="collab-logo-img" src="/partner-logos/ubc.png" alt="University of British Columbia" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>University of British Columbia</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://www.cism25.org/en/home/" target="_blank" rel="noopener" title="CISM">
+                        <img class="collab-logo-img" src="/partner-logos/cism.avif" alt="CISM" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>CISM</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://www.aasciences.africa/" target="_blank" rel="noopener" title="African Academy of Sciences">
+                        <img class="collab-logo-img" src="/partner-logos/african-academy-of-sciences.png" alt="African Academy of Sciences" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>African Academy of Sciences</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="http://www.africaresearchexcellencefund.org.uk/" target="_blank" rel="noopener" title="AREF">
+                        <img class="collab-logo-img" src="https://africaresearchexcellencefund.org.uk/wp-content/uploads/2023/07/AREF_rgb.png" alt="AREF" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>AREF</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://msu.ac.zw" target="_blank" rel="noopener" title="Midlands State University">
+                        <img class="collab-logo-img" src="/partner-logos/midlands-state-university.jpg" alt="Midlands State University" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>Midlands State University</span>'">
+                    </a>
+                    <a class="collab-logo-card" href="https://lstmed.ac.uk/" target="_blank" rel="noopener" title="Liverpool School of Tropical Medicine">
+                        <img class="collab-logo-img" src="/partner-logos/lstm.jpg" alt="Liverpool School of Tropical Medicine" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>LSTM</span>'">
+                    </a>
+                </div>
+            </div>
+
+            <div class="collab-group">
+                <div class="collab-group-label">Funders</div>
+                <div class="collab-logos-grid">
+                    <a class="collab-logo-card collab-logo-card--funder" href="https://www.nih.gov/" target="_blank" rel="noopener" title="US National Institutes of Health">
+                        <img class="collab-logo-img" src="/partner-logos/nih.png" alt="US National Institutes of Health" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>US National Institutes of Health</span>'">
+                    </a>
+                    <a class="collab-logo-card collab-logo-card--funder" href="https://wellcome.org/" target="_blank" rel="noopener" title="Wellcome Trust">
+                        <img class="collab-logo-img" src="/partner-logos/wellcome-trust.jpg" alt="Wellcome Trust" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>Wellcome Trust</span>'">
+                    </a>
+                    <a class="collab-logo-card collab-logo-card--funder" href="https://www.gatesfoundation.org/" target="_blank" rel="noopener" title="Gates Foundation">
+                        <img class="collab-logo-img" src="https://www.gatesfoundation.org/-/media/logos/gf-primary-weathered-slate-logo_4by1-ratio-fixed.svg?rev=54c470b2c54e4e7bbf1226f068638fdc" alt="Gates Foundation" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>Gates Foundation</span>'">
+                    </a>
+                    <a class="collab-logo-card collab-logo-card--funder" href="https://www.ukri.org/research/global-challenges-research-fund/" target="_blank" rel="noopener" title="UKRI / GCRF">
+                        <img class="collab-logo-img" src="/partner-logos/ukri.png" alt="UKRI / GCRF" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>UKRI / GCRF</span>'">
+                    </a>
+                    <a class="collab-logo-card collab-logo-card--funder" href="https://www.grandchallenges.ca/" target="_blank" rel="noopener" title="Grand Challenges Canada">
+                        <img class="collab-logo-img" src="/partner-logos/grand-challenges-canada.png" alt="Grand Challenges Canada" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>Grand Challenges Canada</span>'">
+                    </a>
+                    <a class="collab-logo-card collab-logo-card--funder" href="https://www.google.com/" target="_blank" rel="noopener" title="Google">
+                        <img class="collab-logo-img" src="/partner-logos/google.png" alt="Google" onerror="this.parentElement.innerHTML='<span class=&quot;collab-logo-fallback&quot; style=&quot;display:block&quot;>Google</span>'">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Contact ───────────────────────────────────────────────────────────── -->
+    <section class="contact-section" id="contact">
+        <div class="contact-inner reveal">
+            <div class="contact-text">
+                <div class="contact-title">Get in touch</div>
+                <p class="contact-sub">Interested in collaborating, accessing data, or learning more about our research? Reach out to the Place Alert Labs team — we'll get back to you directly.</p>
+            </div>
+            <button class="contact-btn" onclick="sendLabInquiry()">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Inquire About Place Alert Labs
+            </button>
+        </div>
+    </section>
+
+    <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-mark"><img src="/place_alert_labs_logo.jpg" alt="Place Alert Labs"></div>
+                    <div class="footer-logo-text">
+                        <div class="footer-name">Place Alert Labs</div>
+                        <div class="footer-url">PALs Portal</div>
+                    </div>
+                </div>
+                <p class="footer-desc">
+                    An open research portal advancing geographically precise public health
+                    through climate, environmental, and geospatial intelligence.
+                    A multidisciplinary team advancing geographically precise public health.
+                </p>
+            </div>
+            <div class="footer-nav">
+                <div class="footer-nav-title">Platforms</div>
+                <div class="footer-nav-links">
+                    <a href="/catalogue/">PRECISE Catalogue</a>
+                    <a href="/gipex/">GIPEX</a>
+                    <a href="/apex/">SPECTRA</a>
+                    <a href="/harmonaize/">HarmonAIze</a>
+                    <a href="/roadnet/">Africa Road Network Density</a>
+                    <a href="/euclidean/">Africa Road Proximity</a>
+                    <a href="/palsearth/">PALSearth</a>
+                    <a href="https://portal.placealert.org/ecri/judging/">ECRI Poster Judging</a>
+                    <a href="https://pals.placealert.org">PALSlab Hub</a>
+                    <a href="https://placealert.org" style="color:var(--copper);opacity:0.9;">↗ PALs Website</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-bottom-left">
+                &copy; 2026 Place Alert Labs &mdash; PALs Portal
+                <span style="opacity:0.6;">&middot; Launched March 2026, actively growing</span>
+            </div>
+            <div class="footer-funders">
+                <span class="funder-pill">NIH</span>
+                <span class="funder-pill">Google</span>
+                <span class="funder-pill">Grand Challenges Canada</span>
+                <span class="funder-pill">UKRI</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ── Back to top ────────────────────────────────────────────────────────── -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+    </button>
+
+    <!-- ── Team bio modal ──────────────────────────────────────────────────── -->
+    <div class="team-modal" id="teamModal">
+        <div class="team-modal-content">
+            <button type="button" class="team-modal-close" id="teamModalClose" aria-label="Close">&times;</button>
+            <div class="team-modal-header">
+                <div class="team-modal-photo"><img id="teamModalPhoto" src="" alt=""></div>
+                <div class="team-modal-title">
+                    <h3 id="teamModalName"></h3>
+                    <p id="teamModalPosition"></p>
+                </div>
+            </div>
+            <div class="team-modal-body">
+                <div class="team-modal-desc" id="teamModalDesc"></div>
+                <div class="team-modal-links">
+                    <h4>Profiles &amp; Contact</h4>
+                    <div class="team-modal-link-grid" id="teamModalLinks"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Team bio modal ─────────────────────────────────────────────────────────
+    (function() {
+        const ICONS = {
+            Email:    '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>',
+            Scopus:   '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1.2 14.6l-3.4-4.6 3.4-4.6h2l-3.4 4.6 3.4 4.6zm4.8 0h-2l3.4-4.6-3.4-4.6h2l3.4 4.6z"/></svg>',
+            Phone:    '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M6.6 10.8c1.4 2.7 3.6 4.9 6.3 6.3l2.1-2.1c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.3 0 .7-.2 1z"/></svg>',
+            LinkedIn: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M19 3A2 2 0 0121 5v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14M8.34 18.34V9.75H5.67v8.59h2.67M7 8.59A1.56 1.56 0 108.59 7 1.56 1.56 0 007 8.59M18.34 18.34v-4.83c0-2.32-1.24-3.4-2.9-3.4a2.5 2.5 0 00-2.26 1.24h-.05V9.75h-2.56v8.59h2.56v-4.26c0-1.12.21-2.21 1.61-2.21s1.4 1.28 1.4 2.28v4.19h2.6z"/></svg>',
+        };
+
+        const TEAM_BIOS = {
+            'Prestige Tatenda Makanga': {
+                photo: 'https://placealert.org/images/team/makanga.jpeg',
+                position: 'Lead Researcher',
+                bio: [
+                    'Leading expert in environmental health and geospatial artificial intelligence with over 10 years of research experience.',
+                    'Specializes in developing innovative solutions for health-environment interactions using advanced GIS technologies.',
+                    'Published extensively in peer-reviewed journals and has led multiple international research collaborations.',
+                    'Passionate about building capacity in African geospatial health research and mentoring the next generation of scientists.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:makangap@staff.msu.ac.zw' },
+                    { label: 'Scopus', href: 'https://www.scopus.com/authid/detail.uri?authorId=25027901300' },
+                    { label: 'Phone', href: 'tel:+263785011872' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/prestigemakanga/' },
+                ],
+            },
+            'Terence Mushore': {
+                photo: 'https://placealert.org/images/team/mushore.jpeg',
+                position: 'Research Manager',
+                bio: [
+                    'Prof. Mushore is an accomplished environmental scientist and geospatial data expert, serving as Research Manager at Place Alert Labs.',
+                    'He leads major projects such as the Landscape Fire Smoke Project and CHEAQI-MNCH, applying advanced machine learning and monitoring techniques.',
+                    'His research focuses on understanding the health impacts of pollution through climate science and environmental change studies.',
+                    'With expertise in geospatial modelling of air quality and exposure, he contributes significantly to environmental health research.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:mushored@staff.msu.ac.zw' },
+                    { label: 'Scopus', href: 'https://www.scopus.com/authid/detail.uri?authorId=56507246300' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/terence-mushore-32822154/' },
+                ],
+            },
+            'Upenyu Mupfiga': {
+                photo: 'https://placealert.org/images/team/upenyu-mupfiga.jpeg',
+                position: 'Post-doctoral Spatial Data Scientist',
+                bio: [
+                    'Dr. Upenyu Mupfiga is a post-doctoral researcher and lecturer specializing in spatial data science at Place Alert Labs.',
+                    'She contributes to environmental modelling and exposure studies under the CHEAQI-MNCH project while mentoring students.',
+                    'Her research focuses on remote sensing and environmental modelling, land cover/use change and climate-health interactions.',
+                    'With expertise in spatial data analytics for resilience and sustainability, she leads sustainability-focused research at MSU.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:mupfigau@staff.msu.ac.zw' },
+                    { label: 'Scopus', href: 'https://www.scopus.com/authid/detail.uri?authorId=57224515488' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/upenyu-mupfiga-76a62099/' },
+                ],
+            },
+            'Cherlynn Dumbura': {
+                photo: 'https://placealert.org/images/team/dumbura.jpeg',
+                position: 'Research Fellow',
+                bio: [
+                    'Cherlynn is an early-career researcher applying data science and biostatistics to study the impacts of climate change on maternal and child health.',
+                    'She coordinates research across projects under the HE²AT Centre consortium and Place Alert Labs with extensive experience in malnutrition research.',
+                    'Her work focuses on biostatistics and epidemiological analysis, data science for health outcomes, and project coordination.',
+                    'With expertise in multi-country collaboration, she has conducted research in Zimbabwe and Zambia on malnutrition recovery in children.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:cherlynn.dumbura@ceshhar.org' },
+                    { label: 'Scopus', href: 'https://www.scopus.com/authid/detail.uri?authorId=57222501225' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/cherlynn-dumbura/' },
+                ],
+            },
+            'Liberty Makacha': {
+                photo: 'https://placealert.org/images/team/makacha.jpeg',
+                position: 'Research Scientist',
+                bio: [
+                    'Liberty is a dedicated research scientist at Place Alert Labs, contributing to major environmental health projects.',
+                    'His work integrates GIS, data analytics, and environmental modelling to improve understanding of air quality and health risks.',
+                    'With expertise in environmental exposure modelling, GIS and spatial analytics for health outcomes, he focuses on climate and air quality science.',
+                    'He is particularly focused on addressing environmental health challenges in vulnerable African communities.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:makachal@staff.msu.ac.zw' },
+                    { label: 'Scopus', href: 'https://www.scopus.com/authid/detail.uri?authorId=57214692800' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/liberty-makacha-431a715b/' },
+                ],
+            },
+            'Bongani Nyoni': {
+                photo: 'https://placealert.org/images/palshome/mrnyo.jpeg',
+                position: 'Geospatial Data Scientist',
+                bio: [
+                    'Bongani is a geospatial data scientist and PhD candidate specializing in environmental exposure modelling.',
+                    'His work spans CHEAQI-MNCH, ETIQUET, and KADI projects, developing AI-driven methods to predict air quality and climate-health risks.',
+                    'With expertise in GeoAI for environmental exposure modelling, he focuses on air quality (PM2.5, NO₂) and climate-health interactions.',
+                    'Bongani specializes in semi-supervised learning and deep learning for sparse datasets, advancing machine learning applications for African contexts.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:nyonih@staff.msu.ac.zw' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/bongani-handsome-nyoni-62a132119/' },
+                ],
+            },
+            'Anotida Chapunza': {
+                photo: 'https://placealert.org/images/team/chapunza.jpeg',
+                position: 'Research Assistant & Finance/Administration Assistant',
+                bio: [
+                    'Anotida is a results-oriented researcher and administrator supporting the ETIQUET Project at Place Alert Labs.',
+                    'She applies statistical and machine learning methods to environmental datasets while managing financial and administrative operations.',
+                    'With expertise in data science and machine learning (Python, R), she specializes in GIS and spatial data analysis.',
+                    'Her interests lie in combining informatics, GIS, and AI to address health challenges in Africa.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:chapunzaa@staff.msu.ac.zw' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/anotida-marrian-chapunza-972727200/' },
+                ],
+            },
+            'Reason Mlambo': {
+                photo: 'https://i1.rgstatic.net/ii/profile.image/718115738497024-1548223542284_Q512/Reason-Mlambo-2.jpg',
+                position: 'Alumni',
+                bio: [
+                    'Reason is an accomplished researcher and alumnus of Place Alert Labs with significant contributions to environmental health research.',
+                    'His work has focused on geospatial analysis and environmental exposure assessment in African contexts.',
+                    'With expertise in remote sensing and spatial data analysis, he has contributed to multiple research projects.',
+                    'Reason has been instrumental in advancing research methodologies and capacity building initiatives.',
+                ],
+                links: [
+                    { label: 'Scopus', href: 'https://www.scopus.com/authid/detail.uri?authorId=57193570135' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/reason-mlambo-4a173085/' },
+                ],
+            },
+            'Laura Munthali': {
+                photo: 'https://placealert.org/images/team/laura-munthali.jpg',
+                position: 'Research Affiliate',
+                bio: [
+                    'Laura Munthali is a dedicated research professional with expertise in maternal and child health research.',
+                    'She is a Senior Research Nurse and Masters Science Student in Global Health at Liverpool School of Tropical Medicine.',
+                    'Her work focuses on improving maternal and neonatal health outcomes through rigorous research and community engagement.',
+                    'Laura is committed to advancing health research in Malawi and contributing to evidence-based policy development.',
+                ],
+                links: [
+                    { label: 'Email', href: 'mailto:laura.munthali@lstmed.ac.uk' },
+                    { label: 'Scopus', href: 'https://www.scopus.com/authid/detail.uri?authorId=57212191623' },
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/laura-munthali-099798127/' },
+                ],
+            },
+            'Rutendo Sibanda': {
+                photo: 'https://placealert.org/images/team/rutendo.jpg',
+                position: 'Research Affiliate',
+                bio: [
+                    'Rutendo Sibanda is a Research Affiliate at Place Alert Labs, contributing to the lab\'s geospatial health research initiatives.',
+                    'His work supports the lab\'s mission of advancing spatially precise public health research across Africa.',
+                    'He brings expertise in research, data, and collaboration that strengthens PALs\' interdisciplinary approach to environmental and health challenges.',
+                ],
+                links: [
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/rutendo-sibanda-43039719b/' },
+                ],
+            },
+            'Zororo Chinwadzimba': {
+                photo: 'https://placealert.org/images/team/zororo.png',
+                position: 'Research Affiliate',
+                bio: [
+                    'Zororo Chinwadzimba is a Research Affiliate at Place Alert Labs, contributing to the lab\'s geospatial health research initiatives.',
+                    'His work supports the lab\'s mission of advancing spatially precise public health research across Africa.',
+                    'He brings expertise in research and data science that strengthens PALs\' interdisciplinary approach to environmental and health challenges.',
+                ],
+                links: [
+                    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/zororo-chinwadzimba-93babb1b7/' },
+                ],
+            },
+        };
+
+        const modal    = document.getElementById('teamModal');
+        const photoEl  = document.getElementById('teamModalPhoto');
+        const nameEl   = document.getElementById('teamModalName');
+        const posEl    = document.getElementById('teamModalPosition');
+        const descEl   = document.getElementById('teamModalDesc');
+        const linksEl  = document.getElementById('teamModalLinks');
+
+        function openTeamModal(name) {
+            const person = TEAM_BIOS[name];
+            if (!person) return;
+            photoEl.src = person.photo;
+            photoEl.alt = name;
+            nameEl.textContent = name;
+            posEl.textContent = person.position;
+            descEl.innerHTML = person.bio.map(p => `<p>${p}</p>`).join('');
+            linksEl.innerHTML = person.links.map(l => `
+                <a class="team-modal-link-item" href="${l.href}" target="_blank" rel="noopener noreferrer">${ICONS[l.label] || ''}<span>${l.label}</span></a>
+            `).join('');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTeamModal() {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.team-name[data-team]').forEach(btn => {
+            btn.addEventListener('click', () => openTeamModal(btn.dataset.team));
+        });
+        document.getElementById('teamModalClose').addEventListener('click', closeTeamModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeTeamModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeTeamModal(); });
+    })();
+    </script>
+
+    <script>
+    // ── Nav scroll behaviour + back-to-top visibility ────────────────────────
+    const nav = document.getElementById('siteNav');
+    const btt = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 10);
+        btt.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+
+    btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    // ── Mobile hamburger ─────────────────────────────────────────────────────
+    const hamburger = document.getElementById('navHamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('open');
+        mobileMenu.classList.toggle('open');
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+            hamburger.classList.remove('open');
+            mobileMenu.classList.remove('open');
+        });
+    });
+
+    // ── Scroll spy ───────────────────────────────────────────────────────────
+    const sections = [
+        { id: 'tools',       link: document.querySelector('.nav-dropdown-item[href="#tools"]') },
+        { id: 'data-access', link: document.querySelector('.nav-dropdown-item[href="#data-access"]') },
+        { id: 'workflow',    link: document.querySelector('.nav-dropdown-item[href="#workflow"]') },
+        { id: 'courses',     link: document.querySelector('.nav-dropdown-item[href="#courses"]') },
+        { id: 'policy-decision-support', link: document.querySelector('.nav-dropdown-item[href="#policy-decision-support"]') },
+    ];
+    const spyObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            const match = sections.find(s => s.id === e.target.id);
+            if (match && match.link) match.link.classList.toggle('nav-active', e.isIntersecting);
+        });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(s => { const el = document.getElementById(s.id); if (el) spyObserver.observe(el); });
+
+    // ── Resources dropdown ───────────────────────────────────────────────────
+    const resourcesDropdown = document.getElementById('navResourcesDropdown');
+    const resourcesToggle = document.getElementById('navResourcesToggle');
+    resourcesToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resourcesDropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+        if (!resourcesDropdown.contains(e.target)) resourcesDropdown.classList.remove('open');
+    });
+    resourcesDropdown.querySelectorAll('.nav-dropdown-item').forEach(a => {
+        a.addEventListener('click', () => resourcesDropdown.classList.remove('open'));
+    });
+
+    // ── Contact inquiry (obfuscated) ─────────────────────────────────────────
+    function sendLabInquiry() {
+        var p1 = ['tatenda', 'makanga'].join('.');
+        var p2 = ['rutendo', 'sibanda'].join('.');
+        var d  = ['ceshhar', 'org'].join('.');
+        var subject = encodeURIComponent('Inquiry: Place Alert Labs');
+        var body = encodeURIComponent('Dear Place Alert Labs Team,\n\nI am writing to inquire about Place Alert Labs.\n\n[Please describe your inquiry here]\n\nBest regards,\n[Your name]');
+        window.location.href = 'mail' + 'to:' + p1 + '@' + d + '?cc=' + p2 + '@' + d + '&subject=' + subject + '&body=' + body;
+    }
+
+    // ── Project filter tabs ──────────────────────────────────────────────────
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const filter = tab.dataset.filter;
+            document.querySelectorAll('.project-card[data-category]').forEach(card => {
+                const show = filter === 'all' || card.dataset.category === filter;
+                card.dataset.hidden = show ? 'false' : 'true';
+            });
+            // Hide dividers when filtering to a specific category
+            document.querySelectorAll('.grid-divider[data-category-divider]').forEach(div => {
+                div.style.display = filter === 'all' ? '' : 'none';
+            });
+        });
+    });
+
+    // ── Scroll reveal with staggered above-fold init ────────────────────────
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                observer.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.08 });
+
+    const revealEls = document.querySelectorAll('.reveal');
+    revealEls.forEach((el, i) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight) {
+            // already in view — stagger in on load
+            setTimeout(() => el.classList.add('visible'), i * 80);
+        } else {
+            observer.observe(el);
+        }
+    });
+
+    </script>
+
+    <script>
+    // ── Portal search (tour guide + inline assistant) ─────────────────────────
+    (function() {
+        const input         = document.getElementById('portalSearchInput');
+        const resultsPanel  = document.getElementById('portalSearchResults');
+        const rotator       = document.getElementById('portalSearchRotator');
+        const rotatorText   = document.getElementById('portalSearchRotatorText');
+
+        // Build the search index from the DOM (single source of truth — no
+        // duplicated copy) plus a few entries for pages outside the tool grid.
+        const PORTAL_INDEX = Array.from(document.querySelectorAll('.project-card')).map(card => ({
+            title: card.querySelector('.card-title')?.textContent.trim() || '',
+            desc: card.querySelector('.card-desc')?.textContent.trim().replace(/\s+/g, ' ') || '',
+            tag: card.querySelector('.card-tag')?.textContent.trim() || '',
+            tags: Array.from(card.querySelectorAll('.card-badge')).map(b => b.textContent.trim()),
+            url: card.getAttribute('href'),
+        }));
+        PORTAL_INDEX.push(
+            { title: 'Courses', desc: 'Open training courses on geospatial and climate health methods, including the GeoAI workshop and Global Health Network short courses.', tag: 'Learning', tags: ['Courses', 'Training'], url: '#courses' },
+            { title: 'Our Team', desc: 'Meet the people building Place Alert Labs.', tag: 'Team', tags: ['Team', 'People'], url: '#team' },
+            { title: 'Collaborators & Partners', desc: 'Research institutions, implementation partners, and funders we work with.', tag: 'Partners', tags: ['Partners', 'Funders'], url: '#collaborators' },
+            { title: 'Get in touch / Support', desc: 'Reach out to the PALs team about collaborating, accessing data, or general support.', tag: 'Support', tags: ['Contact', 'Support'], url: '#contact' },
+        );
+
+        function matches(entry, q) {
+            const hay = (entry.title + ' ' + entry.desc + ' ' + entry.tag + ' ' + entry.tags.join(' ')).toLowerCase();
+            return q.split(/\s+/).filter(Boolean).every(word => hay.includes(word));
+        }
+
+        function escapeHtml(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        function formatMarkdown(text) {
+            return escapeHtml(text)
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/\[(.+?)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // ── Inline assistant conversation, lives inside the search bar itself ────
+        let chatHistory = [];
+        let chatBusy    = false;
+
+        function openAnswerPanel() {
+            rotator.style.display = 'none';
+            resultsPanel.innerHTML = `
+                <div class="portal-search-answer">
+                    <div class="portal-search-answer-header">
+                        <span>PALs Assistant</span>
+                        <button type="button" class="portal-search-answer-close" id="portalAnswerClose" aria-label="Close and start a new search">&times;</button>
+                    </div>
+                    <div class="portal-search-answer-msgs" id="portalAnswerMsgs"></div>
+                    <div class="portal-search-answer-followup">
+                        <input type="text" id="portalAnswerFollowup" placeholder="Ask a follow-up…" autocomplete="off">
+                        <button type="button" id="portalAnswerSend">Ask</button>
+                    </div>
+                </div>`;
+            resultsPanel.classList.add('visible', 'is-answer');
+
+            document.getElementById('portalAnswerClose').addEventListener('click', () => {
+                chatHistory = [];
+                resultsPanel.classList.remove('visible', 'is-answer');
+                resultsPanel.innerHTML = '';
+                input.value = '';
+                input.focus();
+                updateRotatorVisibility();
+            });
+
+            const followup = document.getElementById('portalAnswerFollowup');
+            const sendBtn  = document.getElementById('portalAnswerSend');
+            function submitFollowup() {
+                const q = followup.value.trim();
+                if (!q) return;
+                followup.value = '';
+                askAssistantInline(q);
+            }
+            sendBtn.addEventListener('click', submitFollowup);
+            followup.addEventListener('keydown', e => {
+                if (e.key === 'Enter') { e.preventDefault(); submitFollowup(); }
+            });
+        }
+
+        function renderConversation() {
+            const msgsEl = document.getElementById('portalAnswerMsgs');
+            if (!msgsEl) return;
+            msgsEl.innerHTML = chatHistory.map(m => {
+                if (m.role === 'user') return `<div class="psa-msg user">${escapeHtml(m.content)}</div>`;
+                if (m.pending) return `<div class="psa-msg assistant loading">Thinking…</div>`;
+                return `<div class="psa-msg assistant">${formatMarkdown(m.content)}</div>`;
+            }).join('');
+            msgsEl.scrollTop = msgsEl.scrollHeight;
+        }
+
+        async function askAssistantInline(query) {
+            if (chatBusy) return;
+            chatBusy = true;
+            if (!document.getElementById('portalAnswerMsgs')) openAnswerPanel();
+
+            chatHistory.push({ role: 'user', content: query });
+            const pending = { role: 'assistant', content: '', pending: true };
+            chatHistory.push(pending);
+            renderConversation();
+
+            try {
+                const res = await fetch('/precise-api/portal/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: chatHistory
+                            .filter(m => !m.pending)
+                            .map(m => ({ role: m.role, content: m.content }))
+                    })
+                });
+                if (!res.ok) throw new Error('Server error ' + res.status);
+
+                const reader  = res.body.getReader();
+                const decoder = new TextDecoder();
+                let buf   = '';
+                let reply = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buf += decoder.decode(value, { stream: true });
+                    const lines = buf.split('\n');
+                    buf = lines.pop();
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        const evt = JSON.parse(line.slice(6));
+                        if (evt.type === 'text') reply = evt.text;
+                        if (evt.type === 'error') throw new Error(evt.text);
+                    }
+                }
+                pending.content = reply || "Sorry, I couldn't find an answer to that.";
+            } catch (e) {
+                pending.content = 'Could not reach the assistant. Please try again.';
+            }
+            pending.pending = false;
+            renderConversation();
+            chatBusy = false;
+        }
+
+        function renderResults(list) {
+            resultsPanel.classList.remove('is-answer');
+            resultsPanel.innerHTML = list.slice(0, 6).map(entry => `
+                <a class="portal-search-result" href="${entry.url}" ${entry.url.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>
+                    <span class="portal-search-result-tag">${entry.tag}</span>
+                    <span class="portal-search-result-title">${entry.title}</span>
+                    <span class="portal-search-result-desc">${entry.desc.slice(0, 130)}${entry.desc.length > 130 ? '…' : ''}</span>
+                </a>
+            `).join('');
+        }
+
+        // While typing, only show the dropdown when there's an actual tool match.
+        // No exact match → say nothing here; Enter silently hands off to the assistant.
+        function runSearch(query) {
+            const q = query.trim().toLowerCase();
+            if (!q) { resultsPanel.classList.remove('visible', 'is-answer'); return; }
+            const matched = PORTAL_INDEX.filter(entry => matches(entry, q));
+            if (!matched.length) { resultsPanel.classList.remove('visible', 'is-answer'); return; }
+            renderResults(matched);
+            resultsPanel.classList.add('visible');
+        }
+
+        // ── Rotating suggestions, live inside the search box ──────────────────
+        const ROTATOR_QUESTIONS = [
+            'What climate & health data do you have for Africa?',
+            'Show me your geospatial research tools',
+            'How do I access heat exposure data for my research?',
+            "I'd like to learn about your GeoAI course",
+        ];
+        let rotatorIdx = 0;
+        function cycleRotator() {
+            rotatorText.textContent = ROTATOR_QUESTIONS[rotatorIdx];
+            rotatorIdx = (rotatorIdx + 1) % ROTATOR_QUESTIONS.length;
+        }
+        function updateRotatorVisibility() {
+            const idle = !input.value && document.activeElement !== input && !resultsPanel.classList.contains('visible');
+            rotator.style.display = idle ? 'flex' : 'none';
+        }
+        cycleRotator();
+        updateRotatorVisibility();
+        setInterval(() => { cycleRotator(); updateRotatorVisibility(); }, 7000);
+        // Purely a visual hint — clicking it just focuses the (empty) input so the
+        // user types their own question, it never fills or submits the suggestion.
+        rotator.addEventListener('click', () => {
+            input.focus();
+            updateRotatorVisibility();
+        });
+
+        input.addEventListener('input', () => { updateRotatorVisibility(); runSearch(input.value); });
+        input.addEventListener('focus', () => { updateRotatorVisibility(); if (input.value.trim()) runSearch(input.value); });
+        input.addEventListener('blur', () => setTimeout(updateRotatorVisibility, 150));
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('portalSearch').contains(e.target)) {
+                // A live conversation stays open until the user explicitly closes it —
+                // only the plain tool-list dropdown auto-dismisses on an outside click.
+                if (!resultsPanel.classList.contains('is-answer')) {
+                    resultsPanel.classList.remove('visible');
+                }
+                updateRotatorVisibility();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const q = input.value.trim();
+            if (!q) return;
+            const matched = PORTAL_INDEX.filter(entry => matches(entry, q.toLowerCase()));
+            if (matched.length) {
+                window.location.href = matched[0].url;
+            } else {
+                askAssistantInline(q);
+            }
+        });
+    })();
+    </script>
+
+    <script>
+    // Live GeoAI enrolment count — falls back to the static number above on error.
+    (function () {
+        var el = document.getElementById('geoai-learner-stat');
+        if (!el) return;
+        var courseId = el.getAttribute('data-course-id');
+        fetch('/duckrequest/course-count?course_id=' + encodeURIComponent(courseId))
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (data) {
+                if (data && data.ok && typeof data.count === 'number') {
+                    el.textContent = data.count + ' learners have taken this course';
+                }
+            })
+            .catch(function () { /* keep static fallback text */ });
+    })();
+    </script>
+
+    <script>
+    // Live GeoAI: Air Quality Explorer signup count — keeps the friendly fallback until someone signs up.
+    (function () {
+        var el = document.getElementById('geoai-junior-learner-stat');
+        if (!el) return;
+        var courseId = el.getAttribute('data-course-id');
+        fetch('/duckrequest/junior-course-count?course_id=' + encodeURIComponent(courseId))
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (data) {
+                if (data && data.ok && typeof data.count === 'number' && data.count > 0) {
+                    el.textContent = data.count + ' learners have taken this course';
+                }
+            })
+            .catch(function () { /* keep static fallback text */ });
+    })();
+    </script>
+
+</body>
+</html>
