@@ -1,0 +1,2619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zimbabwe Climate &amp; Health Atlas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --panel: #ffffff;
+    --border: #e0ddd6;
+    --text: #2b2825;
+    --muted: #6b6560;
+    --accent: #8a3b2b;
+    --accent-soft: #f3e4df;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); background: var(--bg); }
+  #header {
+    height: 56px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 20;
+  }
+  #header h1 { font-size: 15px; margin: 0; }
+  #header .org { font-size: 11px; color: var(--muted); }
+  #infoBtn {
+    font-size: 12px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 6px;
+  }
+  #infoBtn:hover { background: var(--accent-soft); }
+  #app { display: flex; height: calc(100vh - 56px); }
+  /* Filled accent, not the outline style #infoBtn uses -- this is the primary entry
+     point into the assistant, not a secondary utility link, and needs to read as one
+     at a glance rather than blend in next to "Data & methodology". No motion/pulse
+     here on purpose -- an earlier animated map-discoverability cue in this app was
+     pulled after feedback that it was hard to look at; solid color contrast does the
+     same job of "notice this" without that cost. */
+  /* Small pill launcher, bottom-right -- the chat itself opens as a large centered
+     modal (below), not a panel attached to this button. Same pattern as this app's
+     sibling PRECISE catalogue assistant (Shmron): a FAB opens a near-fullscreen modal
+     with its own session sidebar, not a small docked widget. */
+  #aiFab {
+    position: fixed; right: 24px; bottom: 24px; z-index: 950;
+    font-size: 14px; font-weight: 700; padding: 12px 20px; border: none; border-radius: 50px;
+    background: var(--accent); color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 18px rgba(138,59,43,0.4);
+  }
+  #aiFab:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(138,59,43,0.45); }
+  #aiModal {
+    position: fixed; inset: 0; z-index: 1200; background: rgba(27,24,21,0.55);
+    display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px);
+  }
+  #aiModal.open { display: flex; }
+  #aiModalWin {
+    width: min(1200px, 96vw); height: 88vh; background: #fff; border-radius: 16px;
+    display: flex; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+  }
+  #aiSidebar { width: 230px; flex-shrink: 0; background: #21201d; display: flex; flex-direction: column; overflow: hidden; }
+  #aiSideTop { padding: 1.1rem 1rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+  #aiSideTop h4 { color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 10px; }
+  #aiNewChatBtn {
+    width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.92);
+    border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; font-family: inherit;
+  }
+  #aiNewChatBtn:hover { background: rgba(255,255,255,0.16); }
+  #aiSessList { flex: 1; overflow-y: auto; padding: 8px; }
+  .ai-sess { padding: 9px 10px; border-radius: 8px; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 12px; line-height: 1.4; margin-bottom: 3px; word-break: break-word; }
+  .ai-sess:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+  .ai-sess.active { background: rgba(255,255,255,0.12); border-left: 2px solid var(--accent); color: #fff; padding-left: 8px; }
+  .ai-sess-date { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+  .ai-sess-empty { color: rgba(255,255,255,0.3); font-size: 12px; padding: 14px 10px; line-height: 1.6; }
+  #aiClearAll {
+    margin: 8px; padding: 7px; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4);
+    border-radius: 7px; font-size: 11px; cursor: pointer; font-family: inherit; flex-shrink: 0;
+  }
+  #aiClearAll:hover { background: rgba(200,70,50,0.2); color: #fff; }
+  #aiMain { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; background: #fff; }
+  #aiMainHeader {
+    padding: 14px 20px; flex-shrink: 0; background: var(--accent); color: #fff;
+    display: flex; align-items: center; gap: 12px;
+  }
+  #aiMainHeader .avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1.5px solid rgba(255,255,255,0.25);
+  }
+  #aiMainHeader .title { min-width: 0; flex: 1; }
+  #aiMainHeader .title div:first-child { font-weight: 700; font-size: 14px; }
+  #aiMainHeader .title .sub { font-size: 11px; opacity: 0.75; margin-top: 1px; }
+  #aiCloseBtn {
+    background: rgba(255,255,255,0.12); border: none; color: rgba(255,255,255,0.85); width: 28px; height: 28px;
+    border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  #aiCloseBtn:hover { background: rgba(255,255,255,0.25); color: #fff; }
+  #aiChatHistory { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 14px; background: var(--bg); }
+  .ai-msg { max-width: 72%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+  .ai-msg.user { align-self: flex-end; background: var(--accent-soft); color: var(--text); border-bottom-right-radius: 4px; }
+  .ai-msg.assistant { align-self: flex-start; max-width: 85%; background: #fff; border: 1px solid var(--border); border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(43,40,37,0.06); }
+  .ai-msg.error { align-self: flex-start; background: #fdf0ee; border: 1px solid #e3b3a8; color: #7a2f20; border-bottom-left-radius: 4px; }
+  .ai-msg.assistant code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .ai-action-card {
+    align-self: flex-start; max-width: 85%; padding: 12px 14px;
+    border-radius: 12px; background: #fff; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(43,40,37,0.06); font-size: 12px;
+  }
+  .ai-action-card h4 { margin: 0 0 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); font-weight: 600; }
+  .ai-action-card .view-btn {
+    margin-top: 9px; font-size: 12px; padding: 6px 13px; border: none;
+    border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; font-weight: 600;
+  }
+  .ai-action-card .view-btn:hover { opacity: 0.9; }
+  /* Same bubble weight as .ai-msg.assistant, not a bare line of muted text -- queries
+     can take 5-15s (a real model call, not instant), and a tiny easy-to-miss
+     "Thinking..." label made it genuinely unclear whether anything was happening. The
+     three-dot pattern is the standard "I'm working on it" signal from every mainstream
+     chat app, so it reads as busy without needing to be read. */
+  #aiThinking {
+    align-self: flex-start; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border);
+    background: #fff; box-shadow: 0 1px 4px rgba(43,40,37,0.06); display: flex; align-items: center; gap: 5px;
+  }
+  #aiThinking .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: aiThinkPulse 1.2s ease-in-out infinite; }
+  #aiThinking .dot:nth-child(2) { animation-delay: 0.2s; }
+  #aiThinking .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes aiThinkPulse { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    #aiThinking .dot { animation: none; opacity: 0.6; }
+  }
+  #aiThinkingNote { align-self: flex-start; font-size: 11px; color: var(--muted); padding: 2px 16px; }
+  #aiInputRow { display: flex; gap: 10px; padding: 14px 20px; background: #fff; border-top: 1px solid var(--border); flex-shrink: 0; }
+  #aiInput {
+    flex: 1; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px;
+    color: var(--text); font-family: inherit; min-width: 0;
+  }
+  #aiInput:focus { outline: none; border-color: var(--accent); }
+  #aiSendBtn {
+    padding: 0 18px; border: none; border-radius: 10px; background: var(--accent); color: #fff;
+    cursor: pointer; font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  #aiSendBtn:disabled { opacity: 0.5; cursor: default; }
+  #aiEmptyState { align-self: center; text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; padding: 0 8px; max-width: 420px; }
+  #aiEmptyState .examples { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  #aiEmptyState .example-btn {
+    font-size: 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px;
+    background: #fff; cursor: pointer; color: var(--text); text-align: left;
+  }
+  #aiEmptyState .example-btn:hover { background: var(--accent-soft); border-color: var(--accent); }
+  #aiSidebarScrim { display: none; }
+  @media (max-width: 820px) {
+    #aiModal { padding: 0; }
+    #aiModalWin { width: 100vw; height: 100vh; border-radius: 0; }
+    #aiSidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 230px; z-index: 30; transform: translateX(-100%); transition: transform 0.2s; }
+    #aiSidebar.ai-sidebar-open { transform: translateX(0); }
+    #aiSidebarScrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 25; }
+    #aiSidebarScrim.show { display: block; }
+    #aiMenuToggle { display: flex !important; }
+  }
+  #aiMenuToggle {
+    display: none; background: rgba(255,255,255,0.12); border: none; color: #fff; width: 30px; height: 30px;
+    border-radius: 8px; cursor: pointer; font-size: 15px; flex-shrink: 0; align-items: center; justify-content: center;
+  }
+  #sidebar {
+    width: 340px; min-width: 300px; background: var(--panel); border-right: 1px solid var(--border);
+    padding: 18px; overflow-y: auto; z-index: 10;
+  }
+  #mapColumn { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #trendStrip {
+    background: var(--panel); border-bottom: 1px solid var(--border); padding: 8px 16px 4px;
+  }
+  #trendHeader { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  #trendHeader b { color: var(--text); font-weight: 600; }
+
+  #trendFoot { display: flex; justify-content: flex-start; align-items: center; gap: 14px; flex-wrap: wrap; padding: 4px 0 6px; }
+  .smooth-row, #trendToggles { display: flex; gap: 8px; flex-wrap: wrap; }
+  .smooth-row { margin: 4px 0 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;
+    padding: 4px 10px; border: 1.5px solid var(--border); border-radius: 999px; background: #fff;
+    font-size: 12px; font-weight: 600; color: var(--muted); }
+  .chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .chip svg { color: var(--muted); flex: none; }
+  .chip:hover { border-color: var(--accent); }
+  .chip:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+  .chip:has(input:checked) svg { color: var(--accent); }
+  .chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .trend-note { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+  .trend-note b { font-size: 13px; color: var(--text); font-weight: 700; }
+  .trend-sentence { font-size: 11.5px; line-height: 1.45; color: var(--text); margin: 4px 0 6px; }
+  .trend-sentence b { font-weight: 700; }
+  #trendSentence .trend-sentence { font-size: 13px; margin: 2px 0 6px; }
+  #trendNote .trend-note { font-size: 13px; margin: 0; padding: 4px 12px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; }
+  #trendNote .trend-note b { font-size: 15px; }
+  #methodCard {
+    position: absolute; left: 12px; bottom: 30px; z-index: 800; width: 300px; max-width: calc(100% - 24px);
+    background: rgba(255,255,255,0.96); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10); font-size: 11.5px; line-height: 1.5; color: var(--text);
+  }
+  #methodCardHead { display: flex; justify-content: space-between; align-items: center; width: 100%; background: none; border: none; cursor: pointer;
+    padding: 7px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  #methodCardBody { padding: 0 10px 9px; display: block; }
+  #methodCard.collapsed #methodCardBody { display: none; }
+  #methodCardBody .mc-title { font-weight: 600; margin-bottom: 2px; }
+  #methodCardBody p { margin: 0 0 4px; }
+  #methodCardBody .mc-note { color: var(--muted); }
+  #map { flex: 1; position: relative; }
+  /* Smooth cross-fade between years/frames instead of a hard cut -- the
+     browser animates SVG presentation attributes the same way it animates
+     the equivalent CSS property, so this applies even though Leaflet sets
+     fill/fill-opacity as element attributes, not inline style. */
+  .leaflet-interactive { transition: fill 0.35s ease, fill-opacity 0.35s ease; }
+  #mapYearBadge {
+    /* top-right, not top-left -- Leaflet's own zoom control sits top-left
+       by default and would overlap it there */
+    position: absolute; top: 12px; right: 12px; z-index: 800; pointer-events: none;
+    background: rgba(255,255,255,0.92); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 14px; font-size: 22px; font-weight: 700; color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: none;
+  }
+  #mapYearBadge.visible { display: block; }
+  #noDataNotice {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 850;
+    pointer-events: none; display: none; max-width: 340px; text-align: center;
+    background: rgba(255,255,255,0.95); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 20px; color: var(--text); box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  }
+  #noDataNotice.visible { display: block; }
+  #noDataNotice b { display: block; font-size: 15px; margin-bottom: 6px; }
+  #noDataNotice span { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  .subtitle { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.4; }
+  fieldset { border: none; padding: 0; margin: 0 0 16px; }
+  legend { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 7px; }
+  .layer-btn {
+    display: block; width: 100%; text-align: left; padding: 8px 10px; margin-bottom: 4px;
+    border: 1px solid var(--border); border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px;
+  }
+  .layer-btn:hover { background: var(--accent-soft); }
+  .layer-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .layer-group { margin-top: 8px; }
+  .level-toggle { display: flex; gap: 6px; }
+  .level-btn {
+    flex: 1; text-align: center; padding: 7px 0; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; cursor: pointer; font-size: 13px;
+  }
+  .level-btn:hover { background: var(--accent-soft); }
+  .level-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  /* Same segmented-control look as .level-toggle, for visual consistency
+     -- these were shipped with the JS switching logic but no styling at
+     all, so they rendered as bare default buttons with no visible
+     active/inactive distinction. Slightly bigger than .level-btn since
+     this is the entry point to a whole second set of charts, not a
+     small filter. */
+  .detail-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .detail-tab-btn {
+    flex: 1; text-align: center; padding: 8px 0; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .detail-tab-btn:hover { background: var(--accent-soft); }
+  .detail-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #bivariateClimateVar, #bivariateHealthVar {
+    width: 100%; padding: 7px 8px; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; font-size: 13px; color: var(--text); margin-bottom: 6px;
+  }
+  /* Desktop: the real layer picker is the button stack; this compact
+     select only replaces it on narrow screens (below), where 8 stacked
+     buttons don't fit the sidebar's height cap alongside everything
+     else -- a phone user otherwise can't reach the Year/Play controls
+     or the legend without noticing an easy-to-miss inner scrollbar. */
+  #layerSelectMobile {
+    display: none; width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; font-size: 13px; color: var(--text); margin-bottom: 4px;
+  }
+  #legendBivariate table { border-collapse: collapse; }
+  #legendBivariate td.sw { width: 20px; height: 20px; border: 1px solid #fff; }
+  #legendBivariate td.rowlabel { font-size: 9px; color: var(--muted); text-align: right; padding-right: 4px; white-space: nowrap; }
+  #legendBivariate .biv-caption { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
+  #legendBivariate .biv-xaxis { font-size: 9px; color: var(--muted); text-align: center; padding-top: 3px; }
+  #legendBivariate .biv-key { margin-top: 7px; }
+  #legendBivariate .biv-key-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text); margin-bottom: 2px; }
+  #legendBivariate .biv-key-sw { width: 10px; height: 10px; border: 1px solid #fff; border-radius: 2px; flex-shrink: 0; }
+  #legendBivariate .biv-note { font-size: 9px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .slider-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  input[type=range] { flex: 1; }
+  #yearLabel { font-size: 13px; font-weight: 600; min-width: 56px; text-align: right; }
+  #playBtn {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: #fff;
+    cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  #playBtn.playing { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #legend-gradient { height: 14px; border-radius: 3px; margin-top: 8px; }
+  #legend-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+  #rankList table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  #rankList th, #rankList td { text-align: left; padding: 3px 4px; border-bottom: 1px solid var(--border); }
+  #rankList th { color: var(--muted); font-weight: 600; font-size: 10px; text-transform: uppercase; }
+  #rankList tr:hover td { background: var(--accent-soft); cursor: pointer; }
+  .leaflet-tooltip-custom { font-size: 12px; line-height: 1.5; }
+  #hint { font-size: 11px; color: var(--muted); text-align: center; padding: 6px 0 0; }
+  .leaflet-interactive:focus { outline: none; } /* kills the browser's default bounding-box focus rectangle on clicked districts */
+
+  #loadingOverlay {
+    position: absolute; inset: 0; background: rgba(247,247,245,0.55); display: none;
+    align-items: center; justify-content: center; z-index: 1050; pointer-events: none;
+  }
+  #loadingOverlay.visible { display: flex; }
+  .spinner {
+    width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #detailPanel {
+    /* z-index must clear Leaflet's own internal panes, which go up to 1000
+       for its zoom/attribution controls -- 15 was invisibly losing to them */
+    position: absolute; top: 14px; right: 14px; width: 300px; max-height: calc(100% - 28px);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    padding: 16px; overflow-y: auto; display: none; z-index: 1100;
+  }
+  #detailPanel.visible { display: block; }
+  #detailPanel h3 { margin: 0 0 2px; font-size: 15px; }
+  #detailPanel .closeBtn { position: absolute; top: 10px; right: 12px; cursor: pointer; color: var(--muted); font-size: 16px; background: none; border: none; }
+  .detail-block { margin-top: 14px; }
+  .detail-block h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 4px; }
+  .detail-block .stat { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .metric-toggle, .subtab-row { display: flex; gap: 4px; margin: 4px 0 6px; }
+  .metric-btn, .subtab-btn {
+    flex: 1; padding: 4px 0; font-size: 11px; border: 1px solid var(--border); border-radius: 5px;
+    background: #fff; cursor: pointer; color: var(--text);
+  }
+  .metric-btn.active, .subtab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 12px; font-weight: 600; gap: 4px; }
+  .calendar-nav button {
+    border: 1px solid var(--border); background: #fff; border-radius: 5px; width: 24px; height: 24px;
+    cursor: pointer; font-size: 13px; color: var(--text); flex-shrink: 0;
+  }
+  /* Direct jump, alongside (not instead of) the prev/next buttons -- stepping month by
+     month was the only way to move the calendar, so going from a recent month back to
+     2002 meant ~270+ clicks. Reuses #climatologyYearSelect's exact look for consistency
+     with the only other year-picker already in this panel. */
+  #calMonthSelect, #calYearSelect {
+    padding: 4px 4px; border: 1px solid var(--border); border-radius: 5px;
+    background: #fff; font-size: 11px; color: var(--text); font-weight: 600; min-width: 0;
+  }
+  #calMonthSelect { flex: 1.3; }
+  #calYearSelect { flex: 1; }
+  #climatologyYearSelect {
+    width: 100%; padding: 5px 6px; border: 1px solid var(--border); border-radius: 5px;
+    background: #fff; font-size: 12px; color: var(--text); margin-bottom: 4px;
+  }
+  .climatology-legend { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); margin-top: 4px; flex-wrap: wrap; }
+  .cl-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .cl-swatch.cl-line { width: 12px; height: 2px; border-radius: 0; margin: 0 2px 0 8px; }
+  .cl-swatch.cl-bar { margin-right: 2px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-dow { font-size: 9px; color: var(--muted); text-align: center; padding-bottom: 2px; }
+  .cal-cell {
+    aspect-ratio: 1; border-radius: 4px; display: flex; align-items: flex-start; justify-content: flex-end;
+    padding: 2px; font-size: 9px; color: var(--text); cursor: default;
+  }
+  .cal-cell.cal-empty { background: transparent !important; cursor: default; }
+  .cal-day { font-weight: 600; }
+  .cal-legend-gradient { height: 10px; border-radius: 3px; margin-top: 8px; }
+  .cal-legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .spark-pt { cursor: pointer; }
+  #sparkTooltip {
+    position: fixed; display: none; background: var(--text); color: #fff; font-size: 11px;
+    padding: 4px 7px; border-radius: 5px; pointer-events: none; z-index: 1200; white-space: nowrap;
+    transform: translate(-50%, -100%);
+  }
+  #sparkTooltip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 4px solid transparent; border-top-color: var(--text);
+  }
+
+  #methodologyModal {
+    /* z-index must clear Leaflet's own internal panes (tile/overlay/marker/
+       tooltip/popup go up to 700) and #detailPanel (1100) -- 50 was losing
+       to them even though it's the topmost DOM element and hit-tests on
+       top, the box just never visually painted above the map. isolate
+       forces its own stacking context so nothing from #map can bleed in. */
+    position: fixed; inset: 0; background: rgba(43,40,37,0.4); display: none;
+    align-items: center; justify-content: center; z-index: 2000; isolation: isolate;
+  }
+  #methodologyModal.visible { display: flex; }
+  #methodologyModal .box {
+    background: var(--panel); border-radius: 10px; max-width: 680px; width: 90%; max-height: 85vh;
+    overflow-y: auto; padding: 24px; position: relative;
+  }
+  #methodologyModal h2 { font-size: 16px; margin-top: 0; }
+  #methodologyModal h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin: 18px 0 6px; }
+  #methodologyModal ul { font-size: 13px; line-height: 1.5; padding-left: 20px; margin: 6px 0; }
+  #methodologyModal li { margin-bottom: 4px; }
+  #methodologyModal table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0; }
+  #methodologyModal th, #methodologyModal td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  #methodologyModal th { color: var(--muted); font-weight: 600; }
+  #methodologyModal p { font-size: 13px; line-height: 1.6; margin: 0 0 8px; }
+  #methodologyModal .closeBtn { position: absolute; top: 14px; right: 16px; cursor: pointer; background: none; border: none; font-size: 18px; color: var(--muted); }
+
+  @media (max-width: 820px) {
+    #app { flex-direction: column; height: auto; min-height: calc(100vh - 56px); }
+    #sidebar { width: 100%; max-height: 42vh; border-right: none; border-bottom: 1px solid var(--border); }
+    #mapColumn { width: 100%; }
+    #map { height: 58vh; }
+    /* Confined to #map's own box (58vh), the panel only had ~365px for
+       content that needs ~790px (5 charts) -- over half was cut off below
+       an easy-to-miss inner scroll. Freed from #map's bounds entirely
+       (fixed, against the real viewport) it gets most of the screen
+       instead, which is what it actually needs. */
+    #detailPanel {
+      position: fixed; top: 64px; left: 10px; right: 10px; bottom: 10px;
+      width: auto; max-height: none;
+    }
+    #mapYearBadge { font-size: 17px; padding: 4px 10px; top: 8px; right: 8px; }
+    #methodCard { width: 230px; bottom: 26px; font-size: 11px; }
+    #trendStrip { padding: 6px 12px 2px; }
+    /* The 8-button vertical layer stack doesn't fit this height cap
+       alongside the Year/Play controls and legend -- swap to a select,
+       same choice, a fraction of the height. */
+    #layerFieldset .layer-btn { display: none; }
+    #layerCategoryToggle { display: none; }
+    #layerSelectMobile { display: block; }
+    /* Year/Play moved ahead of the (now-compact) layer picker so it's
+       never below an easy-to-miss inner scrollbar on a short viewport. */
+    #sidebar { display: flex; flex-direction: column; }
+    #sidebar .subtitle { order: 0; }
+    #sidebar fieldset:nth-of-type(1) { order: 1; } /* Boundary */
+    #timeControl { order: 2; }
+    #layerFieldset { order: 3; }
+    #sidebar fieldset:nth-of-type(4) { order: 4; } /* Legend */
+    #rankPanel { order: 5; }
+  }
+</style>
+</head>
+<body>
+<div id="header">
+  <div>
+    <h1>Zimbabwe Climate &amp; Health Atlas</h1>
+  </div>
+  <div style="display:flex;">
+    <button id="infoBtn">&#9432; Data &amp; methodology</button>
+  </div>
+</div>
+
+<button id="aiFab">&#10024; Ask AI</button>
+
+<div id="aiModal">
+  <div id="aiModalWin">
+    <div id="aiSidebar">
+      <div id="aiSideTop">
+        <h4>Conversations</h4>
+        <button id="aiNewChatBtn">+ New conversation</button>
+      </div>
+      <div id="aiSessList"></div>
+      <button id="aiClearAll">&#x1F5D1; Clear all history</button>
+    </div>
+    <div id="aiSidebarScrim"></div>
+    <div id="aiMain">
+      <div id="aiMainHeader">
+        <button id="aiMenuToggle" title="Conversations">&#9776;</button>
+        <div class="avatar">&#10024;</div>
+        <div class="title">
+          <div>Ask about this data</div>
+          <div class="sub">Climate, HIV, malaria &amp; TB in Zimbabwe</div>
+        </div>
+        <button id="aiCloseBtn" title="Close">&times;</button>
+      </div>
+      <div id="aiChatHistory"></div>
+      <div id="aiInputRow">
+        <input type="text" id="aiInput" placeholder="e.g. Is malaria prevalence correlated with rainfall across districts?" autocomplete="off">
+        <button id="aiSendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="subtitle">Climate exposure and health burden (HIV, malaria, TB) by district or province, 1990&ndash;2025. Click any district or province on the map for its full history.</div>
+
+    <fieldset>
+      <legend>Boundary</legend>
+      <div class="level-toggle" id="boundaryToggle">
+        <button class="level-btn active" data-level="district">District</button>
+        <button class="level-btn" data-level="province">Province</button>
+      </div>
+    </fieldset>
+
+    <fieldset id="layerFieldset">
+      <legend>Layer</legend>
+      <select id="layerSelectMobile">
+        <option value="heat_days">Extreme heat days / year</option>
+        <option value="heatwave_days">Heatwave days / year</option>
+        <option value="mean_tmax_c">Mean daily max temp, &deg;C</option>
+        <option value="heavy_rain_days">Heavy rain days / year</option>
+        <option value="total_precip_mm">Total annual precipitation, mm</option>
+        <option value="prevalence_weighted_pct">HIV prevalence (DHS)</option>
+        <option value="pf_parasite_rate">Malaria prevalence, PfPR2-10 (MAP)</option>
+        <option value="pf_incidence_rate">Malaria incidence, per 1,000/yr (MAP)</option>
+        <option value="tb_incidence_100k">TB incidence, per 100,000/yr (WHO, national)</option>
+        <option value="tb_hiv_coinfection_pct">TB-HIV coinfection, % (WHO, national)</option>
+        <option value="flooded_min">Access to care, rain &amp; flood adjusted (travel time, min)</option>
+        <option value="pct_change">Access lost to rain &amp; flooding (% change in travel time)</option>
+        <option value="bivariate">Climate &times; health correlation</option>
+      </select>
+      <div class="level-toggle" id="layerCategoryToggle">
+        <button class="level-btn active" data-category="climate">Climate</button>
+        <button class="level-btn" data-category="health">Health</button>
+        <button class="level-btn" data-category="correlation">Correlation</button>
+      </div>
+      <div id="climateLayerGroup" class="layer-group">
+        <button class="layer-btn" data-layer="heat_days">Extreme heat days / year (&gt;district's own 90th pctile)</button>
+        <button class="layer-btn" data-layer="heatwave_days">Heatwave days / year (3+ consecutive)</button>
+        <button class="layer-btn" data-layer="mean_tmax_c">Mean daily max temp, &deg;C (ERA5-Land)</button>
+        <button class="layer-btn" data-layer="heavy_rain_days">Heavy rain days / year (CHIRPS, &ge;20mm)</button>
+        <button class="layer-btn" data-layer="total_precip_mm">Total annual precipitation, mm (CHIRPS)</button>
+      </div>
+      <div id="healthLayerGroup" class="layer-group" style="display:none;">
+        <button class="layer-btn" data-layer="prevalence_weighted_pct">HIV prevalence (DHS)</button>
+        <button class="layer-btn" data-layer="pf_parasite_rate">Malaria prevalence, PfPR2-10 (MAP)</button>
+        <button class="layer-btn" data-layer="pf_incidence_rate">Malaria incidence, per 1,000/yr (MAP)</button>
+        <button class="layer-btn" data-layer="tb_incidence_100k">TB incidence, per 100,000/yr (WHO, national)</button>
+        <button class="layer-btn" data-layer="tb_hiv_coinfection_pct">TB-HIV coinfection, % (WHO, national)</button>
+        <button class="layer-btn" data-layer="flooded_min">Access to care, rain &amp; flood adjusted (travel time, min)</button>
+        <button class="layer-btn" data-layer="pct_change">Access lost to rain &amp; flooding (% change in travel time)</button>
+      </div>
+      <div id="correlationLayerGroup" class="layer-group" style="display:none;">
+        <!-- Only one "layer" in this category, so the category tab itself selects it
+             (see layerCategoryToggle's click handler) -- a single button inside its own
+             group here would just be a redundant extra click. -->
+        <div id="bivariateControls">
+          <select id="bivariateHealthVar">
+            <option value="prevalence_weighted_pct">HIV prevalence (DHS)</option>
+            <option value="pf_parasite_rate">Malaria prevalence, PfPR2-10 (MAP)</option>
+            <option value="pf_incidence_rate">Malaria incidence, per 1,000/yr (MAP)</option>
+          </select>
+          <select id="bivariateClimateVar">
+            <option value="heat_days">Extreme heat days</option>
+            <option value="heatwave_days">Heatwave days</option>
+            <option value="mean_tmax_c">Mean daily max temp</option>
+            <option value="heavy_rain_days">Heavy rain days</option>
+            <option value="total_precip_mm">Total annual precipitation</option>
+          </select>
+        </div>
+      </div>
+      <select id="layerSelectMobile">
+        <option value="heat_days">Extreme heat days / year</option>
+        <option value="heatwave_days">Heatwave days / year</option>
+        <option value="mean_tmax_c">Mean daily max temp, &deg;C</option>
+        <option value="heavy_rain_days">Heavy rain days / year</option>
+        <option value="total_precip_mm">Total annual precipitation, mm</option>
+        <option value="prevalence_weighted_pct">HIV prevalence (DHS)</option>
+        <option value="pf_parasite_rate">Malaria prevalence, PfPR2-10 (MAP)</option>
+        <option value="pf_incidence_rate">Malaria incidence, per 1,000/yr (MAP)</option>
+        <option value="tb_incidence_100k">TB incidence, per 100,000/yr (WHO, national)</option>
+        <option value="tb_hiv_coinfection_pct">TB-HIV coinfection, % (WHO, national)</option>
+        <option value="flooded_min">Access to care, rain &amp; flood adjusted (travel time, min)</option>
+        <option value="pct_change">Access lost to rain &amp; flooding (% change in travel time)</option>
+        <option value="bivariate">Climate &times; health correlation</option>
+      </select>
+    </fieldset>
+
+    <fieldset id="timeControl">
+      <legend>Year</legend>
+      <div class="slider-row">
+        <button id="playBtn" title="Animate through years">&#9658;</button>
+        <input type="range" id="yearSlider" min="0" max="0" value="0" step="1">
+        <span id="yearLabel">&ndash;</span>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Legend</legend>
+      <div id="legend-gradient"></div>
+      <div id="legend-labels"><span id="legendMin">&ndash;</span><span id="legendMax">&ndash;</span></div>
+      <div id="legendBivariate" style="display:none;"></div>
+    </fieldset>
+
+    <fieldset id="rankPanel" style="display:none;">
+      <legend id="rankLegend">Persistently highest-risk districts</legend>
+      <div id="rankList">Loading&hellip;</div>
+    </fieldset>
+  </div>
+
+  <div id="mapColumn">
+    <div id="trendStrip">
+      <div id="trendHeader"><span id="trendLabel">&ndash;</span><b id="trendYearLabel"></b></div>
+      <div id="trendChartWrap"></div>
+      <div id="trendFoot"><span id="trendToggles"></span><span id="trendNote"></span></div>
+      <div id="trendSentence"></div>
+    </div>
+    <div id="map">
+      <div id="mapYearBadge">&ndash;</div>
+      <div id="noDataNotice"><b>No data yet</b><span id="noDataText"></span></div>
+      <div id="methodCard">
+        <button id="methodCardHead" type="button"><span>How this is calculated</span><span id="methodCardCaret">&#9662;</span></button>
+        <div id="methodCardBody"></div>
+      </div>
+      <div id="loadingOverlay"><div class="spinner"></div></div>
+      <div id="detailPanel">
+        <button class="closeBtn" id="detailCloseBtn">&times;</button>
+        <h3 id="detailTitle">&ndash;</h3>
+        <div id="detailBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="sparkTooltip"></div>
+
+<div id="methodologyModal">
+  <div class="box">
+    <button class="closeBtn" id="methodCloseBtn">&times;</button>
+    <h2>Data &amp; methodology</h2>
+
+    <p>This page explains where every number in the atlas comes from, how it was calculated, and how we checked
+    it. Checks are described exactly as they were run. Where something has <em>not</em> been checked against an
+    independent source, that is stated rather than implied.</p>
+
+    <h3>How correctness was assessed</h3>
+    <p>Three kinds of check were used, and each layer below reports which of them apply to it.</p>
+    <ul>
+      <li><b>Completeness.</b> Every district has a value for every year the layer covers, with no gaps, duplicate
+      rows or missing days.</li>
+      <li><b>Plausibility and internal consistency.</b> Values fall in physically sensible ranges, the spatial
+      pattern matches Zimbabwe's known geography (for example, the hot Zambezi valley and lowveld versus the cool
+      eastern highlands), and derived numbers behave the way their definition says they should.</li>
+      <li><b>Comparison with an outside reference.</b> Only done where a published national figure exists (HIV
+      prevalence against the headline DHS reports, district area against Zimbabwe's published area). No layer has
+      been validated against local ground measurements such as weather stations, rain gauges or clinic records.</li>
+    </ul>
+    <p>The climate, malaria and TB layers are published or modelled products used as released by their providers.
+    Their accuracy is the provider's, not something this atlas has independently tested. See "What has not been
+    validated" at the end.</p>
+
+    <h3>Summary of sources</h3>
+    <table>
+      <tr><th>Layer</th><th>Source</th><th>Resolution</th><th>Years</th></tr>
+      <tr><td>Temperature</td><td>ERA5-Land daily maximum 2 m temperature (ECMWF, via Google Earth Engine)</td><td>~11 km</td><td>1990&ndash;2025</td></tr>
+      <tr><td>Rainfall</td><td>CHIRPS daily precipitation (UCSB Climate Hazards Center)</td><td>~5.5 km</td><td>1990&ndash;2025</td></tr>
+      <tr><td>HIV prevalence</td><td>Zimbabwe DHS blood test results, geolocated by cluster GPS</td><td>District (survey)</td><td>2005&ndash;06, 2010&ndash;11, 2015</td></tr>
+      <tr><td>Malaria</td><td>Malaria Atlas Project modelled rasters (PfPR2-10 and incidence)</td><td>~5 km</td><td>2000&ndash;2025</td></tr>
+      <tr><td>TB</td><td>WHO Global TB Programme estimates</td><td>National only</td><td>2000&ndash;2024</td></tr>
+      <tr><td>Boundaries</td><td>FAO GAUL 2015, level 2 (62 districts) and level 1 (10 provinces)</td><td>Polygons</td><td>2015 vintage</td></tr>
+    </table>
+
+    <h3>Climate (heat &amp; rain)</h3>
+    <p><b>Method.</b> For each district and each day, the atlas takes the mean of all ERA5-Land (temperature) or
+    CHIRPS (rain) pixels inside the district polygon, using Google Earth Engine at each dataset's native
+    resolution. ERA5-Land daily values are aggregated over UTC days. Every daily district value is stored, and all
+    annual measures below are calculated from those daily values.</p>
+    <ul>
+      <li><b>Mean daily max temp</b> is the average of the daily highest temperature over all days of the year.
+      It is not the average temperature, and it includes cool-season days, so it smooths over summer extremes. A
+      year can look unremarkable on this measure while still containing very hot spells. Use the heat-day and
+      heatwave layers, or the daily calendar in a district's Seasonality tab, to look at extremes.</li>
+      <li><b>Extreme heat day</b> is a day whose maximum temperature is above that district's own 90th percentile
+      of daily maximum temperature across 1990&ndash;2025. This follows the idea of the WMO/ETCCDI "TX90p"
+      index, in simplified form: the standard index uses a separate percentile for each calendar day over a fixed
+      reference period, whereas this atlas uses one percentile per district across the whole record. Because
+      each district is judged against its own normal, a hot day means hot for that place: 35&deg;C is extreme in
+      Harare (usually low-to-mid 20s) but ordinary in Beitbridge. Each district's threshold is shown in its detail
+      panel.</li>
+      <li><b>Heatwave days</b> counts days in runs of 3 or more consecutive extreme heat days within one calendar
+      year. Runs are not joined across 31 December and 1 January.</li>
+      <li><b>Heavy rain day</b> is a day with at least 20 mm of rain (CHIRPS), the same fixed threshold everywhere.
+      <b>Total annual precipitation</b> is the sum of daily CHIRPS rainfall.</li>
+      <li><b>Complete years only.</b> A district-year enters the annual layers only if it has at least 360 daily
+      values, so a part-finished year never shows up as a false dip. The current partial year appears only in the
+      daily and typical-month views.</li>
+    </ul>
+    <p><b>Checks run.</b></p>
+    <ul>
+      <li>Completeness: 62 districts &times; 36 years = 2,232 district-years, none missing. Every district-year has
+      365 or 366 daily values. No daily temperature value is missing.</li>
+      <li>Rainfall gaps: the only missing daily rainfall values are 26 days at the end of the record (1&ndash;26
+      October 2026), where CHIRPS had not yet been released at the time of the last data pull. None fall inside a
+      complete year.</li>
+      <li>Ranges: annual mean daily maximum runs from 22.3 to 32.3&deg;C across district-years, and individual daily
+      district maxima from 7.1 to 44.5&deg;C. Annual rainfall runs from 150 to 1,696 mm.</li>
+      <li>Spatial pattern: the warmest districts by long-run mean daily maximum are Mbire (30.2&deg;C), Gokwe North
+      and Chiredzi, and the coolest are Mutasa (23.4&deg;C), Marondera and Chikomba. The wettest are Mutasa
+      (about 1,150 mm a year), Nyanga and Chimanimani, and the driest are Beitbridge (about 328 mm), Gwanda and
+      Mwenezi. This matches the well-known geography of the Zambezi valley and lowveld, the highveld, the eastern
+      highlands and the dry south. The area-weighted national mean is about 635 mm a year.</li>
+      <li>Definition check on heat days: because the threshold is each district's own 90th percentile over the same
+      period being counted, every district should average close to 10% of days (about 36.5 a year) by
+      construction. The measured long-run averages range from 36.8 to 37.2 days across all 62 districts, which
+      confirms the threshold logic. It also means <b>heat-day counts cannot be used to say which district is
+      hotter</b>. They show change over time within a district. Use mean daily max temp to compare districts.</li>
+    </ul>
+    <p><b>Limits.</b> ERA5-Land is a reanalysis and CHIRPS blends satellite estimates with station data. Neither is
+    a direct station measurement, and this atlas has not compared them with Zimbabwe Meteorological Services
+    stations or rain gauges. At these resolutions a large district gets one averaged value that can smooth over
+    local extremes, and small or urban districts may be represented by only a few pixels.</p>
+
+    <h3>Seasonality views (typical month and daily calendar)</h3>
+    <p>The <b>typical month</b> chart averages each calendar month across 1990&ndash;2025: mean daily maximum
+    temperature, total rainfall, and the number of rainy days (a day with more than 0.2 mm, which is a seasonality
+    measure and is different from the 20 mm heavy-rain layer). A chosen year can be overlaid to show how it
+    compared with normal. The <b>daily calendar</b> shows each day's temperature or rainfall for one month, with
+    hot days shaded against that district's own extreme-heat threshold. Both views can include the current,
+    unfinished year, because each month either has complete values or is not shown. They use the same daily
+    values and checks as above.</p>
+
+    <h3>HIV burden</h3>
+    <p><b>Method.</b> Prevalence comes from Zimbabwe DHS HIV test results (individual recode) for the 2005&ndash;06,
+    2010&ndash;11 and 2015 survey rounds, the only rounds with HIV testing currently loaded. Only clear results
+    (negative or positive) are counted. Indeterminate and missing results are excluded, following DHS convention.
+    Each test is linked to its survey cluster's GPS point, and the point is assigned to a district polygon.
+    Prevalence is weighted by each person's DHS sample weight, because DHS samples some areas and groups more
+    heavily than others, and a plain average would over- or under-represent them.</p>
+    <p><b>Checks run.</b></p>
+    <ul>
+      <li>Completeness: all 62 districts have a value in each of the 3 rounds. People tested: 12,927 (2005&ndash;06),
+      13,791 (2010&ndash;11) and 32,002 (2015).</li>
+      <li>Comparison with published figures: rolling the district values up to a national figure (a mean weighted by
+      number tested) gives 17.8%, 16.0% and 14.9% for the three rounds. The headline adult (15&ndash;49) prevalence
+      published in the DHS reports is about 18%, 15% and 14%. The atlas figures are within roughly one percentage
+      point of these, as expected. They are not identical because the published figures are rounded, cover a
+      defined age group, and are computed directly from survey weights rather than rebuilt from district values.
+      <b>This confirms the national level only. It does not validate any individual district's value.</b></li>
+    </ul>
+    <p><b>Limits.</b> DHS is designed to give reliable estimates for the country and its provinces, not for each
+    district. Districts have small samples: the median number tested per district is 146, 171 and 382 in the three
+    rounds, and the smallest is 29 (two districts in 2005&ndash;06 have fewer than 50). Small samples mean wide
+    uncertainty, and the atlas does not show confidence intervals, so differences between neighbouring districts
+    should be read cautiously. DHS moves cluster GPS points by about 2 km (urban) to 5 km (rural, up to 10 km for 1%
+    of rural clusters) to protect anonymity, so assignment near a boundary is approximate. Eligible people who did
+    not agree to test are not corrected for beyond the DHS sample weights.</p>
+
+    <h3>Malaria burden</h3>
+    <p><b>Method.</b> Zimbabwe's DHS rounds never ran a malaria testing module. This was checked directly against
+    every DHS recode on file: the standard malaria rapid-test and microscopy columns exist but are empty in every
+    round, and the only malaria fields with data are bednet counts, not infection results. Malaria values therefore
+    come from the Malaria Atlas Project's modelled surfaces: <i>Plasmodium falciparum</i> parasite rate (PfPR2-10,
+    the percentage of children aged 2&ndash;10 with detectable infection) and incidence (cases per 1,000 people per
+    year). They are downloaded from MAP's public raster service at their native ~5 km resolution and averaged to
+    each district as the mean of every pixel touching the district, the same way as the climate layers. The series
+    starts in 2000 because that is the earliest year MAP models for this surface.</p>
+    <p><b>Checks run.</b> All 62 districts have a value in each of the 26 years (1,612 district-years, none missing).
+    District values range from 0.4% to 24.7% for parasite rate and from 11 to 391 cases per 1,000 per year for
+    incidence, which are plausible for Zimbabwe. <b>Limits.</b> These are model estimates fitted by MAP to survey
+    data elsewhere, not measured district counts. The atlas uses them as published and has not compared them with
+    Zimbabwe health-facility malaria records.</p>
+
+    <h3>TB burden</h3>
+    <p>There is no district-level TB source for Zimbabwe. DHS never tests for TB (it needs sputum or GeneXpert
+    testing, which is outside the DHS protocol). This was confirmed by searching the full DHS codebook across all 15
+    recode types and by scanning every DHS database on file for TB-related columns, with no TB data found. WHO's
+    Global TB Programme publishes TB incidence (per 100,000 people per year) and the percentage of incident TB cases
+    that are also HIV-positive at country level only. The TB layers are therefore national: they colour the whole
+    country one shade per year, which correctly shows a national-only figure and is not a gap in the district data.
+    Values are WHO's published estimates for 2000&ndash;2024 (25 years, none missing), used as released.</p>
+
+    <h3>District boundaries</h3>
+    <p>FAO GAUL 2015 level 2 gives 62 districts, grouped into 10 provinces using GAUL's own level 1 names (Harare
+    province contains only two districts, Harare and Chitungwiza). The 62 district areas add up to about 391,700
+    km&sup2;, within about 0.3% of Zimbabwe's published area of about 390,800 km&sup2;. Boundaries are the 2015
+    version, so any later administrative changes are not reflected.</p>
+
+    <h3>Province aggregation</h3>
+    <p>Switching the boundary toggle to Province rolls the 62 districts up into the 10 provinces. Heat, rain,
+    temperature, precipitation and malaria values are <b>area-weighted</b> means across a province's districts.
+    Day counts, intensities and modelled rates cannot be summed meaningfully, and no population layer is loaded for
+    these measures, so area is the only available weighting. A province with one small hot or high-burden district
+    and one large mild one will therefore read closer to the mild one than a population weighting would. HIV test
+    counts and positives are summed, and prevalence is a mean of each district's own DHS-weighted prevalence,
+    weighted by number tested. TB is the same national value at every level. The 90th-percentile heat threshold
+    belongs to each district, so a province panel shows the range across its districts instead of one number.</p>
+    <p>When a province is selected, each chart in its detail panel shows the province value as a bold line and every
+    district in it as a thin line, so you can see whether the province average hides large differences between
+    districts. Hover a point to see which district and year it is. The charts follow the year slider and autoplay.</p>
+
+    <h3>Access to care under rainfall and flooding</h3>
+    <p><b>Method.</b> For each year from 2015 to 2025, travel time to the nearest health facility is calculated over
+    a 100 m friction surface: roads from OpenStreetMap with speeds set by road class and surface, and off-road walking
+    speed set by land cover and slope. Three versions of the surface are built: dry, rainy-day (slower roads,
+    especially unpaved ones, and slower walking) and flood (rainy-day conditions plus road crossings inside the
+    modelled floodplain cut). For each district and year, the share of days in each condition is estimated from daily
+    CHIRPS rainfall and ERA5-Land runoff. A district has flood days when extreme multi-day rainfall (above that area's
+    own 99th percentile) or extreme runoff covers at least a quarter of it; separate storms are counted separately, and
+    two recession days follow each. Days with at least 10 mm of district-mean rain count as rainy days. The layers show
+    the year's expected population-weighted travel time, which averages the three conditions by their share of days,
+    and the percentage change from the dry baseline. Population is that year's WorldPop estimate. Province values are
+    population-weighted.</p>
+    <p><b>Limits.</b> Roads, health facilities and land cover are fixed at one recent snapshot, so year-to-year change
+    reflects rainfall, flooding and population only, not new roads or facilities. The speed reductions for rain come
+    from published studies elsewhere in Africa and are assumptions for Zimbabwe, not measurements. Rainy days
+    contribute much more of the change than flood days do. The floodplain is modelled, not observed, and event
+    detection does not catch every flood: rainfall alone missed Cyclone Idai (2019), and the runoff trigger is what
+    picks it up. The event thresholds were tested at several values; the speed factors were not. Results have not been
+    compared with observed travel times.</p>
+
+    <h3>Composite risk score</h3>
+    <p>The ranking view averages three measures, each rescaled to run from 0 to 1 across districts: mean daily max
+    temperature and heavy-rain days (each averaged over all years) and HIV prevalence (averaged over the 3 survey
+    rounds). The three are weighted equally. Equal weighting is a judgement, not something derived from data, and
+    the score is a relative ranking of districts against each other, not a measure of absolute risk.</p>
+
+    <h3>Climate &times; health correlation</h3>
+    <p>This view pairs any climate variable with HIV prevalence, malaria prevalence or malaria incidence on one map.
+    Each district is ranked into thirds (low, mid, high) on both variables separately, then coloured by both
+    rankings on a 3&times;3 grid, so a glance shows whether the places doing worst on one measure are also doing
+    worst on the other. It is a relative visual comparison, not a statistical correlation test. The thirds are
+    recomputed from whichever districts and time point are on screen, and a visible pattern does not establish
+    causation or statistical significance. The time axis follows the health variable: HIV uses its 3 survey rounds,
+    and either malaria variable uses the annual 2000&ndash;2025 range.</p>
+
+    <h3>3-year average and trend lines</h3>
+    <p>On the charts, a thick line shows the <b>3-year average</b>: each point is the mean of that year and the two
+    before it (a trailing average, so the latest year is included and the first two years have no value). It is used
+    to mask short-term year-to-year swings. The yearly values stay visible as a faint line underneath. The dashed
+    <b>trend line</b> is an ordinary least-squares straight line fitted to every year in the series, and the figure
+    shown with it is the slope converted to change per decade. It describes the overall direction across the full
+    period. A straight line can hide changes that are not steady. Under each chart a one-sentence summary gives the
+    rate of change, the highest year in the series, and where the latest year ranks. It calls a trend "clear" only
+    when the slope is more than about two standard errors from zero (a simple 95% test that ignores the link between
+    neighbouring years); otherwise it says there is no clear trend and that the change is within normal year-to-year
+    variation. "Highest year since" refers to the start of that series, not to any longer record.
+    Neither is applied to HIV, which has only 3 survey rounds. Both can be switched off with the buttons above the
+    charts. On province charts the average and trend are drawn for the province line only. Temperature charts use an
+    axis fitted to the data so that small year-to-year differences are visible.</p>
+
+    <h3>Method notes on the map</h3>
+    <p>The "How this is calculated" card at the bottom left of the map gives a short method note for whichever layer
+    is selected, including how the climate &times; health view ranks places into thirds. It can be collapsed, and
+    the full detail is on this page.</p>
+
+    <h3>Ask AI assistant</h3>
+    <p>The assistant turns a plain-language request into either a setting of this atlas's own map and correlation
+    controls, or a chart built from this atlas's own tables. It never supplies numbers itself. Every field it
+    proposes (layer, year or survey round, district or province name) is checked against the real values in the
+    database before anything is applied, and a request that fails the check returns an error instead of a best
+    guess. It is instructed to say it does not have something rather than approximate. It can still misread what a
+    question means, so check that the controls it sets match what you asked for.</p>
+
+    <h3>What has not been validated</h3>
+    <ul>
+      <li>ERA5-Land temperature and CHIRPS rainfall have not been compared with Zimbabwe weather stations or rain
+      gauges.</li>
+      <li>No individual district HIV prevalence has been checked against an independent source. Only the national
+      roll-up was compared with published DHS headlines.</li>
+      <li>Malaria Atlas Project values and WHO TB estimates are used as published, without local verification.</li>
+      <li>The access-to-care estimates (friction surface, rain and flood speed penalties, flood events) have not been compared with observed flooding or measured travel times.</li>
+      <li>HIV uncertainty (confidence intervals) is not calculated or displayed.</li>
+      <li>The composite risk score's equal weighting is not empirically calibrated.</li>
+    </ul>
+
+    <h3>Reproducibility and data currency</h3>
+    <p>Each layer is built by a script that pulls from the source and writes to the atlas database. Heat, heatwave
+    and heavy-rain thresholds are applied afterwards to the stored daily values, so they can be changed without
+    downloading the data again. Climate data in the atlas runs to 26 October 2026 for temperature and
+    30 September 2026 for rainfall in the daily views, and to the end of 2025 in the annual layers, which only include
+    complete years.</p>
+  </div>
+</div>
+
+<script>
+const map = L.map('map', { zoomControl: true }).setView([-19.0, 29.8], 6); // fallback; fitBounds() below tightens to Zimbabwe once districts load
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '&copy; Esri, DeLorme, NAVTEQ', maxZoom: 16
+}).addTo(map);
+
+const COLOR_RAMPS = {
+  heat_days:              ['#fff3e0', '#fdae61', '#d73027', '#7f0000'],
+  heatwave_days:          ['#fff3e0', '#fdae61', '#d73027', '#7f0000'],
+  mean_tmax_c:            ['#fff7bc', '#fec44f', '#d95f0e', '#8c2d04'],
+  heavy_rain_days:        ['#f0f9ff', '#74add1', '#2166ac', '#08306b'],
+  total_precip_mm:        ['#f1eef6', '#bdc9e1', '#74a9cf', '#0570b0'],
+  prevalence_weighted_pct:['#fff5f0', '#fc9272', '#cb181d', '#67000d'],
+  composite_score:        ['#fff7bc', '#fe9929', '#d95f0e', '#993404'],
+  // Green/purple -- every other ramp here is red/orange/blue, so malaria's two layers
+  // get their own distinct hues rather than being mistakable for a climate or HIV layer.
+  pf_parasite_rate:       ['#f7fcf5', '#a1d99b', '#31a354', '#006d2c'],
+  pf_incidence_rate:      ['#fcfbfd', '#bcbddc', '#807dba', '#54278f'],
+  // Grey, not another hue -- TB is national-only (every district renders the same flat
+  // color for a given year, see /api/layer/tb), so grey signals "this one isn't spatial
+  // like the others" rather than implying a district-level pattern that doesn't exist.
+  tb_incidence_100k:      ['#f7f7f7', '#cccccc', '#969696', '#525252'],
+  tb_hiv_coinfection_pct: ['#eeeeee', '#b0b0b0', '#787878', '#3d3d3d'],
+  // Teal -- distinct from every other layer's hue family (red/orange heat, blue rain,
+  // green/purple malaria, grey TB), signals "access/infrastructure" rather than a
+  // climate or disease-burden metric.
+  flooded_min:            ['#f0fdfa', '#5eead4', '#0d9488', '#134e4a'],
+  pct_change:             ['#fff7ed', '#fdba74', '#ea580c', '#7c2d12'],
+};
+const LAYER_LABELS = {
+  heat_days: 'Extreme heat days', heatwave_days: 'Heatwave days', mean_tmax_c: 'Mean daily max temp, °C',
+  heavy_rain_days: 'Heavy rain days', total_precip_mm: 'Total annual precipitation, mm',
+  prevalence_weighted_pct: 'HIV prevalence (%, weighted)',
+  composite_score: 'Composite risk score',
+  bivariate: 'Climate × health correlation',
+  pf_parasite_rate: 'Malaria prevalence, PfPR2-10',
+  pf_incidence_rate: 'Malaria incidence, per 1,000/yr',
+  tb_incidence_100k: 'TB incidence, per 100,000/yr (national)',
+  tb_hiv_coinfection_pct: 'TB-HIV coinfection, % (national)',
+  flooded_min: 'Access to care, rain & flood adjusted (travel time, min)',
+  pct_change: 'Access lost to rain & flooding (% change in travel time)',
+};
+// Stevens bivariate scheme (3x3): rows = HIV tercile (0 low .. 2 high),
+// columns = climate-variable tercile (0 low .. 2 high) -- terciles are
+// computed across whichever districts/provinces are on screen for the
+// selected round, same "relative to each other, not an absolute scale"
+// convention every other layer here already uses.
+const BIVARIATE_COLORS = [
+  ['#e8e8e8', '#ace4e6', '#5ac8c8'],
+  ['#dfb0d6', '#a5add3', '#5698b9'],
+  ['#be64ac', '#8c62aa', '#3b4994'],
+];
+const SPARK_COLORS = {
+  heat_days: '#d73027', heatwave_days: '#d73027', prevalence_weighted_pct: '#cb181d',
+  mean_tmax_c: '#fd8d3c', total_precip_mm: '#0570b0', heavy_rain_days: '#2171b5',
+  pf_parasite_rate: '#31a354', pf_incidence_rate: '#807dba',
+  tb_incidence_100k: '#525252', tb_hiv_coinfection_pct: '#3d3d3d',
+};
+
+let state = {
+  layer: 'heat_days', level: 'district', climateYears: [], dailyYears: [], hivRounds: [], malariaYears: [], tbYears: [],
+  boundariesGeo: null, geoLayer: null, valuesByDistrict: {}, lo: 0, hi: 1,
+  playTimer: null, selectedDistrict: null, nationalSeries: null,
+  bivariateColors: {}, bivariateDetail: {},
+  climatologyData: null, climatologyYearData: null, climatologyMetric: 'precip', climatologyCompareYear: null,
+  calendarData: null, calendarMetric: 'precip', calendarYear: null, calendarMonth: 1,
+  layerRanges: {},
+};
+
+// Remembers the last layer/level/year *in this browser only* (localStorage
+// is per-origin-per-browser -- nothing here is written to the server, so
+// two people working on the site at the same time in their own browsers
+// never see or affect each other's view). Wrapped in try/catch because
+// localStorage can throw (private browsing, disabled storage) and that
+// must never block the app from loading.
+const VIEW_STATE_KEY = 'climateHivAtlas_viewState_v1';
+function saveViewState() {
+  try {
+    const values = currentTimeValues();
+    const slider = document.getElementById('yearSlider');
+    const current = values ? values[slider.value] : null;
+    const payload = { layer: state.layer, level: state.level };
+    if (state.layer === 'bivariate') {
+      // current's type depends on which health variable is paired with climate here
+      // (HIV round string vs. malaria year number -- see currentTimeValues()), so which
+      // key it's saved under has to match, same as the non-bivariate branches below.
+      const healthVar = document.getElementById('bivariateHealthVar').value;
+      payload.bivariateHealthVar = healthVar;
+      payload.bivariateClimateVar = document.getElementById('bivariateClimateVar').value;
+      if (healthVar === 'prevalence_weighted_pct') payload.hivRound = current;
+      else payload.climateYear = current;
+    } else if (state.layer === 'prevalence_weighted_pct') {
+      payload.hivRound = current;
+    } else if (current !== null && current !== undefined) {
+      payload.climateYear = current;
+    }
+    localStorage.setItem(VIEW_STATE_KEY, JSON.stringify(payload));
+  } catch (e) { /* no persistence this session -- not fatal */ }
+}
+function loadViewState() {
+  try {
+    const raw = localStorage.getItem(VIEW_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function hexToRgb(hex) { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function rgbToHex(rgb) { return '#' + rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
+
+function interpolateColor(ramp, t) {
+  t = Math.max(0, Math.min(1, t));
+  const n = ramp.length - 1;
+  const seg = Math.min(n - 1, Math.floor(t * n));
+  const segT = (t * n) - seg;
+  const c0 = hexToRgb(ramp[seg]), c1 = hexToRgb(ramp[seg + 1]);
+  return rgbToHex(c0.map((v, i) => v + (c1[i] - v) * segT));
+}
+
+function colorFor(value, lo, hi, ramp) {
+  if (value === null || value === undefined || isNaN(value)) return '#e0e0e0';
+  const t = hi > lo ? (value - lo) / (hi - lo) : 0;
+  return interpolateColor(ramp, t);
+}
+
+const LAYER_UNITS = {
+  heat_days: ' days', heatwave_days: ' days', mean_tmax_c: '°C',
+  heavy_rain_days: ' days', total_precip_mm: 'mm', prevalence_weighted_pct: '%',
+  pf_parasite_rate: '%', pf_incidence_rate: '/1,000',
+  tb_incidence_100k: '/100,000', tb_hiv_coinfection_pct: '%',
+  flooded_min: ' min', pct_change: '%',
+};
+function renderLegend(lo, hi, ramp) {
+  document.getElementById('legendBivariate').style.display = 'none';
+  document.getElementById('legend-gradient').style.display = '';
+  document.getElementById('legend-labels').style.display = '';
+  document.getElementById('legend-gradient').style.background = `linear-gradient(to right, ${ramp.join(',')})`;
+  const unit = LAYER_UNITS[state.layer] || '';
+  document.getElementById('legendMin').textContent = lo.toFixed(1) + unit;
+  document.getElementById('legendMax').textContent = hi.toFixed(1) + unit;
+}
+
+function renderBivariateLegend(climateVar, healthVar) {
+  document.getElementById('legend-gradient').style.display = 'none';
+  document.getElementById('legend-labels').style.display = 'none';
+  const el = document.getElementById('legendBivariate');
+  el.style.display = 'block';
+  const climateLabel = LAYER_LABELS[climateVar] || climateVar;
+  const healthLabel = LAYER_LABELS[healthVar] || healthVar;
+  const rowNames = ['Low', 'Mid', 'High'];
+  let rows = '';
+  for (let hBin = 2; hBin >= 0; hBin--) {
+    let cells = `<td class="rowlabel">${rowNames[hBin]}</td>`;
+    for (let cBin = 0; cBin < 3; cBin++) {
+      cells += `<td class="sw" style="background:${BIVARIATE_COLORS[hBin][cBin]}"></td>`;
+    }
+    rows += `<tr>${cells}</tr>`;
+  }
+  // The 3x3 grid alone asks the reader to decode which of three unrelated hues (pink,
+  // teal, dark blue-purple) means "worse" -- not obvious without cartography training.
+  // Naming the two corners that actually answer "do these move together" (both-high,
+  // both-low) with their real swatch color removes the need to decode hue at all; the
+  // other two corners matter less for that question; so one line covers them.
+  el.innerHTML = `<div class="biv-caption">Rows: ${healthLabel} &middot; Columns: ${climateLabel}</div>` +
+    `<table>${rows}<tr><td></td><td colspan="3" class="biv-xaxis">Low &rarr; High</td></tr></table>` +
+    `<div class="biv-key">` +
+      `<div class="biv-key-item"><span class="biv-key-sw" style="background:${BIVARIATE_COLORS[2][2]}"></span>Darkest = high on both</div>` +
+      `<div class="biv-key-item"><span class="biv-key-sw" style="background:${BIVARIATE_COLORS[0][0]}"></span>Palest = low on both</div>` +
+    `</div>` +
+    `<div class="biv-note">Pink or teal: high on one, low on the other -- not moving together.</div>`;
+}
+
+const NO_DATA_TEXT = {
+  flooded_min: 'Access-to-care results (travel time under rainfall and flooding) are still being computed and will appear here once the analysis is complete.',
+  pct_change: 'Access-to-care results (change in travel time under rainfall and flooding) are still being computed and will appear here once the analysis is complete.',
+};
+function setNoData(on) {
+  const box = document.getElementById('noDataNotice');
+  box.classList.toggle('visible', on);
+  if (on) document.getElementById('noDataText').textContent =
+    NO_DATA_TEXT[state.layer] || 'This layer has no data loaded yet.';
+  // an empty layer must not leave a legend scale that looks like it describes something
+  document.getElementById('legend-gradient').style.display = on ? 'none' : '';
+  document.getElementById('legend-labels').style.display = on ? 'none' : '';
+}
+
+function setLoading(on) {
+  document.getElementById('loadingOverlay').classList.toggle('visible', on);
+}
+
+function nameOf(feature) { return feature.properties[state.level]; }
+
+function styleFeature(feature) {
+  const name = nameOf(feature);
+  const isSelected = state.selectedDistrict === name;
+  const fillColor = state.layer === 'bivariate'
+    ? (state.bivariateColors[name] || '#e0e0e0')
+    : colorFor(state.valuesByDistrict[name], state.lo, state.hi, COLOR_RAMPS[state.layer]);
+  return {
+    fillColor,
+    weight: isSelected ? 2 : 0.7,
+    color: isSelected ? '#2b2825' : '#8a8378',
+    fillOpacity: isSelected ? 1 : 0.85,
+  };
+}
+
+function onEachFeature(feature, layer) {
+  layer.on('mouseover', () => {
+    const name = nameOf(feature);
+    let text;
+    if (state.layer === 'bivariate') {
+      const d = state.bivariateDetail[name];
+      text = d ? `${LAYER_LABELS[d.climateVar]}: ${d.cv} &middot; ${LAYER_LABELS[d.healthVar]}: ${d.hv}${LAYER_UNITS[d.healthVar] || ''}` : 'No data';
+    } else {
+      const v = state.valuesByDistrict[name];
+      const label = LAYER_LABELS[state.layer] || state.layer;
+      text = v === null || v === undefined ? 'No data' : `${label}: ${v}`;
+    }
+    layer.bindTooltip(`<b>${name}</b><br>${text}<br><span style="color:var(--muted);font-size:10px">Click for full history</span>`, { className: 'leaflet-tooltip-custom' }).openTooltip();
+    if (state.selectedDistrict !== name) layer.setStyle({ weight: 1.5, color: '#2b2825' });
+  });
+  layer.on('mouseout', () => layer.setStyle(styleFeature(feature)));
+  layer.on('click', () => openDetail(nameOf(feature), layer.getBounds()));
+}
+
+async function loadBoundaries() {
+  if (state.geoLayer) { map.removeLayer(state.geoLayer); state.geoLayer = null; }
+  const res = await fetch(state.level === 'province' ? '/api/provinces' : '/api/districts');
+  state.boundariesGeo = await res.json();
+  state.geoLayer = L.geoJSON(state.boundariesGeo, { style: styleFeature, onEachFeature }).addTo(map);
+  map.fitBounds(state.geoLayer.getBounds(), { padding: [12, 12] });
+}
+
+async function loadMeta() {
+  const res = await fetch('/api/meta');
+  const meta = await res.json();
+  state.climateYears = meta.climate_years;
+  // Separate from climateYears on purpose -- can include a still-in-
+  // progress year that the annual layers/year slider never will. Drives
+  // the Seasonality tab (daily calendar + typical-month year picker)
+  // only, never the year slider or annual choropleth bounds.
+  state.dailyYears = meta.daily_years && meta.daily_years.length ? meta.daily_years : meta.climate_years;
+  state.hivRounds = meta.hiv_rounds;
+  // Shorter than climateYears on purpose -- 2000 is Malaria Atlas Project's earliest
+  // modelled year for PfPR/incidence, not a bug (see extract_malaria.py).
+  state.malariaYears = meta.malaria_years || [];
+  // National only (see tb_national's comment in build_db.py) -- still its own axis since
+  // WHO's range (2000-2024) doesn't exactly match climate_years or malariaYears.
+  state.tbYears = meta.tb_years || [];
+  // Access years come from the friction-surface run (2015-2025, see harare_flood_flask/friction/),
+  // so this rides its own year axis
+  // like malaria/TB rather than climateYears -- not every climate_annual year has
+  // an access_annual run yet.
+  state.accessYears = meta.access_years || [];
+  state.layerRanges = meta.layer_ranges || {};
+}
+
+async function loadNationalSeries() {
+  const res = await fetch('/api/national_timeseries');
+  state.nationalSeries = await res.json();
+}
+
+function currentTimeValues() {
+  const layer = state.layer;
+  if (layer === 'composite_score') return null;
+  if (layer === 'prevalence_weighted_pct') return state.hivRounds.map(r => r.round);
+  if (layer === 'pf_parasite_rate' || layer === 'pf_incidence_rate') return state.malariaYears;
+  if (layer === 'tb_incidence_100k' || layer === 'tb_hiv_coinfection_pct') return state.tbYears;
+  if (layer === 'flooded_min' || layer === 'pct_change') return state.accessYears;
+  if (layer === 'bivariate') {
+    // Rides whichever health variable is paired with climate -- HIV only has 3 DHS
+    // rounds vs. 36 years of climate, so HIV burden is the limiting dimension there;
+    // malaria is annual like climate (2000-2025), so pairing with it gives a full
+    // year-by-year axis instead of being stuck on 3 snapshots.
+    const healthVar = document.getElementById('bivariateHealthVar').value;
+    if (healthVar === 'prevalence_weighted_pct') return state.hivRounds.map(r => r.round);
+    return state.malariaYears;
+  }
+  return state.climateYears;
+}
+
+function stopPlayback() {
+  const wasPlaying = !!state.playTimer;
+  if (state.playTimer) { clearInterval(state.playTimer); state.playTimer = null; }
+  document.getElementById('playBtn').classList.remove('playing');
+  document.getElementById('playBtn').innerHTML = '&#9658;';
+  if (wasPlaying) saveViewState(); // remember wherever autoplay landed when stopped
+}
+
+function updateTimeControl() {
+  stopPlayback();
+  const values = currentTimeValues();
+  const timeControl = document.getElementById('timeControl');
+  const rankPanel = document.getElementById('rankPanel');
+  const yearBadge = document.getElementById('mapYearBadge');
+  const noData = Array.isArray(values) && values.length === 0;
+  setNoData(noData);
+  if (noData) {
+    timeControl.style.display = 'none';
+    rankPanel.style.display = 'none';
+    yearBadge.classList.remove('visible');
+    document.getElementById('trendStrip').style.display = 'none';
+    return;
+  }
+  if (values === null) {
+    timeControl.style.display = 'none';
+    rankPanel.style.display = 'block';
+    yearBadge.classList.remove('visible');
+    document.getElementById('trendStrip').style.display = 'none';
+    loadRanking();
+    return;
+  }
+  timeControl.style.display = 'block';
+  rankPanel.style.display = 'none';
+  document.getElementById('trendStrip').style.display = 'block';
+  yearBadge.classList.add('visible');
+  const slider = document.getElementById('yearSlider');
+  slider.max = values.length - 1;
+  if (Number(slider.value) > values.length - 1) slider.value = values.length - 1;
+  const current = values[slider.value];
+  document.getElementById('yearLabel').textContent = current;
+  yearBadge.textContent = current;
+  renderTrendStrip();
+}
+
+async function loadLayerData(isAnimationTick = false) {
+  const layer = state.layer;
+  if (layer === 'composite_score') return;
+  const values = currentTimeValues();
+  if (Array.isArray(values) && values.length === 0) {
+    state.valuesByDistrict = {};
+    if (state.geoLayer) state.geoLayer.setStyle(styleFeature);
+    return;
+  }
+  const slider = document.getElementById('yearSlider');
+  const current = values[slider.value];
+  document.getElementById('yearLabel').textContent = current;
+  document.getElementById('mapYearBadge').textContent = current;
+  renderTrendStrip();
+  renderDetailCharts();
+  // During animation playback this fires every ~1.1s; the fetches are small
+  // and fast, so flashing the spinner on/off every frame just looks broken.
+  // Only show it for a one-off load (manual slider drag, layer switch).
+  if (!isAnimationTick) setLoading(true);
+
+  if (layer === 'bivariate') {
+    try { await loadBivariateData(current); }
+    finally { if (!isAnimationTick) setLoading(false); }
+    return;
+  }
+
+  const levelParam = `&level=${state.level}`;
+  let url, key;
+  if (layer === 'prevalence_weighted_pct') { url = `/api/layer/hiv?round=${encodeURIComponent(current)}${levelParam}`; key = 'prevalence_weighted_pct'; }
+  else if (layer === 'pf_parasite_rate' || layer === 'pf_incidence_rate') { url = `/api/layer/malaria?year=${current}${levelParam}`; key = layer; }
+  else if (layer === 'tb_incidence_100k' || layer === 'tb_hiv_coinfection_pct') { url = `/api/layer/tb?year=${current}${levelParam}`; key = layer; }
+  else if (layer === 'flooded_min' || layer === 'pct_change') { url = `/api/layer/access?year=${current}${levelParam}`; key = layer; }
+  else { url = `/api/layer/climate?year=${current}${levelParam}`; key = layer; }
+
+  try {
+    const res = await fetch(url);
+    const rows = await res.json();
+    state.valuesByDistrict = {};
+    rows.forEach(r => { state.valuesByDistrict[r[state.level]] = r[key]; });
+    // Fixed to the layer's full time-series range (see /api/meta's layer_ranges),
+    // not this frame's own min/max -- so intensity visibly builds as the year
+    // slider moves instead of every frame independently rescaling to look equally
+    // "maximally red". Falls back to the old per-frame behavior only if the range
+    // is somehow missing (defensive; shouldn't happen once the backend has it).
+    const fixedRange = state.layerRanges[key] && state.layerRanges[key][state.level];
+    if (fixedRange) {
+      [state.lo, state.hi] = fixedRange;
+    } else {
+      const vals = rows.map(r => r[key]).filter(v => v !== null && v !== undefined);
+      state.lo = Math.min(...vals, 0);
+      state.hi = Math.max(...vals, 1);
+    }
+    renderLegend(state.lo, state.hi, COLOR_RAMPS[layer]);
+    if (state.geoLayer) state.geoLayer.setStyle(styleFeature);
+  } finally {
+    if (!isAnimationTick) setLoading(false);
+  }
+}
+
+// Joins that round's climate snapshot to that round's HIV prevalence,
+// client-side, by district/province name -- both endpoints already share
+// that key, so no new backend endpoint is needed. Terciles (not a fixed
+// scale) because the point is relative comparison within this snapshot,
+// same convention the single-variable legends already use.
+function computeTerciles(vals) {
+  const sorted = [...vals].sort((a, b) => a - b);
+  const at = (p) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
+  return [at(1 / 3), at(2 / 3)];
+}
+function binTercile(v, cuts) { return v <= cuts[0] ? 0 : (v <= cuts[1] ? 1 : 2); }
+
+async function loadBivariateData(timeValue) {
+  const climateVar = document.getElementById('bivariateClimateVar').value;
+  const healthVar = document.getElementById('bivariateHealthVar').value;
+  const isHiv = healthVar === 'prevalence_weighted_pct';
+  // timeValue is a round string when paired with HIV (currentTimeValues() rides
+  // hivRounds then), or a year number when paired with malaria (rides malariaYears) --
+  // the climate fetch always needs a year, so resolve HIV's round back to its year.
+  const year = isHiv ? (state.hivRounds.find(r => r.round === timeValue) || {}).year : timeValue;
+  const levelParam = `&level=${state.level}`;
+  const healthUrl = isHiv
+    ? `/api/layer/hiv?round=${encodeURIComponent(timeValue)}${levelParam}`
+    : `/api/layer/malaria?year=${timeValue}${levelParam}`;
+  const [climateRes, healthRes] = await Promise.all([
+    fetch(`/api/layer/climate?year=${year}${levelParam}`),
+    fetch(healthUrl),
+  ]);
+  const climateRows = await climateRes.json();
+  const healthRows = await healthRes.json();
+  const climateByName = {}; climateRows.forEach(r => { climateByName[r[state.level]] = r[climateVar]; });
+  const healthByName = {}; healthRows.forEach(r => { healthByName[r[state.level]] = r[healthVar]; });
+
+  const names = Object.keys(climateByName).filter(n => healthByName[n] !== undefined);
+  const cVals = names.map(n => climateByName[n]).filter(v => v !== null && v !== undefined);
+  const hVals = names.map(n => healthByName[n]).filter(v => v !== null && v !== undefined);
+  const cCuts = computeTerciles(cVals), hCuts = computeTerciles(hVals);
+
+  state.bivariateColors = {};
+  state.bivariateDetail = {};
+  names.forEach(n => {
+    const cv = climateByName[n], hv = healthByName[n];
+    if (cv === null || cv === undefined || hv === null || hv === undefined) return;
+    const cBin = binTercile(cv, cCuts), hBin = binTercile(hv, hCuts);
+    state.bivariateColors[n] = BIVARIATE_COLORS[hBin][cBin];
+    state.bivariateDetail[n] = { climateVar, healthVar, cv, hv, cBin, hBin };
+  });
+  if (state.geoLayer) state.geoLayer.setStyle(styleFeature);
+  renderBivariateLegend(climateVar, healthVar);
+}
+
+async function loadRanking() {
+  updateMethodCard();
+  setLoading(true);
+  try {
+    const res = await fetch(`/api/persistent_risk?level=${state.level}`);
+    const rows = await res.json();
+    state.valuesByDistrict = {};
+    rows.forEach(r => { state.valuesByDistrict[r[state.level]] = r.composite_score; });
+    const vals = rows.map(r => r.composite_score);
+    state.lo = Math.min(...vals); state.hi = Math.max(...vals);
+    renderLegend(state.lo, state.hi, COLOR_RAMPS.composite_score);
+    if (state.geoLayer) state.geoLayer.setStyle(styleFeature);
+
+    const levelLabel = state.level === 'province' ? 'Province' : 'District';
+    document.getElementById('rankLegend').textContent = `Persistently highest-risk ${levelLabel.toLowerCase()}s`;
+    const top10 = rows.slice(0, 10);
+    const html = `<table><tr><th>#</th><th>${levelLabel}</th><th>Score</th></tr>` +
+      top10.map((r, i) => `<tr data-name="${r[state.level]}"><td>${i + 1}</td><td>${r[state.level]}</td><td>${r.composite_score}</td></tr>`).join('') +
+      '</table>';
+    document.getElementById('rankList').innerHTML = html;
+    document.querySelectorAll('#rankList tr[data-name]').forEach(tr => {
+      tr.addEventListener('click', () => {
+        const layer = state.geoLayer.getLayers().find(l => nameOf(l.feature) === tr.dataset.name);
+        openDetail(tr.dataset.name, layer ? layer.getBounds() : null);
+      });
+    });
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ---- 3-year average and full-period trend helpers -------------------------
+// Trailing 3-year average (this year and the two before it), so the latest year is
+// included; the first two years have no value. Trend is an ordinary least-squares
+// straight line over the whole series (not tested for significance).
+const smoothOpts = { ma: true, trend: true };
+function movingAvg3(data, key) {
+  return data.map((d, i) => {
+    if (i < 2) return null;
+    const w = [data[i - 2], data[i - 1], d];
+    if (w.some(r => r[key] == null || r.year == null)) return null;
+    if (w[2].year - w[0].year !== 2) return null;
+    return (w[0][key] + w[1][key] + w[2][key]) / 3;
+  });
+}
+function linearTrend(data, key) {
+  const p = data.filter(r => r[key] != null && r.year != null).map(r => [r.year, r[key]]);
+  if (p.length < 5) return null;
+  const n = p.length, mx = p.reduce((a, q) => a + q[0], 0) / n, my = p.reduce((a, q) => a + q[1], 0) / n;
+  let sxx = 0, sxy = 0;
+  p.forEach(q => { sxx += (q[0] - mx) ** 2; sxy += (q[0] - mx) * (q[1] - my); });
+  if (!sxx) return null;
+  const slope = sxy / sxx, icpt = my - slope * mx;
+  let sse = 0; p.forEach(q => { sse += (q[1] - (icpt + slope * q[0])) ** 2; });
+  const se = Math.sqrt(sse / (n - 2) / sxx);
+  const tcrit = n >= 30 ? 2.04 : 2.07;   // approx. two-sided 95% t value for ~24-34 degrees of freedom
+  const clear = se > 0 ? Math.abs(slope / se) > tcrit : slope !== 0;
+  return { slope, clear, n, x0: p[0][0], x1: p[n - 1][0], at: x => icpt + slope * x };
+}
+function trendNoteHTML(data, key) {
+  const t = linearTrend(data, key);
+  if (!t) return '';
+  const per = t.slope * 10, unit = LAYER_UNITS[key] || '';
+  const txt = (per >= 0 ? '+' : '−') + Math.abs(per).toFixed(Math.abs(per) < 10 ? 2 : 1);
+  const arrow = Math.abs(per) < 1e-9 ? '\u2192' : (per > 0 ? '\u2197' : '\u2198');
+  return `<div class="trend-note"><b>${arrow} ${txt}${unit} per decade</b> &nbsp;straight-line trend, ${t.x0}&ndash;${t.x1}</div>`;
+}
+
+// ---- one-sentence plain-language summary under each line chart ------------------
+const TREND_NOUN = {
+  mean_tmax_c: 'mean daily maximum temperature', heat_days: 'the number of extreme heat days',
+  heatwave_days: 'the number of heatwave days', heavy_rain_days: 'the number of heavy rain days',
+  total_precip_mm: 'annual rainfall', pf_parasite_rate: 'malaria prevalence in children',
+  pf_incidence_rate: 'malaria incidence', tb_incidence_100k: 'TB incidence',
+  tb_hiv_coinfection_pct: 'the share of TB cases that are also HIV-positive',
+};
+const TREND_RATE_UNIT = {
+  mean_tmax_c: '°C', heat_days: ' days', heatwave_days: ' days', heavy_rain_days: ' days', total_precip_mm: ' mm',
+  pf_parasite_rate: ' percentage points', pf_incidence_rate: ' cases per 1,000', tb_incidence_100k: ' cases per 100,000',
+  tb_hiv_coinfection_pct: ' percentage points',
+};
+function fmtNum(v) { return Math.abs(v) < 10 ? v.toFixed(2) : (Math.abs(v) < 100 ? v.toFixed(1) : String(Math.round(v))); }
+function fmtVal(key, v) {
+  const u = LAYER_UNITS[key] || '';
+  const num = (key === 'mean_tmax_c' || key === 'pf_parasite_rate' || key === 'tb_hiv_coinfection_pct') ? v.toFixed(1)
+    : (key === 'heatwave_days' || key === 'heat_days' || key === 'heavy_rain_days' ? String(Math.round(v)) : fmtNum(v));
+  return num + u;
+}
+function ordinal(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+function trendSentenceHTML(data, key, national) {
+  const t = linearTrend(data, key);
+  const noun = TREND_NOUN[key];
+  if (!t || !noun) return '';
+  const rows = data.filter(r => r[key] != null && r.year != null);
+  const latest = rows[rows.length - 1];
+  const peak = rows.reduce((a, r) => (r[key] > a[key] ? r : a), rows[0]);
+  const per = t.slope * 10, unit = TREND_RATE_UNIT[key] || '';
+  const rate = `<b>${fmtNum(Math.abs(per))}${unit} per decade</b>`;
+  const subj = national ? `Nationally, ${noun}` : noun.charAt(0).toUpperCase() + noun.slice(1);
+  const span = `${t.x0}&ndash;${t.x1}`;
+  let s;
+  if (t.clear) {
+    s = `${subj} ${national ? 'has' : 'has'} ${per > 0 ? 'increased' : 'decreased'} by about ${rate} over ${span}`;
+  } else {
+    s = `${subj} shows no clear trend over ${span} (a change of about ${per >= 0 ? '+' : '−'}${fmtNum(Math.abs(per))}${unit} per decade, within normal year-to-year variation)`;
+  }
+  let tail;
+  if (latest.year === peak.year) tail = `, and ${peak.year} was the highest year since ${t.x0} (${fmtVal(key, peak[key])}).`;
+  else {
+    const rank = 1 + rows.filter(r => r[key] > latest[key]).length;
+    tail = `. The highest year was ${peak.year} (${fmtVal(key, peak[key])}); ${latest.year} ranked ${ordinal(rank)} of ${rows.length}.`;
+  }
+  return `<div class="trend-sentence">${s}${tail}</div>`;
+}
+function hivSentenceHTML(rows) {
+  const r = (rows || []).filter(x => x.prevalence_weighted_pct != null);
+  if (r.length < 2) return '';
+  const a = r[0], b = r[r.length - 1];
+  const dir = b.prevalence_weighted_pct < a.prevalence_weighted_pct ? 'fell' : (b.prevalence_weighted_pct > a.prevalence_weighted_pct ? 'rose' : 'stayed level');
+  return `<div class="trend-sentence">HIV prevalence ${dir} from <b>${a.prevalence_weighted_pct}%</b> in ${a.survey_round} to <b>${b.prevalence_weighted_pct}%</b> in ${b.survey_round}. With only ${r.length} survey rounds, no trend line is fitted.</div>`;
+}
+const SWATCH_MA = '<svg width="26" height="8" viewBox="0 0 26 8" aria-hidden="true"><line x1="2" y1="4" x2="24" y2="4" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>';
+const SWATCH_TREND = '<svg width="26" height="8" viewBox="0 0 26 8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" stroke="currentColor" stroke-width="1.8" stroke-dasharray="5 3"/></svg>';
+function smoothTogglesHTML() {
+  return `<label class="chip" title="Smooths short-term ups and downs: each point is the mean of that year and the two before it"><input type="checkbox" class="smooth-cb" data-kind="ma" ${smoothOpts.ma ? 'checked' : ''}>${SWATCH_MA}<span>3-year average</span></label>` +
+         `<label class="chip" title="Straight line fitted to every year in the series"><input type="checkbox" class="smooth-cb" data-kind="trend" ${smoothOpts.trend ? 'checked' : ''}>${SWATCH_TREND}<span>Trend line</span></label>`;
+}
+document.addEventListener('change', (e) => {
+  const cb = e.target.closest ? e.target.closest('.smooth-cb') : null;
+  if (!cb) return;
+  smoothOpts[cb.dataset.kind] = cb.checked;
+  document.querySelectorAll(`.smooth-cb[data-kind="${cb.dataset.kind}"]`).forEach(o => { o.checked = cb.checked; });
+  renderTrendStrip();
+  renderDetailCharts();
+});
+
+// Multi-line chart for the detail panel. series = [{name, data, bold}]: thin lines
+// are individual districts, the bold one is the selected place itself. One shared
+// y-scale and x-axis from the FULL data so lines grow in place as the year slider
+// advances; revealYear (null = everything) hides points after that year. With
+// `smooth`, the selected place's yearly line is faded and a thick 3-year average
+// and a dashed full-period trend line are drawn over it.
+function multiLineSVG(series, key, color, revealYear, smooth = null, width = 254, height = 100) {
+  const boldS = series.find(s => s.bold);
+  const ma = smooth && smooth.ma && boldS ? movingAvg3(boldS.data, key) : null;
+  const tr = smooth && smooth.trend && boldS ? linearTrend(boldS.data, key) : null;
+  const pts = series.flatMap(s => s.data.filter(r => r[key] != null).map(r => ({ x: r.year, v: r[key] })));
+  if (!pts.length) return '<div style="font-size:12px;color:var(--muted)">No data</div>';
+  const padLeft = 32, padRight = 8, padTop = 8, padBottom = 20;
+  const plotW = width - padLeft - padRight, plotH = height - padTop - padBottom;
+  const xs = [...new Set(pts.map(p => p.x))].sort((a, b) => a - b);
+  const allV = pts.map(p => p.v);
+  if (tr) allV.push(tr.at(tr.x0), tr.at(tr.x1));
+  const tempAxis = key === 'mean_tmax_c';  // a 0-based axis flattens temperature to a straight line
+  const lo = tempAxis ? Math.floor(Math.min(...allV) - 1) : Math.min(...allV, 0);
+  const hi = tempAxis ? Math.ceil(Math.max(...allV) + 1) : Math.max(...allV);
+  const xOf = x => padLeft + (xs.length > 1 ? xs.indexOf(x) / (xs.length - 1) : 0.5) * plotW;
+  const yOf = v => padTop + plotH - ((v - lo) / ((hi - lo) || 1)) * plotH;
+  const gridY = padTop + plotH;
+  const esc = t => String(t).replace(/"/g, '&quot;');
+  const draw = (s) => {
+    const rows = s.data.filter(r => r[key] != null && (revealYear == null || r.year <= revealYear));
+    if (!rows.length) return '';
+    const path = rows.map((r, i) => (i === 0 ? 'M' : 'L') + xOf(r.year).toFixed(1) + ',' + yOf(r[key]).toFixed(1)).join(' ');
+    const hits = rows.map(r =>
+      `<circle class="spark-pt" cx="${xOf(r.year).toFixed(1)}" cy="${yOf(r[key]).toFixed(1)}" r="${s.bold ? 8 : 5}" fill="transparent" data-value="${r[key]}" data-label="${esc(s.name)} ${esc(r.survey_round ?? r.year)}"/>`).join('');
+    if (!s.bold) return `<path d="${path}" fill="none" stroke="${color}" stroke-opacity="0.38" stroke-width="1"/>${hits}`;
+    const faded = !!ma;
+    const dots = rows.map(r => `<circle cx="${xOf(r.year).toFixed(1)}" cy="${yOf(r[key]).toFixed(1)}" r="${faded ? 1.6 : 2.5}" fill="${color}" fill-opacity="${faded ? 0.55 : 1}"/>`).join('');
+    let out = `<path d="${path}" fill="none" stroke="${color}" stroke-width="${faded ? 1.3 : 2.2}" stroke-opacity="${faded ? 0.5 : 1}"/>${dots}${hits}`;
+    if (ma) {
+      const mrows = s.data.map((r, i) => ({ year: r.year, v: ma[i] })).filter(r => r.v != null && (revealYear == null || r.year <= revealYear));
+      if (mrows.length > 1) {
+        const mp = mrows.map((r, i) => (i === 0 ? 'M' : 'L') + xOf(r.year).toFixed(1) + ',' + yOf(r.v).toFixed(1)).join(' ');
+        out += `<path d="${mp}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round"/>` +
+          mrows.map(r => `<circle class="spark-pt" cx="${xOf(r.year).toFixed(1)}" cy="${yOf(r.v).toFixed(1)}" r="6" fill="transparent" data-value="${r.v.toFixed(1)}" data-label="${esc(s.name)} 3-yr avg ${r.year}"/>`).join('');
+      }
+    }
+    return out;
+  };
+  const ordered = [...series.filter(s => !s.bold), ...series.filter(s => s.bold)];
+  const trendPath = tr ? `<path d="M${xOf(tr.x0).toFixed(1)},${yOf(tr.at(tr.x0)).toFixed(1)} L${xOf(tr.x1).toFixed(1)},${yOf(tr.at(tr.x1)).toFixed(1)}" fill="none" stroke="var(--text)" stroke-opacity="0.75" stroke-width="1.4" stroke-dasharray="5 3"/>` : '';
+  const axisUnit = LAYER_UNITS[key] || '';
+  const xl = xs.length <= 5 ? xs : [xs[0], xs[xs.length - 1]];
+  const xLabels = xl.map(x => `<text x="${xOf(x).toFixed(1)}" y="${height - 4}" font-size="9" fill="var(--muted)" text-anchor="${x === xs[0] ? 'start' : (x === xs[xs.length - 1] ? 'end' : 'middle')}">${x}</text>`).join('');
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="overflow:visible">
+    <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${gridY}" stroke="var(--border)" stroke-width="1"/>
+    <line x1="${padLeft}" y1="${gridY}" x2="${width - padRight}" y2="${gridY}" stroke="var(--border)" stroke-width="1"/>
+    <text x="${padLeft - 4}" y="${padTop + 4}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(hi)}${axisUnit}</text>
+    <text x="${padLeft - 4}" y="${gridY}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(lo)}${axisUnit}</text>
+    ${ordered.map(draw).join('')}${trendPath}${xLabels}
+  </svg>`;
+}
+
+// Detail-panel charts: [source table, column, colour]. Order = data-i in the template.
+const DETAIL_CHARTS = [
+  ['climate', 'mean_tmax_c', () => SPARK_COLORS.mean_tmax_c],
+  ['climate', 'heat_days', () => SPARK_COLORS.heat_days],
+  ['climate', 'total_precip_mm', () => SPARK_COLORS.total_precip_mm],
+  ['climate', 'heavy_rain_days', () => SPARK_COLORS.total_precip_mm],
+  ['hiv', 'prevalence_weighted_pct', () => SPARK_COLORS.prevalence_weighted_pct],
+  ['malaria', 'pf_parasite_rate', () => SPARK_COLORS.pf_parasite_rate],
+  ['malaria', 'pf_incidence_rate', () => SPARK_COLORS.pf_incidence_rate],
+];
+
+// Year the slider is on, as a plain year (HIV rounds resolved to their survey year).
+function currentRevealYear() {
+  const values = currentTimeValues();
+  if (!values) return null;
+  const cur = values[Number(document.getElementById('yearSlider').value)];
+  if (typeof cur === 'number') return cur;
+  const hit = (state.detail?.d?.hiv || []).find(r => r.survey_round === cur);
+  return hit ? hit.year : null;
+}
+
+function renderDetailCharts() {
+  const det = state.detail;
+  if (!det) return;
+  const reveal = state.detailFollow ? currentRevealYear() : null;
+  DETAIL_CHARTS.forEach(([table, key, colorFn], i) => {
+    const el = document.querySelector(`.mchart[data-i="${i}"]`);
+    if (!el) return;
+    const series = [];
+    Object.entries(det.districts || {}).forEach(([name, dd]) => series.push({ name, data: dd[table] || [], bold: false }));
+    series.push({ name: det.name, data: det.d[table] || [], bold: true });
+    const sm = table === 'hiv' ? null : smoothOpts;  // 3 survey rounds: too few points to smooth or fit a trend
+    el.innerHTML = multiLineSVG(series, key, colorFn(), reveal, sm) + (table === 'hiv' ? hivSentenceHTML(det.d.hiv) : trendSentenceHTML(det.d[table], key, false));
+  });
+  const note = document.getElementById('mchartNote');
+  if (note) note.textContent = state.detailFollow && reveal != null ? `Showing up to ${reveal} (following the year slider)` : '';
+}
+
+function sparklineSVG(data, key, labelKey, color, width = 254, height = 86) {
+  const vals = data.map(d => d[key]).filter(v => v !== null && v !== undefined);
+  if (vals.length === 0) return '<div style="font-size:12px;color:var(--muted)">No data</div>';
+  const padLeft = 32, padRight = 8, padTop = 8, padBottom = 20;
+  const plotW = width - padLeft - padRight, plotH = height - padTop - padBottom;
+  const lo = Math.min(...vals, 0), hi = Math.max(...vals);
+  const pts = data.map((d, i) => {
+    const x = padLeft + (data.length > 1 ? i / (data.length - 1) : 0.5) * plotW;
+    const v = d[key];
+    const y = (v === null || v === undefined) ? null : padTop + plotH - ((v - lo) / ((hi - lo) || 1)) * plotH;
+    return [x, y];
+  });
+  const valid = pts.filter(p => p[1] !== null);
+  const path = valid.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  // Each point is a visible dot plus a larger invisible circle on top that
+  // carries the click/hover hit area -- a bare r=2.5 circle is too small a
+  // target to reliably click, especially on touch.
+  const circles = data.map((d, i) => {
+    const [x, y] = pts[i];
+    if (y === null) return '';
+    const label = String(d[labelKey]).replace(/"/g, '&quot;');
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="${color}"/>` +
+      `<circle class="spark-pt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" fill="transparent" data-value="${d[key]}" data-label="${label}"/>`;
+  }).join('');
+  const gridY = padTop + plotH;
+
+  // x-axis labels: always first/last; every point if 5 or fewer (e.g. the 3 HIV rounds)
+  const labelIdx = data.length <= 5 ? data.map((_, i) => i) : [0, data.length - 1];
+  const xLabels = labelIdx.map(i => {
+    const [x] = pts[i];
+    const anchor = i === 0 ? 'start' : (i === data.length - 1 ? 'end' : 'middle');
+    return `<text x="${x.toFixed(1)}" y="${height - 4}" font-size="9" fill="var(--muted)" text-anchor="${anchor}">${data[i][labelKey]}</text>`;
+  }).join('');
+
+  const axisUnit = LAYER_UNITS[key] || '';
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="overflow:visible">
+    <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${gridY}" stroke="var(--border)" stroke-width="1"/>
+    <line x1="${padLeft}" y1="${gridY}" x2="${width - padRight}" y2="${gridY}" stroke="var(--border)" stroke-width="1"/>
+    <text x="${padLeft - 4}" y="${padTop + 4}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(hi)}${axisUnit}</text>
+    <text x="${padLeft - 4}" y="${gridY}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(lo)}${axisUnit}</text>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2"/>${circles}
+    ${xLabels}
+  </svg>`;
+}
+
+// The trend strip above the map: same look as sparklineSVG, but the axis
+// domain (lo/hi) is fixed from the FULL series so the scale doesn't jump
+// around as more points reveal -- only the line/points up to currentIndex
+// are drawn, so it visibly builds up in sync with the year slider/autoplay
+// instead of popping in fully formed.
+function trendSVG(fullData, key, labelKey, color, currentIndex, width = 900, height = 92, smooth = null) {
+  const ma = smooth && smooth.ma ? movingAvg3(fullData, key) : null;
+  const tr = smooth && smooth.trend ? linearTrend(fullData, key) : null;
+  const allVals = fullData.map(d => d[key]).filter(v => v !== null && v !== undefined);
+  if (allVals.length === 0) return '<div style="font-size:12px;color:var(--muted)">No data</div>';
+  if (tr) allVals.push(tr.at(tr.x0), tr.at(tr.x1));
+  const padLeft = 38, padRight = 10, padTop = 10, padBottom = 22;
+  const plotW = width - padLeft - padRight, plotH = height - padTop - padBottom;
+  const tempAxis = key === 'mean_tmax_c';  // a 0-based axis flattens temperature to a straight line
+  const lo = tempAxis ? Math.floor(Math.min(...allVals) - 1) : Math.min(...allVals, 0);
+  const hi = tempAxis ? Math.ceil(Math.max(...allVals) + 1) : Math.max(...allVals);
+  const xOfI = i => padLeft + (fullData.length > 1 ? i / (fullData.length - 1) : 0.5) * plotW;
+  const yOf = v => padTop + plotH - ((v - lo) / ((hi - lo) || 1)) * plotH;
+  const pts = fullData.map((d, i) => {
+    const v = d[key];
+    return [xOfI(i), (v === null || v === undefined) ? null : yOf(v)];
+  });
+  const revealed = pts.slice(0, currentIndex + 1).filter(p => p[1] !== null);
+  const path = revealed.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const faded = !!ma;
+  const circles = fullData.slice(0, currentIndex + 1).map((d, i) => {
+    const [x, y] = pts[i];
+    if (y === null) return '';
+    const label = String(d[labelKey]).replace(/"/g, '&quot;');
+    const r = i === currentIndex ? (faded ? 3 : 4) : (faded ? 1.6 : 2.5);
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${color}" fill-opacity="${faded ? 0.6 : 1}"/>` +
+      `<circle class="spark-pt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" fill="transparent" data-value="${d[key]}" data-label="${label}"/>`;
+  }).join('');
+  let maSVG = '';
+  if (ma) {
+    const mp = [];
+    ma.forEach((v, i) => { if (v != null && i <= currentIndex) mp.push([xOfI(i), yOf(v), i, v]); });
+    if (mp.length > 1) {
+      maSVG = `<path d="${mp.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${color}" stroke-width="3.2" stroke-linejoin="round"/>` +
+        mp.map(p => `<circle class="spark-pt" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="6" fill="transparent" data-value="${p[3].toFixed(1)}" data-label="${fullData[p[2]][labelKey]} 3-yr avg"/>`).join('');
+    }
+  }
+  const trendSVGPath = tr ? (() => {
+    const i0 = fullData.findIndex(d => d.year === tr.x0), i1 = fullData.length - 1 - [...fullData].reverse().findIndex(d => d.year === tr.x1);
+    return `<path d="M${xOfI(i0).toFixed(1)},${yOf(tr.at(tr.x0)).toFixed(1)} L${xOfI(i1).toFixed(1)},${yOf(tr.at(tr.x1)).toFixed(1)}" fill="none" stroke="var(--text)" stroke-opacity="0.75" stroke-width="1.4" stroke-dasharray="6 4"/>`;
+  })() : '';
+  const gridY = padTop + plotH;
+  const first = fullData[0][labelKey], last = fullData[fullData.length - 1][labelKey];
+  const axisUnit = LAYER_UNITS[key] || '';
+  return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="overflow:visible;display:block">
+    <line x1="${padLeft}" y1="${gridY}" x2="${width - padRight}" y2="${gridY}" stroke="var(--border)" stroke-width="1"/>
+    <text x="${padLeft - 6}" y="${padTop + 4}" font-size="10" fill="var(--muted)" text-anchor="end">${Math.round(hi)}${axisUnit}</text>
+    <text x="${padLeft - 6}" y="${gridY}" font-size="10" fill="var(--muted)" text-anchor="end">${Math.round(lo)}${axisUnit}</text>
+    ${trendSVGPath}<path d="${path}" fill="none" stroke="${color}" stroke-width="${faded ? 1.3 : 2}" stroke-opacity="${faded ? 0.5 : 1}" style="transition: d 0.3s ease"/>${circles}${maSVG}
+    <text x="${padLeft}" y="${height - 4}" font-size="10" fill="var(--muted)" text-anchor="start">${first}</text>
+    <text x="${width - padRight}" y="${height - 4}" font-size="10" fill="var(--muted)" text-anchor="end">${last}</text>
+  </svg>`;
+}
+
+
+// Toggles + straight-line trend figure under the national strip (annual series only;
+// the 3 HIV survey rounds are too few to smooth or fit).
+function setTrendFoot(series, key) {
+  const tg = document.getElementById('trendToggles'), nt = document.getElementById('trendNote');
+  if (!tg || !nt) return;
+  const ts = document.getElementById('trendSentence');
+  if (!series) { tg.innerHTML = ''; nt.innerHTML = ''; if (ts) ts.innerHTML = ''; return; }
+  if (!tg.firstChild) tg.innerHTML = smoothTogglesHTML();
+  nt.innerHTML = smoothOpts.trend ? trendNoteHTML(series, key) : '';
+  if (ts) ts.innerHTML = trendSentenceHTML(series, key, true);
+}
+
+// ---- "How this is calculated" card on the map -------------------------------
+const METHOD_BLURBS = {
+  heat_days: 'Days a year when the district\'s daily maximum temperature is above its own 90th percentile for 1990–2025 (ERA5-Land, mean of the ~11 km pixels in the district). It shows change within a place. Every district averages about 37 such days a year by construction, so use mean daily max temp to compare places.',
+  heatwave_days: 'Days that fall in runs of 3 or more consecutive extreme heat days within one calendar year. An extreme heat day is above the district\'s own 90th percentile of daily maximum temperature (ERA5-Land).',
+  mean_tmax_c: 'The average of the daily highest temperature over every day of the year (ERA5-Land, mean of the district\'s ~11 km pixels). It is not the average temperature, and cool-season days pull it down, so it smooths over summer extremes.',
+  heavy_rain_days: 'Days a year with at least 20 mm of rain (CHIRPS daily rainfall, ~5.5 km pixels, averaged over the district).',
+  total_precip_mm: 'Sum of daily CHIRPS rainfall over the calendar year (~5.5 km pixels, averaged over the district).',
+  prevalence_weighted_pct: 'Share of people tested who were HIV-positive in each DHS survey round, weighted by DHS sample weights. Each test is placed in a district using its cluster\'s GPS point, which DHS shifts by 2–5 km. District samples are small (the smallest has 29 people) and no confidence intervals are shown.',
+  pf_parasite_rate: 'Modelled percentage of children aged 2–10 with detectable <i>P. falciparum</i> infection (Malaria Atlas Project raster, ~5 km), averaged over every pixel touching the district. A model estimate, not a measured district count.',
+  pf_incidence_rate: 'Modelled new <i>P. falciparum</i> cases per 1,000 people a year (Malaria Atlas Project raster, ~5 km), averaged over every pixel touching the district. A model estimate, not a measured district count.',
+  tb_incidence_100k: 'WHO\'s published national estimate of TB cases per 100,000 people a year. No district-level TB data exists for Zimbabwe, so every district shows the same national value.',
+  tb_hiv_coinfection_pct: 'WHO\'s published national estimate of the percentage of TB cases that are also HIV-positive. No district-level data exists, so every district shows the same national value.',
+  flooded_min: 'Population-weighted expected travel time to the nearest health facility over the year, combining dry, rainy-day and flood-day conditions in proportion to how many days of each the district had (CHIRPS rainfall and ERA5-Land runoff). Modelled, not observed.',
+  pct_change: 'Percentage change in that expected travel time compared with dry-day conditions, population-weighted across the district.',
+  composite_score: 'Mean daily max temperature, heavy-rain days (each averaged over all years) and HIV prevalence (averaged over the survey rounds) are each scaled 0 to 1 across districts, then averaged with equal weight. It is a relative ranking, not absolute risk.',
+};
+const PROVINCE_NOTE = {
+  area: 'At province level this is the area-weighted mean of the province\'s districts.',
+  hiv: 'At province level this is the mean of the districts\' prevalence weighted by number tested.',
+  pop: 'At province level this is population-weighted.',
+};
+function methodCardContent() {
+  const layer = state.layer, prov = state.level === 'province';
+  if (layer === 'bivariate') {
+    const h = document.getElementById('bivariateHealthVar'), c = document.getElementById('bivariateClimateVar');
+    const hn = h.options[h.selectedIndex].text, cn = c.options[c.selectedIndex].text;
+    return { title: `${cn} × ${hn}`,
+      body: `<p>Places on screen are ranked into thirds (low, mid, high) for the climate variable and, separately, for the health variable, using the cut points of the ${prov ? 'provinces' : 'districts'} shown for the selected year or round. Each place is coloured by both ranks on a 3×3 grid.</p><p class="mc-note">This is a relative visual comparison. No correlation coefficient or significance test is calculated, and a pattern does not show cause.</p>` };
+  }
+  let note = '';
+  if (prov) {
+    if (['heat_days', 'heatwave_days', 'mean_tmax_c', 'heavy_rain_days', 'total_precip_mm', 'pf_parasite_rate', 'pf_incidence_rate'].includes(layer)) note = PROVINCE_NOTE.area;
+    else if (layer === 'prevalence_weighted_pct') note = PROVINCE_NOTE.hiv;
+    else if (layer === 'flooded_min' || layer === 'pct_change') note = PROVINCE_NOTE.pop;
+  }
+  const smoothNote = ['prevalence_weighted_pct', 'composite_score'].includes(layer) ? '' :
+    'Chart above the map: thick line = 3-year average (this year and the two before); dashed = straight-line trend over the full period.';
+  return { title: LAYER_LABELS[layer] || layer,
+    body: `<p>${METHOD_BLURBS[layer] || ''}</p>${note ? `<p class="mc-note">${note}</p>` : ''}${smoothNote ? `<p class="mc-note">${smoothNote}</p>` : ''}` };
+}
+function updateMethodCard() {
+  const body = document.getElementById('methodCardBody');
+  if (!body) return;
+  const c = methodCardContent();
+  body.innerHTML = `<div class="mc-title">${c.title}</div>${c.body}`;
+}
+(function initMethodCard() {
+  const card = document.getElementById('methodCard'), caret = document.getElementById('methodCardCaret');
+  if (!card) return;
+  let collapsed = window.innerWidth <= 820;
+  try { const s = localStorage.getItem('atlasMethodCardCollapsed'); if (s !== null) collapsed = s === '1'; } catch (e) {}
+  const apply = () => { card.classList.toggle('collapsed', collapsed); caret.innerHTML = collapsed ? '&#9652;' : '&#9662;'; };
+  apply();
+  document.getElementById('methodCardHead').addEventListener('click', () => {
+    collapsed = !collapsed; apply();
+    try { localStorage.setItem('atlasMethodCardCollapsed', collapsed ? '1' : '0'); } catch (e) {}
+  });
+})();
+
+function trendW() { const w = document.getElementById('trendChartWrap').clientWidth; return w > 300 ? w : 900; }
+window.addEventListener('resize', () => { if (state.nationalSeries) renderTrendStrip(); });
+
+function renderTrendStrip() {
+  updateMethodCard();
+  const strip = document.getElementById('trendStrip');
+  // No single national line represents two variables at once, so this
+  // stays hidden for bivariate (same as composite_score, which has no
+  // time axis at all) -- the bivariate legend/map is the view for it.
+  if (state.layer === 'composite_score' || state.layer === 'bivariate') { strip.style.display = 'none'; return; }
+  strip.style.display = 'block';
+  if (!state.nationalSeries) return;
+  const label = LAYER_LABELS[state.layer] || state.layer;
+  const isTB = state.layer === 'tb_incidence_100k' || state.layer === 'tb_hiv_coinfection_pct';
+  // TB's label already says "(national)" (it's the one WHO-reported figure, not an
+  // area-weighted average of district values like every other layer's trend strip) --
+  // appending "national average" again would both duplicate that and misdescribe it as
+  // an average when it isn't one.
+  document.getElementById('trendLabel').textContent = isTB ? label : `${label} (national average)`;
+  const slider = document.getElementById('yearSlider');
+  const idx = Number(slider.value);
+  const wrap = document.getElementById('trendChartWrap');
+  if (state.layer === 'prevalence_weighted_pct') {
+    const series = state.nationalSeries.hiv;
+    document.getElementById('trendYearLabel').textContent = series[idx] ? series[idx].survey_round : '';
+    wrap.innerHTML = trendSVG(series, 'prevalence_weighted_pct', 'survey_round', SPARK_COLORS.prevalence_weighted_pct, idx, trendW(), 120);
+    setTrendFoot(null, null);
+    document.getElementById('trendSentence').innerHTML = hivSentenceHTML(series).replace('HIV prevalence', 'Nationally, HIV prevalence');
+  } else if (state.layer === 'pf_parasite_rate' || state.layer === 'pf_incidence_rate') {
+    const series = state.nationalSeries.malaria;
+    document.getElementById('trendYearLabel').textContent = series[idx] ? series[idx].year : '';
+    wrap.innerHTML = trendSVG(series, state.layer, 'year', SPARK_COLORS[state.layer] || '#2b2825', idx, trendW(), 120, smoothOpts);
+    setTrendFoot(series, state.layer);
+  } else if (state.layer === 'flooded_min' || state.layer === 'pct_change') {
+    const series = state.nationalSeries.access || [];
+    document.getElementById('trendYearLabel').textContent = series[idx] ? series[idx].year : '';
+    wrap.innerHTML = trendSVG(series, state.layer, 'year', SPARK_COLORS[state.layer] || '#2b2825', idx, trendW(), 120, smoothOpts);
+    setTrendFoot(series, state.layer);
+  } else if (isTB) {
+    const series = state.nationalSeries.tb;
+    document.getElementById('trendYearLabel').textContent = series[idx] ? series[idx].year : '';
+    wrap.innerHTML = trendSVG(series, state.layer, 'year', SPARK_COLORS[state.layer] || '#2b2825', idx, trendW(), 120, smoothOpts);
+    setTrendFoot(series, state.layer);
+  } else {
+    const series = state.nationalSeries.climate;
+    document.getElementById('trendYearLabel').textContent = series[idx] ? series[idx].year : '';
+    wrap.innerHTML = trendSVG(series, state.layer, 'year', SPARK_COLORS[state.layer] || '#2b2825', idx, trendW(), 120, smoothOpts);
+    setTrendFoot(series, state.layer);
+  }
+}
+
+// "What does a typical month look like here" -- mean temp / total rain
+// per calendar month, averaged across all years, not a single year's
+// trend. Independent of the map's selected layer -- always both metrics
+// available via the Rain/Temp toggle, same as the daily calendar below.
+async function loadClimatology() {
+  const res = await fetch(`/api/monthly_climatology?name=${encodeURIComponent(state.selectedDistrict)}&level=${state.level}&compare_year=${state.climatologyCompareYear}`);
+  const result = await res.json();
+  state.climatologyData = result.climatology;
+  state.climatologyYearData = result.year_data;
+  renderClimatologyChart();
+}
+
+function renderClimatologyChart() {
+  const wrap = document.getElementById('climatologyChartWrap');
+  const rows = state.climatologyData;
+  const yearRows = state.climatologyYearData;
+  if (!wrap || !rows) return;
+  const metric = state.climatologyMetric;
+  const key = metric === 'temp' ? 'mean_tmax_c' : 'total_precip_mm';
+  const barColor = metric === 'temp' ? SPARK_COLORS.mean_tmax_c : SPARK_COLORS.total_precip_mm;
+  const lineColor = '#2b2825'; // one consistent overlay colour regardless of metric, so bars-vs-line is always the visual distinction, not colour clashing with the per-metric bar colour
+  const unit = metric === 'temp' ? '°C' : 'mm';
+  const MONTH_NAMES = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  const yearByMonth = {};
+  if (yearRows) yearRows.forEach(r => { yearByMonth[r.month] = r[key]; });
+  const baseVals = rows.map(r => r[key] || 0);
+  const yearVals = Object.values(yearByMonth).filter(v => v !== null && v !== undefined);
+  const lo = Math.min(...baseVals, ...yearVals, 0), hi = Math.max(...baseVals, ...yearVals, 1);
+  const width = 254, height = 110, padLeft = 26, padRight = 4, padTop = 6, padBottom = 16;
+  const plotW = width - padLeft - padRight, plotH = height - padTop - padBottom;
+  const slot = plotW / 12, barW = slot * 0.6;
+  const yFor = v => padTop + plotH - ((v - lo) / (hi - lo || 1)) * plotH;
+
+  const bars = rows.map((r, i) => {
+    const v = r[key] || 0;
+    const x = padLeft + i * slot + (slot - barW) / 2;
+    const y = yFor(v);
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0, padTop + plotH - y).toFixed(1)}" fill="${barColor}" fill-opacity="0.45"><title>Average ${MONTH_NAMES[i]}: ${v}${unit}</title></rect>` +
+      `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 4}" font-size="8" fill="var(--muted)" text-anchor="middle">${MONTH_NAMES[i]}</text>`;
+  }).join('');
+
+  let overlay = '';
+  if (yearRows) {
+    const pts = rows.map((r, i) => {
+      const v = yearByMonth[r.month];
+      if (v === null || v === undefined) return null;
+      return [padLeft + (i + 0.5) * slot, yFor(v), v];
+    });
+    const valid = pts.filter(p => p !== null);
+    const path = valid.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const dots = valid.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" fill="${lineColor}"><title>${state.climatologyCompareYear}: ${p[2]}${unit}</title></circle>`).join('');
+    overlay = `<path d="${path}" fill="none" stroke="${lineColor}" stroke-width="1.75"/>${dots}`;
+  }
+
+  wrap.innerHTML = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}">
+    <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="var(--border)" stroke-width="1"/>
+    <text x="${padLeft - 4}" y="${padTop + 6}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(hi)}${unit}</text>
+    ${bars}${overlay}
+  </svg>
+  <div class="climatology-legend">
+    <span class="cl-swatch cl-bar" style="background:${barColor}"></span>1990&ndash;2025 average
+    <span class="cl-swatch cl-line" style="background:${lineColor}"></span>${state.climatologyCompareYear}
+  </div>`;
+}
+
+// Day-by-day calendar for one month -- month/year nav, Rain/Temp toggle.
+// Colours are scaled relative to that month's own min/max, same per-view
+// convention the map legends already use (not a fixed absolute scale).
+const MONTH_NAMES_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+async function loadDailyCalendar() {
+  const res = await fetch(`/api/daily?name=${encodeURIComponent(state.selectedDistrict)}&level=${state.level}&year=${state.calendarYear}&month=${state.calendarMonth}`);
+  state.calendarData = await res.json();
+  document.getElementById('calMonthSelect').value = state.calendarMonth;
+  document.getElementById('calYearSelect').value = state.calendarYear;
+  renderCalendarGrid();
+}
+
+function renderCalendarGrid() {
+  const wrap = document.getElementById('calendarGridWrap');
+  const legendWrap = document.getElementById('calendarLegendWrap');
+  const data = state.calendarData;
+  if (!wrap || !data) return;
+  const metric = state.calendarMetric;
+  const key = metric === 'temp' ? 'tmax_c' : 'precip_mm';
+  const ramp = metric === 'temp' ? COLOR_RAMPS.mean_tmax_c : COLOR_RAMPS.total_precip_mm;
+  const unit = metric === 'temp' ? '°C' : 'mm';
+  const byDate = {};
+  data.days.forEach(d => { byDate[d.date] = d; });
+  const vals = data.days.map(d => d[key]).filter(v => v !== null && v !== undefined);
+  const lo = Math.min(...vals, 0), hi = Math.max(...vals, 1);
+
+  const daysInMonth = new Date(state.calendarYear, state.calendarMonth, 0).getDate();
+  const startWeekday = (new Date(state.calendarYear, state.calendarMonth - 1, 1).getDay() + 6) % 7; // Monday=0
+
+  let cells = '';
+  for (let i = 0; i < startWeekday; i++) cells += '<div class="cal-cell cal-empty"></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${state.calendarYear}-${String(state.calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const rec = byDate[dateStr];
+    const v = rec ? rec[key] : null;
+    const bg = (v === null || v === undefined) ? '#f0efec' : colorFor(v, lo, hi, ramp);
+    const label = (v === null || v === undefined) ? 'no data' : `${v}${unit}`;
+    cells += `<div class="cal-cell" style="background:${bg}" title="${dateStr}: ${label}"><span class="cal-day">${day}</span></div>`;
+  }
+  const dowRow = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+  wrap.innerHTML = `<div class="cal-grid">${dowRow}${cells}</div>`;
+  legendWrap.innerHTML = `<div class="cal-legend-gradient" style="background:linear-gradient(to right, ${ramp.join(',')})"></div>
+    <div class="cal-legend-labels"><span>${lo.toFixed(1)}</span><span>${hi.toFixed(1)}</span></div>`;
+}
+
+async function openDetail(name, bounds) {
+  state.selectedDistrict = name;
+  if (state.geoLayer) state.geoLayer.setStyle(styleFeature);
+  if (bounds) map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 9, duration: 0.6 });
+  const panel = document.getElementById('detailPanel');
+  panel.classList.add('visible');
+  document.getElementById('detailTitle').textContent = name;
+  document.getElementById('detailBody').innerHTML = '<div style="font-size:12px;color:var(--muted)">Loading history&hellip;</div>';
+
+  const endpoint = state.level === 'province' ? 'province_timeseries' : 'district_timeseries';
+  const [res, dres] = await Promise.all([
+    fetch(`/api/${endpoint}?${state.level}=${encodeURIComponent(name)}`),
+    state.level === 'province' ? fetch(`/api/province_districts?province=${encodeURIComponent(name)}`) : Promise.resolve(null),
+  ]);
+  const d = await res.json();
+  const districtsSeries = dres ? (await dres.json()).districts : {};
+
+  const latestClimate = d.climate[d.climate.length - 1];
+  const latestHiv = d.hiv[d.hiv.length - 1];
+  const latestMalaria = d.malaria && d.malaria.length ? d.malaria[d.malaria.length - 1] : null;
+
+  // District detail shows that one district's own 90th-pctile threshold;
+  // province detail shows the range across its districts instead -- a
+  // single threshold doesn't exist at province level, each district has
+  // its own.
+  const heatThresholdLabel = state.level === 'province'
+    ? (d.heat_threshold_range_c ? `${d.heat_threshold_range_c[0]}&ndash;${d.heat_threshold_range_c[1]}&deg;C across districts` : '&ndash;')
+    : `&gt;${d.heat_threshold_c ?? '&ndash;'}&deg;C, this district's own 90th pctile`;
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-tabs">
+      <button class="detail-tab-btn active" data-tab="trends">Trends</button>
+      <button class="detail-tab-btn" data-tab="seasonality">Seasonality</button>
+    </div>
+    <div id="trendsTab">
+      <div class="subtab-row">
+        <button class="subtab-btn active" data-subtab="climateSub">Climate</button>
+        <button class="subtab-btn" data-subtab="healthSub">Health</button>
+      </div>
+      <div class="smooth-row" id="detailToggles">${smoothTogglesHTML()}</div>
+      <div id="climateSub">
+        <div id="mchartNote" style="font-size:10.5px;color:var(--muted);min-height:13px"></div>
+        ${state.level === 'province' ? '<div style="font-size:10.5px;color:var(--muted);margin-bottom:4px">Bold = province average; thin lines = each district (hover a point for its name). Charts follow the year slider. Thick line = 3-year average, dashed = straight-line trend over the full period.</div>' : '<div style="font-size:10.5px;color:var(--muted);margin-bottom:4px">Charts follow the year slider. Thick line = 3-year average, dashed = straight-line trend over the full period.</div>'}
+        <div class="detail-block">
+          <h4>Mean daily max temp, &deg;C (${d.climate[0]?.year}&ndash;${latestClimate?.year})</h4>
+          <div class="stat">${latestClimate ? latestClimate.mean_tmax_c + '&deg;C' : '&ndash;'} in ${latestClimate?.year}</div>
+          <div class="mchart" data-i="0"></div>
+        </div>
+        <div class="detail-block">
+          <h4>Extreme heat days / year (${heatThresholdLabel})</h4>
+          <div class="stat">${latestClimate ? latestClimate.heat_days : '&ndash;'} in ${latestClimate?.year}</div>
+          <div class="mchart" data-i="1"></div>
+        </div>
+        <div class="detail-block">
+          <h4>Total annual precipitation, mm</h4>
+          <div class="stat">${latestClimate ? Math.round(latestClimate.total_precip_mm) + 'mm' : '&ndash;'} in ${latestClimate?.year}</div>
+          <div class="mchart" data-i="2"></div>
+        </div>
+        <div class="detail-block">
+          <h4>Heavy rain days / year (&ge;20mm)</h4>
+          <div class="stat">${latestClimate ? latestClimate.heavy_rain_days : '&ndash;'} in ${latestClimate?.year}</div>
+          <div class="mchart" data-i="3"></div>
+        </div>
+      </div>
+      <div id="healthSub" style="display:none;">
+        <div class="detail-block">
+          <h4>HIV prevalence, weighted (DHS rounds)</h4>
+          <div class="stat">${latestHiv ? latestHiv.prevalence_weighted_pct + '%' : '&ndash;'} in ${latestHiv?.survey_round}</div>
+          <div class="mchart" data-i="4"></div>
+        </div>
+        <div class="detail-block">
+          <h4>Malaria prevalence, PfPR2-10 (${d.malaria?.[0]?.year}&ndash;${latestMalaria?.year})</h4>
+          <div class="stat">${latestMalaria ? latestMalaria.pf_parasite_rate + '%' : '&ndash;'} in ${latestMalaria?.year}</div>
+          <div class="mchart" data-i="5"></div>
+        </div>
+        <div class="detail-block">
+          <h4>Malaria incidence, per 1,000/yr</h4>
+          <div class="stat">${latestMalaria ? latestMalaria.pf_incidence_rate : '&ndash;'} in ${latestMalaria?.year}</div>
+          <div class="mchart" data-i="6"></div>
+        </div>
+      </div>
+    </div>
+    <div id="seasonalityTab" style="display:none;">
+      <div class="detail-block">
+        <h4>Typical month, vs a chosen year</h4>
+        <div class="metric-toggle" data-target="climatology">
+          <button class="metric-btn active" data-metric="precip">Rain</button>
+          <button class="metric-btn" data-metric="temp">Temp</button>
+        </div>
+        <select id="climatologyYearSelect"></select>
+        <div id="climatologyChartWrap">Loading&hellip;</div>
+      </div>
+      <div class="detail-block">
+        <h4>Daily calendar</h4>
+        <div class="metric-toggle" data-target="calendar">
+          <button class="metric-btn active" data-metric="precip">Rain</button>
+          <button class="metric-btn" data-metric="temp">Temp</button>
+        </div>
+        <div class="calendar-nav">
+          <button id="calPrevBtn" type="button">&lsaquo;</button>
+          <select id="calMonthSelect"></select>
+          <select id="calYearSelect"></select>
+          <button id="calNextBtn" type="button">&rsaquo;</button>
+        </div>
+        <div id="calendarGridWrap">Loading&hellip;</div>
+        <div id="calendarLegendWrap"></div>
+      </div>
+    </div>
+  `;
+  state.detail = { name, d, districts: districtsSeries };
+  state.detailFollow = false;
+  renderDetailCharts();
+  state.climatologyMetric = 'precip';
+  state.climatologyCompareYear = state.dailyYears[state.dailyYears.length - 1];
+  state.calendarMetric = 'precip';
+  state.calendarYear = state.dailyYears[state.dailyYears.length - 1];
+  state.calendarMonth = 1;
+  const yearSelect = document.getElementById('climatologyYearSelect');
+  yearSelect.innerHTML = state.dailyYears.map(y => `<option value="${y}">${y}</option>`).join('');
+  yearSelect.value = state.climatologyCompareYear;
+  const calMonthSelect = document.getElementById('calMonthSelect');
+  calMonthSelect.innerHTML = MONTH_NAMES_FULL.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+  calMonthSelect.value = state.calendarMonth;
+  const calYearSelect = document.getElementById('calYearSelect');
+  calYearSelect.innerHTML = state.dailyYears.map(y => `<option value="${y}">${y}</option>`).join('');
+  calYearSelect.value = state.calendarYear;
+  loadClimatology();
+  loadDailyCalendar();
+}
+
+function closeDetail() {
+  state.selectedDistrict = null;
+  document.getElementById('detailPanel').classList.remove('visible');
+  if (state.geoLayer) state.geoLayer.setStyle(styleFeature);
+}
+
+const sparkTooltip = document.getElementById('sparkTooltip');
+function showSparkTooltip(target) {
+  const rect = target.getBoundingClientRect();
+  sparkTooltip.textContent = `${target.dataset.label}: ${target.dataset.value}`;
+  sparkTooltip.style.left = (rect.left + rect.width / 2) + 'px';
+  sparkTooltip.style.top = rect.top + 'px';
+  sparkTooltip.style.display = 'block';
+}
+function hideSparkTooltip() { sparkTooltip.style.display = 'none'; }
+// Delegated on document (not just #detailBody) so it also covers the
+// trend strip's chart above the map, which gets the same click/hover
+// value+year tooltip on its points.
+document.addEventListener('mouseover', (e) => { if (e.target.classList.contains('spark-pt')) showSparkTooltip(e.target); });
+document.addEventListener('mouseout', (e) => { if (e.target.classList.contains('spark-pt')) hideSparkTooltip(); });
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('spark-pt')) { e.stopPropagation(); showSparkTooltip(e.target); }
+  else hideSparkTooltip();
+});
+
+// Scoped to #boundaryToggle specifically -- .level-btn is also reused (for matching
+// visual style only) by #layerCategoryToggle's Climate/Health/Correlation tabs, which
+// have data-category, not data-level. An unscoped selector here used to also catch
+// clicks on those category tabs and, since they have no data-level, set state.level to
+// undefined on every category switch -- the actual cause of the correlation view (and
+// every other layer, though less visibly) rendering as all grey/no-data after switching
+// categories: state.valuesByDistrict ended up keyed by the literal string "undefined"
+// instead of real district names.
+document.querySelectorAll('#boundaryToggle .level-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (btn.dataset.level === state.level) return;
+    document.querySelectorAll('#boundaryToggle .level-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.level = btn.dataset.level;
+    closeDetail();
+    setLoading(true);
+    await loadBoundaries();
+    if (state.layer === 'composite_score') loadRanking(); else await loadLayerData();
+    setLoading(false);
+    saveViewState();
+  });
+});
+
+// Delegated on #detailBody (not the buttons themselves) because
+// openDetail() replaces detailBody's innerHTML wholesale on every district
+// click -- any listener bound directly to a button inside it would be
+// destroyed along with the old markup.
+document.getElementById('detailBody').addEventListener('click', (e) => {
+  const tabBtn = e.target.closest('.detail-tab-btn');
+  if (tabBtn) {
+    document.querySelectorAll('.detail-tab-btn').forEach(b => b.classList.toggle('active', b === tabBtn));
+    document.getElementById('trendsTab').style.display = tabBtn.dataset.tab === 'trends' ? 'block' : 'none';
+    document.getElementById('seasonalityTab').style.display = tabBtn.dataset.tab === 'seasonality' ? 'block' : 'none';
+    return;
+  }
+  // Climate/Health split within Trends -- 7 stacked blocks (4 climate + HIV + 2 malaria)
+  // in one scroll was too much at once; this groups them so only one set of ~3-4 shows
+  // at a time, same pattern as the Rain/Temp metric-toggle elsewhere in this panel.
+  const subtabBtn = e.target.closest('.subtab-btn');
+  if (subtabBtn) {
+    const row = subtabBtn.closest('.subtab-row');
+    row.querySelectorAll('.subtab-btn').forEach(b => b.classList.toggle('active', b === subtabBtn));
+    document.getElementById('climateSub').style.display = subtabBtn.dataset.subtab === 'climateSub' ? 'block' : 'none';
+    document.getElementById('healthSub').style.display = subtabBtn.dataset.subtab === 'healthSub' ? 'block' : 'none';
+    return;
+  }
+  const metricBtn = e.target.closest('.metric-btn');
+  if (metricBtn) {
+    const group = metricBtn.closest('.metric-toggle');
+    group.querySelectorAll('.metric-btn').forEach(b => b.classList.remove('active'));
+    metricBtn.classList.add('active');
+    if (group.dataset.target === 'climatology') { state.climatologyMetric = metricBtn.dataset.metric; renderClimatologyChart(); }
+    else { state.calendarMetric = metricBtn.dataset.metric; renderCalendarGrid(); }
+    return;
+  }
+  if (e.target.id === 'calPrevBtn' || e.target.id === 'calNextBtn') {
+    const delta = e.target.id === 'calPrevBtn' ? -1 : 1;
+    let m = state.calendarMonth + delta, y = state.calendarYear;
+    if (m < 1) { m = 12; y -= 1; } else if (m > 12) { m = 1; y += 1; }
+    const minYear = state.dailyYears[0], maxYear = state.dailyYears[state.dailyYears.length - 1];
+    if (y < minYear) { y = minYear; m = 1; }
+    if (y > maxYear) { y = maxYear; m = 12; }
+    state.calendarYear = y; state.calendarMonth = m;
+    loadDailyCalendar();
+  }
+});
+document.getElementById('detailBody').addEventListener('change', (e) => {
+  if (e.target.id === 'climatologyYearSelect') {
+    state.climatologyCompareYear = Number(e.target.value);
+    loadClimatology();
+  } else if (e.target.id === 'calMonthSelect') {
+    state.calendarMonth = Number(e.target.value);
+    loadDailyCalendar();
+  } else if (e.target.id === 'calYearSelect') {
+    state.calendarYear = Number(e.target.value);
+    loadDailyCalendar();
+  }
+});
+
+document.getElementById('detailCloseBtn').addEventListener('click', closeDetail);
+document.getElementById('infoBtn').addEventListener('click', () => document.getElementById('methodologyModal').classList.add('visible'));
+document.getElementById('methodCloseBtn').addEventListener('click', () => document.getElementById('methodologyModal').classList.remove('visible'));
+document.getElementById('methodologyModal').addEventListener('click', (e) => { if (e.target.id === 'methodologyModal') e.currentTarget.classList.remove('visible'); });
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (state.playTimer) { stopPlayback(); return; }
+  const slider = document.getElementById('yearSlider');
+  document.getElementById('playBtn').classList.add('playing');
+  document.getElementById('playBtn').innerHTML = '&#10073;&#10073;';
+  // Play always restarts the animation from the earliest year/round, not
+  // wherever the slider happens to be -- without this, a position
+  // restored from a previous session (saveViewState) would make playback
+  // look like it "starts" partway through and wraps oddly, instead of
+  // running the full sequence a viewer expects from pressing play.
+  slider.value = 0;
+  state.detailFollow = true;
+  loadLayerData();
+  state.playTimer = setInterval(() => {
+    let next = Number(slider.value) + 1;
+    if (next > Number(slider.max)) next = 0;
+    slider.value = next;
+    loadLayerData(true);
+  }, 1100);
+});
+
+// Shared by the desktop button stack and the mobile select -- same
+// layer-switch logic, two pickers pointed at it (the select exists only
+// because 8 stacked buttons don't fit a phone's height-capped sidebar).
+// Which category tab reveals each layer's button -- 10+ flat buttons plus the
+// correlation controls in one stack was the "too busy" clutter; grouping into
+// Climate/Health/Correlation and only ever showing one group's buttons at a time
+// is the fix. Mobile is unaffected (it already collapses to one <select>, see the
+// 820px media query, so this grouping only matters on the desktop button layout.
+const LAYER_CATEGORY = {
+  heat_days: 'climate', heatwave_days: 'climate', mean_tmax_c: 'climate',
+  heavy_rain_days: 'climate', total_precip_mm: 'climate',
+  prevalence_weighted_pct: 'health', pf_parasite_rate: 'health', pf_incidence_rate: 'health',
+  tb_incidence_100k: "health", tb_hiv_coinfection_pct: "health",
+  flooded_min: "health", pct_change: "health",
+  bivariate: 'correlation',
+};
+const CATEGORY_DEFAULT_LAYER = { climate: 'heat_days', health: 'prevalence_weighted_pct', correlation: 'bivariate' };
+
+function showLayerCategory(category) {
+  document.querySelectorAll('#layerCategoryToggle .level-btn').forEach(b => b.classList.toggle('active', b.dataset.category === category));
+  document.getElementById('climateLayerGroup').style.display = category === 'climate' ? 'block' : 'none';
+  document.getElementById('healthLayerGroup').style.display = category === 'health' ? 'block' : 'none';
+  document.getElementById('correlationLayerGroup').style.display = category === 'correlation' ? 'block' : 'none';
+}
+
+function selectLayer(layerKey) {
+  document.querySelectorAll('.layer-btn').forEach(b => b.classList.toggle('active', b.dataset.layer === layerKey));
+  document.getElementById('layerSelectMobile').value = layerKey;
+  state.layer = layerKey;
+  showLayerCategory(LAYER_CATEGORY[layerKey] || 'climate');
+  updateTimeControl();
+  loadLayerData();
+  saveViewState();
+}
+document.querySelectorAll('.layer-btn').forEach(btn => {
+  btn.addEventListener('click', () => selectLayer(btn.dataset.layer));
+});
+document.querySelectorAll('#layerCategoryToggle .level-btn').forEach(btn => {
+  // Correlation has exactly one "layer" (bivariate), so its tab selects that layer
+  // directly rather than revealing a group with a single redundant button to click
+  // again -- see the comment in correlationLayerGroup's markup.
+  btn.addEventListener('click', () => selectLayer(CATEGORY_DEFAULT_LAYER[btn.dataset.category]));
+});
+document.getElementById('layerSelectMobile').addEventListener('change', (e) => selectLayer(e.target.value));
+document.getElementById('bivariateClimateVar').addEventListener('change', () => {
+  if (state.layer === 'bivariate') { loadLayerData(); saveViewState(); }
+});
+document.getElementById('bivariateHealthVar').addEventListener('change', () => {
+  // Unlike the climate-var select above, switching health variable changes the whole
+  // time axis (HIV's 3 rounds vs. malaria's 26 annual years -- see currentTimeValues()),
+  // so the slider bounds/position need recomputing via updateTimeControl(), not just a
+  // data reload at whatever index the slider happened to be at.
+  if (state.layer === 'bivariate') { updateTimeControl(); loadLayerData(); saveViewState(); }
+});
+document.getElementById('yearSlider').addEventListener('input', () => { stopPlayback(); state.detailFollow = true; loadLayerData(); saveViewState(); });
+
+(async function init() {
+  setLoading(true);
+  const saved = loadViewState();
+  // Validate against the layers actually selectable right now (the real
+  // .layer-btn buttons in the DOM, not the LAYER_LABELS dict, which still
+  // has entries for persistent-risk/bivariate even while they're pulled
+  // from the UI) -- a stale localStorage entry pointing at either must
+  // fall back to the safe default, not silently re-enter a view with no
+  // button showing active.
+  const validLayers = [...document.querySelectorAll('.layer-btn')].map(b => b.dataset.layer);
+  if (saved && validLayers.includes(saved.layer)) state.layer = saved.layer;
+  if (saved && (saved.level === 'district' || saved.level === 'province')) state.level = saved.level;
+  document.querySelectorAll('#boundaryToggle .level-btn').forEach(b => b.classList.toggle('active', b.dataset.level === state.level));
+  document.querySelectorAll('.layer-btn').forEach(b => b.classList.toggle('active', b.dataset.layer === state.layer));
+  document.getElementById('layerSelectMobile').value = state.layer;
+  // Also fixes up #layerCategoryToggle's active state -- the .level-btn toggle just
+  // above (shared class with the District/Province toggle) only knows about
+  // data-level, not this toggle's data-category, so it leaves these buttons with no
+  // active one; this corrects that and shows the right group.
+  showLayerCategory(LAYER_CATEGORY[state.layer] || 'climate');
+  if (state.layer === 'bivariate') {
+    const bivSelect = document.getElementById('bivariateClimateVar');
+    if (saved && saved.bivariateClimateVar && [...bivSelect.options].some(o => o.value === saved.bivariateClimateVar)) {
+      bivSelect.value = saved.bivariateClimateVar;
+    }
+    const healthSelect = document.getElementById('bivariateHealthVar');
+    if (saved && saved.bivariateHealthVar && [...healthSelect.options].some(o => o.value === saved.bivariateHealthVar)) {
+      healthSelect.value = saved.bivariateHealthVar;
+    }
+  }
+
+  await Promise.all([loadBoundaries(), loadMeta(), loadNationalSeries()]);
+  updateTimeControl();
+
+  // Restore the remembered point on the time axis, only if it still exists
+  // on that axis -- if not found (e.g. the saved HIV round isn't one of
+  // the currently loaded rounds), updateTimeControl()'s own default
+  // (the earliest point) stands, which is always a valid, consistent
+  // state -- never a half-restored one.
+  if (saved) {
+    const values = currentTimeValues();
+    if (values) {
+      const bivariateUsesHiv = state.layer === 'bivariate' && document.getElementById('bivariateHealthVar').value === 'prevalence_weighted_pct';
+      const target = (state.layer === 'prevalence_weighted_pct' || bivariateUsesHiv) ? saved.hivRound : saved.climateYear;
+      const idx = values.indexOf(target);
+      if (idx >= 0) {
+        const slider = document.getElementById('yearSlider');
+        slider.value = idx;
+        document.getElementById('yearLabel').textContent = values[idx];
+        document.getElementById('mapYearBadge').textContent = values[idx];
+        renderTrendStrip();
+      }
+    }
+  }
+
+  await loadLayerData();
+})();
+
+// ---------------------------------------------------------------------------
+// AI assistant panel -- natural-language queries that either (a) set this app's own
+// real map/correlation controls (validated server-side against the live database, see
+// ai_agent.py) or (b) pull a chart from this app's own tables for a comparison the
+// built-in views can't show directly. aiMessages is the raw Anthropic-format history
+// sent back to /api/ai/chat every turn (stateless backend, no server session); aiTurns
+// is a separate, UI-shaped list this file renders from -- kept separate so rendering
+// never has to parse tool_use/tool_result blocks back out of the API format.
+// ---------------------------------------------------------------------------
+
+// Multi-session chat history (same structure/localStorage pattern as the sibling
+// PRECISE catalogue assistant: a sessions array, each {id, title, date, messages,
+// turns}, title auto-set from the first user message). aiMessages/aiTurns are always
+// a reference to the ACTIVE session's own arrays -- switching sessions reassigns both.
+const AI_SESS_KEY = 'climateHivAtlas_aiSessions_v1';
+let aiSessions = [];
+let aiSessId = null;
+let aiMessages = [];
+let aiTurns = [];
+
+function aiLoadSessions() {
+  try { return JSON.parse(localStorage.getItem(AI_SESS_KEY) || '[]'); } catch (e) { return []; }
+}
+function aiSaveSessions() {
+  try { localStorage.setItem(AI_SESS_KEY, JSON.stringify(aiSessions.slice(0, 30))); } catch (e) { /* not fatal */ }
+}
+// Called after every exchange -- updates (or creates) the active session's saved
+// record from the current aiMessages/aiTurns, titled from the first user message.
+function aiSaveActiveSession() {
+  if (!aiSessId || !aiTurns.length) return;
+  const firstUser = aiTurns.find(t => t.role === 'user');
+  const title = firstUser ? (firstUser.text.length > 60 ? firstUser.text.slice(0, 60) + '…' : firstUser.text) : 'New conversation';
+  const record = { id: aiSessId, title, date: new Date().toISOString(), messages: aiMessages, turns: aiTurns };
+  const idx = aiSessions.findIndex(s => s.id === aiSessId);
+  if (idx >= 0) aiSessions[idx] = record; else aiSessions.unshift(record);
+  aiSaveSessions();
+  renderAiSidebar();
+}
+function renderAiSidebar() {
+  const list = document.getElementById('aiSessList');
+  if (!aiSessions.length) {
+    list.innerHTML = '<div class="ai-sess-empty">No conversations yet. Ask something to start one.</div>';
+    return;
+  }
+  list.innerHTML = aiSessions.map(s => {
+    const d = new Date(s.date);
+    const dateStr = isNaN(d) ? '' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return `<div class="ai-sess${s.id === aiSessId ? ' active' : ''}" data-sess-id="${s.id}">${s.title}<div class="ai-sess-date">${dateStr}</div></div>`;
+  }).join('');
+  list.querySelectorAll('.ai-sess').forEach(el => {
+    el.addEventListener('click', () => aiSwitchSession(el.dataset.sessId));
+  });
+}
+function aiSwitchSession(id) {
+  const sess = aiSessions.find(s => s.id === id);
+  if (!sess) return;
+  aiSessId = sess.id;
+  aiMessages = sess.messages;
+  aiTurns = sess.turns;
+  document.getElementById('aiChatHistory').innerHTML = '';
+  if (aiTurns.length === 0) renderAiEmptyState();
+  else aiTurns.forEach(renderAiTurn);
+  renderAiSidebar();
+  aiCloseSidebarMobile();
+}
+function aiStartNewSession() {
+  aiSessId = 'aisess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  aiMessages = [];
+  aiTurns = [];
+  document.getElementById('aiChatHistory').innerHTML = '';
+  renderAiEmptyState();
+  renderAiSidebar();
+  aiCloseSidebarMobile();
+  document.getElementById('aiInput').focus();
+}
+function aiToggleSidebarMobile() {
+  document.getElementById('aiSidebar').classList.toggle('ai-sidebar-open');
+  document.getElementById('aiSidebarScrim').classList.toggle('show');
+}
+function aiCloseSidebarMobile() {
+  document.getElementById('aiSidebar').classList.remove('ai-sidebar-open');
+  document.getElementById('aiSidebarScrim').classList.remove('show');
+}
+
+function scrollAiToBottom() {
+  const history = document.getElementById('aiChatHistory');
+  history.scrollTop = history.scrollHeight;
+}
+
+const AI_EXAMPLES = [
+  'Show me malaria prevalence in Binga for 2015',
+  'Is malaria prevalence correlated with rainfall across districts?',
+  'Which district has recorded the most extreme heat days ever?',
+  'What is the HIV prevalence trend in Mutare over time?',
+];
+
+function renderAiEmptyState() {
+  const history = document.getElementById('aiChatHistory');
+  const div = document.createElement('div');
+  div.id = 'aiEmptyState';
+  div.innerHTML = `<div>What would you like to know?</div>
+    <div class="examples">${AI_EXAMPLES.map(ex => `<button class="example-btn">${ex}</button>`).join('')}</div>`;
+  history.appendChild(div);
+  div.querySelectorAll('.example-btn').forEach((btn, i) => {
+    btn.addEventListener('click', () => sendAiMessage(AI_EXAMPLES[i]));
+  });
+}
+
+function scatterChartSVG(points, xLabel, yLabel, width = 400, height = 280) {
+  if (!points || points.length === 0) return '<div style="font-size:12px;color:var(--muted)">No data</div>';
+  const padLeft = 48, padRight = 12, padTop = 12, padBottom = 32;
+  const plotW = width - padLeft - padRight, plotH = height - padTop - padBottom;
+  const xVals = points.map(p => p.x), yVals = points.map(p => p.y);
+  const xLo = Math.min(...xVals), xHi = Math.max(...xVals);
+  const yLo = Math.min(...yVals), yHi = Math.max(...yVals);
+  const xFor = v => padLeft + ((v - xLo) / ((xHi - xLo) || 1)) * plotW;
+  const yFor = v => padTop + plotH - ((v - yLo) / ((yHi - yLo) || 1)) * plotH;
+  const dots = points.map(p =>
+    `<circle cx="${xFor(p.x).toFixed(1)}" cy="${yFor(p.y).toFixed(1)}" r="3.5" fill="var(--accent)" fill-opacity="0.75">` +
+    `<title>${p.place}: ${xLabel} ${Number(p.x).toLocaleString()}, ${yLabel} ${Number(p.y).toLocaleString()}</title></circle>`
+  ).join('');
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${padTop + plotH}" stroke="var(--border)"/>
+    <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="var(--border)"/>
+    <text x="${padLeft - 6}" y="${padTop + 4}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(yHi)}</text>
+    <text x="${padLeft - 6}" y="${padTop + plotH}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(yLo)}</text>
+    <text x="${padLeft}" y="${height - 6}" font-size="9" fill="var(--muted)">${Math.round(xLo)}</text>
+    <text x="${width - padRight}" y="${height - 6}" font-size="9" fill="var(--muted)" text-anchor="end">${Math.round(xHi)}</text>
+    <text x="${padLeft + plotW / 2}" y="${height - 6}" font-size="9" fill="var(--muted)" text-anchor="middle">${xLabel}</text>
+    <text x="12" y="${padTop + plotH / 2}" font-size="9" fill="var(--muted)" text-anchor="middle" transform="rotate(-90 12 ${padTop + plotH / 2})">${yLabel}</text>
+    ${dots}
+  </svg>`;
+}
+
+function barChartSVG(points, xLabel, width = 400) {
+  if (!points || points.length === 0) return '<div style="font-size:12px;color:var(--muted)">No data</div>';
+  const shown = points.slice(0, 15);
+  const rowH = 20, padLeft = 110, padRight = 56, padTop = 4;
+  const height = padTop + shown.length * rowH + 4;
+  const plotW = width - padLeft - padRight;
+  const hi = Math.max(...shown.map(p => Math.abs(p.value)), 1);
+  const bars = shown.map((p, i) => {
+    const y = padTop + i * rowH;
+    const w = Math.max(1, (Math.abs(p.value) / hi) * plotW);
+    return `<text x="${padLeft - 6}" y="${y + rowH / 2 + 3}" font-size="10" fill="var(--text)" text-anchor="end">${p.place}</text>` +
+      `<rect x="${padLeft}" y="${y + 3}" width="${w.toFixed(1)}" height="${rowH - 7}" fill="var(--accent)" fill-opacity="0.8"/>` +
+      `<text x="${padLeft + w + 5}" y="${y + rowH / 2 + 3}" font-size="9" fill="var(--muted)">${Number(p.value).toLocaleString()}</text>`;
+  }).join('');
+  const note = points.length > 15 ? `<text x="${padLeft}" y="${height + 10}" font-size="9" fill="var(--muted)">+ ${points.length - 15} more not shown</text>` : '';
+  return `<svg width="${width}" height="${height + (points.length > 15 ? 16 : 0)}" viewBox="0 0 ${width} ${height + (points.length > 15 ? 16 : 0)}">${bars}${note}</svg>`;
+}
+
+function renderAiActionCard(action) {
+  const history = document.getElementById('aiChatHistory');
+  const card = document.createElement('div');
+  card.className = 'ai-action-card';
+  if (action.type === 'set_view') {
+    const summary = action.mode === 'correlation'
+      ? `${LAYER_LABELS[action.health_metric] || action.health_metric} &times; ${LAYER_LABELS[action.climate_metric] || action.climate_metric} &middot; ${action.level} &middot; ${action.time_value}`
+      : `${LAYER_LABELS[action.metric] || action.metric} &middot; ${action.level} &middot; ${action.time_value}${action.place ? ' &middot; ' + action.place : ''}`;
+    card.innerHTML = `<h4>Map view</h4><div>${summary}</div>`;
+    const btn = document.createElement('button');
+    btn.className = 'view-btn';
+    btn.textContent = 'View on map';
+    btn.addEventListener('click', () => applyAiSetView(action));
+    card.appendChild(btn);
+  } else if (action.type === 'chart_query') {
+    const title = action.chart_type === 'scatter' ? `${action.x_label} vs ${action.y_label} (${action.time_value})`
+      : action.chart_type === 'bar' ? `${action.x_label}, ranked (${action.time_value})`
+      : `${action.x_label} over time, ${action.place}`;
+    const heading = action.chart_type === 'scatter' ? 'Scatter' : action.chart_type === 'bar' ? 'Ranking' : 'Trend';
+    card.innerHTML = `<h4>${heading}</h4><div style="margin-bottom:6px;">${title}</div>`;
+    const wrap = document.createElement('div');
+    if (action.chart_type === 'scatter') wrap.innerHTML = scatterChartSVG(action.points, action.x_label, action.y_label);
+    else if (action.chart_type === 'bar') wrap.innerHTML = barChartSVG(action.points, action.x_label);
+    else wrap.innerHTML = sparklineSVG(action.points, 'value', 'time', '#8a3b2b', 340, 110);
+    card.appendChild(wrap);
+  } else if (action.type === 'find_extreme') {
+    const dirWord = action.direction === 'max' ? 'Highest' : 'Lowest';
+    const unit = LAYER_UNITS[action.metric] || '';
+    const val = action.value === null || action.value === undefined ? '–' : Number(action.value).toLocaleString(undefined, { maximumFractionDigits: 1 });
+    card.innerHTML = `<h4>${dirWord} on record</h4>` +
+      `<div style="font-size:16px;font-weight:600;margin-bottom:2px;">${val}${unit}</div>` +
+      `<div>${action.metric_label} &middot; ${action.place || '–'}${action.time !== null && action.time !== undefined ? ', ' + action.time : ''}</div>`;
+    if (action.place) {
+      const isNational = action.place === 'Zimbabwe (national)';
+      const btn = document.createElement('button');
+      btn.className = 'view-btn';
+      btn.textContent = 'View on map';
+      btn.addEventListener('click', () => applyAiSetView({
+        mode: 'single', metric: action.metric, level: action.level,
+        time_value: String(action.time), place: isNational ? undefined : action.place,
+      }));
+      card.appendChild(btn);
+    }
+  } else if (action.type === 'find_daily_extreme') {
+    const dirWord = action.direction === 'max' ? 'Highest' : 'Lowest';
+    const unit = action.metric === 'tmax_c' ? '°C' : 'mm';
+    const val = action.value === null || action.value === undefined ? '–' : Number(action.value).toLocaleString(undefined, { maximumFractionDigits: 1 });
+    // No "View on map" here -- this app's choropleth layers are all annual, there's
+    // no map state that represents a single day, so there's nothing valid to send
+    // applyAiSetView to.
+    card.innerHTML = `<h4>${dirWord} single day on record</h4>` +
+      `<div style="font-size:16px;font-weight:600;margin-bottom:2px;">${val}${unit}</div>` +
+      `<div>${action.metric_label} &middot; ${action.place || '–'}${action.time ? ', ' + action.time : ''}</div>`;
+  }
+  history.appendChild(card);
+  scrollAiToBottom();
+}
+
+// Escape first, THEN apply markdown -- the model's own text still goes through this
+// (not raw trusted HTML), so this order is what keeps it from being able to inject
+// real markup via its response text, same discipline as rendering any external text.
+function aiEscapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function aiRenderMarkdown(text) {
+  let s = aiEscapeHtml(text);
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return s;
+}
+
+function renderAiTurn(turn) {
+  const history = document.getElementById('aiChatHistory');
+  if (turn.role === 'user' || turn.role === 'error') {
+    const div = document.createElement('div');
+    div.className = turn.role === 'user' ? 'ai-msg user' : 'ai-msg error';
+    div.textContent = turn.text;
+    history.appendChild(div);
+  } else {
+    const div = document.createElement('div');
+    div.className = 'ai-msg assistant';
+    div.innerHTML = aiRenderMarkdown(turn.text);
+    history.appendChild(div);
+    (turn.actions || []).forEach(renderAiActionCard);
+  }
+  scrollAiToBottom();
+}
+
+async function sendAiMessage(text) {
+  if (!text || !text.trim()) return;
+  const existingEmpty = document.getElementById('aiEmptyState');
+  if (existingEmpty) existingEmpty.remove();
+
+  aiTurns.push({ role: 'user', text });
+  renderAiTurn(aiTurns[aiTurns.length - 1]);
+  aiMessages.push({ role: 'user', content: text });
+  document.getElementById('aiInput').value = '';
+  document.getElementById('aiInput').disabled = true;
+  document.getElementById('aiSendBtn').disabled = true;
+
+  const thinking = document.createElement('div');
+  thinking.id = 'aiThinking';
+  thinking.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+  document.getElementById('aiChatHistory').appendChild(thinking);
+  scrollAiToBottom();
+  // A real query usually takes 5-15s (an actual model call + validated tool lookups,
+  // not instant) -- past ~8s, say so explicitly rather than leave the three dots as
+  // the only signal, since "is this still working?" was a real complaint.
+  const slowNoteTimer = setTimeout(() => {
+    const note = document.createElement('div');
+    note.id = 'aiThinkingNote';
+    note.textContent = 'Still working. This one needs a closer look.';
+    document.getElementById('aiChatHistory').appendChild(note);
+    scrollAiToBottom();
+  }, 8000);
+
+  try {
+    const res = await fetch('/api/ai/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: aiMessages }),
+    });
+    const data = await res.json();
+    clearTimeout(slowNoteTimer);
+    thinking.remove();
+    document.getElementById('aiThinkingNote')?.remove();
+    if (!res.ok) {
+      aiTurns.push({ role: 'error', text: data.error || 'Something went wrong.' });
+      renderAiTurn(aiTurns[aiTurns.length - 1]);
+      return;
+    }
+    aiMessages = data.messages;
+    aiTurns.push({ role: 'assistant', text: data.text, actions: data.actions });
+    renderAiTurn(aiTurns[aiTurns.length - 1]);
+  } catch (e) {
+    clearTimeout(slowNoteTimer);
+    thinking.remove();
+    document.getElementById('aiThinkingNote')?.remove();
+    aiTurns.push({ role: 'error', text: 'Network error -- could not reach the assistant.' });
+    renderAiTurn(aiTurns[aiTurns.length - 1]);
+  } finally {
+    document.getElementById('aiInput').disabled = false;
+    document.getElementById('aiSendBtn').disabled = false;
+    document.getElementById('aiInput').focus();
+    aiSaveActiveSession();
+  }
+}
+
+// Translates a validated set_view action into real clicks on this app's own existing
+// controls (selectLayer, the boundary toggle, the bivariate selects, the year slider,
+// openDetail) rather than a separate rendering path -- the point of driving real
+// controls is that the result IS the ordinary, reproducible state of the app itself.
+// Closes the modal first -- it's a backdrop-covering overlay (see #aiModal), so the map
+// underneath isn't visible until it's closed; the conversation itself is preserved
+// (still in aiMessages/aiTurns, reachable again via the FAB) for continuing later.
+async function applyAiSetView(action) {
+  aiCloseModal();
+
+  if (action.level && action.level !== state.level) {
+    const btn = [...document.querySelectorAll('#boundaryToggle .level-btn')].find(b => b.dataset.level === action.level);
+    if (btn) btn.click();
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  if (action.mode === 'correlation') {
+    selectLayer('bivariate');
+    document.getElementById('bivariateHealthVar').value = action.health_metric;
+    document.getElementById('bivariateHealthVar').dispatchEvent(new Event('change'));
+    document.getElementById('bivariateClimateVar').value = action.climate_metric;
+    document.getElementById('bivariateClimateVar').dispatchEvent(new Event('change'));
+    await new Promise(r => setTimeout(r, 400));
+  } else {
+    selectLayer(action.metric);
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  const values = currentTimeValues();
+  if (values) {
+    const idx = values.map(String).indexOf(String(action.time_value));
+    if (idx >= 0) {
+      const slider = document.getElementById('yearSlider');
+      slider.value = idx;
+      slider.dispatchEvent(new Event('input'));
+    }
+  }
+
+  if (action.place) {
+    await new Promise(r => setTimeout(r, 300));
+    openDetail(action.place, null);
+  }
+}
+
+function aiOpenModal() {
+  document.getElementById('aiModal').classList.add('open');
+  document.getElementById('aiInput').focus();
+}
+function aiCloseModal() {
+  document.getElementById('aiModal').classList.remove('open');
+  aiCloseSidebarMobile();
+}
+
+document.getElementById('aiFab').addEventListener('click', aiOpenModal);
+document.getElementById('aiCloseBtn').addEventListener('click', aiCloseModal);
+document.getElementById('aiModal').addEventListener('click', (e) => { if (e.target.id === 'aiModal') aiCloseModal(); });
+document.getElementById('aiNewChatBtn').addEventListener('click', aiStartNewSession);
+document.getElementById('aiMenuToggle').addEventListener('click', aiToggleSidebarMobile);
+document.getElementById('aiSidebarScrim').addEventListener('click', aiCloseSidebarMobile);
+document.getElementById('aiClearAll').addEventListener('click', () => {
+  if (!confirm('Delete all saved conversations? This cannot be undone.')) return;
+  aiSessions = [];
+  aiSaveSessions();
+  aiStartNewSession();
+});
+document.getElementById('aiSendBtn').addEventListener('click', () => sendAiMessage(document.getElementById('aiInput').value));
+document.getElementById('aiInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendAiMessage(document.getElementById('aiInput').value);
+});
+
+// Survives a page reload (same per-browser localStorage convention as
+// saveViewState/loadViewState above) -- losing the conversation on every refresh was
+// part of what made the assistant feel broken/disposable rather than a real tool. Picks
+// up the most recent saved conversation (if any) as the active one; starts a fresh
+// session only when there's no history at all.
+(function initAiSessions() {
+  aiSessions = aiLoadSessions();
+  if (aiSessions.length) {
+    aiSessId = aiSessions[0].id;
+    aiMessages = aiSessions[0].messages;
+    aiTurns = aiSessions[0].turns;
+    aiTurns.forEach(renderAiTurn);
+  } else {
+    aiSessId = 'aisess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    renderAiEmptyState();
+  }
+  renderAiSidebar();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+[Unit]
+Description=Climate & Health Atlas (Flask)
+After=network.target
+
+[Service]
+User=rutendo
+Restart=always
+RestartSec=5
+WorkingDirectory=/home/USER/PRECISE/climate_hiv_atlas
+ExecStart=/opt/anaconda3/bin/python app.py
+Environment=PYTHONUNBUFFERED=1
+Environment=PORT=8506
+
+[Install]
+WantedBy=multi-user.target
