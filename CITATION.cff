@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "PALs Lab Tools"
+type: software
+abstract: >-
+  Open-source code for geospatial climate-and-health tools from Place Alert Labs (PALs Lab):
+  the Climate & Health Atlas, PALs Earth, flood and health-facility accessibility models,
+  exposure catalogues, Africa-wide road maps, course material and the PALs websites.
+authors:
+  - name: "Place Alert Labs (PALs Lab)"
+repository-code: "https://github.com/Shmron/pals-lab-tools"
+url: "https://placealert.org"
+license: MIT
+keywords:
+  - climate and health
+  - geospatial
+  - Earth observation
+  - Zimbabwe
+  - Sub-Saharan Africa
