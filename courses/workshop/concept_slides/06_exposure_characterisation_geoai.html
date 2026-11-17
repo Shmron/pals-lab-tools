@@ -1,0 +1,120 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Notebook 06 — Characterisation, EDA & GeoAI</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#f1f5f9; }
+.slide {
+  width:1280px; min-height:720px; margin:24px auto; padding:56px 64px;
+  background:#fff; box-shadow:0 4px 24px rgba(0,0,0,.12); position:relative;
+  page-break-after: always;
+}
+.kicker { color:#457b9d; font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+h1 { font-size:32px; color:#1d3557; margin:0 0 4px 0; }
+h2 { font-size:24px; color:#1d3557; margin:0 0 18px 0; border-left:5px solid #457b9d; padding-left:12px; }
+.sub { color:#6b7280; font-size:15px; margin-bottom:8px; }
+table { width:100%; border-collapse:collapse; font-size:14px; margin-top:8px; }
+th { background:#1d3557; color:#fff; text-align:left; padding:8px 10px; font-size:13px; }
+td { padding:7px 10px; border-bottom:1px solid #e5e7eb; font-size:13.5px; }
+tr:nth-child(even) td { background:#f8fafc; }
+.card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:16px 18px; }
+.card h3 { margin:0 0 8px 0; font-size:16px; color:#1d3557; }
+.card ul { margin:0; padding-left:18px; font-size:13.5px; color:#374151; }
+.card ul li { margin-bottom:6px; }
+.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:14px; }
+.grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-top:14px; }
+.stat { text-align:center; background:#f8fafc; border-radius:10px; padding:14px 8px; border:1px solid #e5e7eb; }
+.num { font-size:28px; font-weight:800; color:#457b9d; }
+.label { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+.diagram { background:#0f172a; color:#e2e8f0; border-radius:10px; padding:20px 24px; font-family:'Consolas','Monaco',monospace; font-size:14px; line-height:1.7; white-space:pre; margin-top:14px; }
+.callout { background:#eef6f0; border-left:5px solid #10b981; padding:12px 16px; border-radius:6px; margin-top:14px; font-size:14px; }
+.warn { background:#fef2f2; border-left:5px solid #e63946; padding:12px 16px; border-radius:6px; margin-top:14px; font-size:14px; }
+.tocode { background:#1d3557; color:#fff; border-radius:10px; padding:16px 20px; margin-top:16px; }
+.tocode b { color:#a8dadc; }
+.footer { position:absolute; bottom:24px; left:64px; right:64px; display:flex; justify-content:space-between; font-size:11px; color:#9ca3af; border-top:1px solid #e5e7eb; padding-top:8px; }
+.pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; color:#fff; background:#457b9d; }
+</style></head><body><div class="slide">
+  <div class="kicker">Concept Slides &nbsp;·&nbsp; Notebook 06</div>
+  <h1>Characterisation, EDA &amp; GeoAI</h1>
+  <div class="sub">30 minutes &nbsp;·&nbsp; 11 points + reflection &nbsp;·&nbsp; Capstone</div>
+  <div class="grid3" style="margin-top:30px">
+    <div class="stat"><div class="num">Join</div><div class="label">Timeline + exposure grid</div></div>
+    <div class="stat"><div class="num">Summarise</div><div class="label">Trimester-level exposure</div></div>
+    <div class="stat"><div class="num">Ask</div><div class="label">Plain-English GeoAI query</div></div>
+  </div>
+  <h2 style="margin-top:32px">By the end you can</h2>
+  <div class="card"><ul>
+    <li>Join the participant-day timeline to the exposure grid by location <i>and</i> date</li>
+    <li>Summarise daily exposures into trimester-level participant summaries</li>
+    <li>Produce maps including participant migration paths</li>
+    <li>Query a local DuckDB database with SQL — and with natural language, checking the SQL it generates</li>
+  </ul></div>
+  <div class="footer"><span>Notebook 06 — Characterisation, EDA & GeoAI</span><span>1 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Concept: from daily rows to one number per trimester</h2>
+  <p style="font-size:14.5px;color:#374151;line-height:1.6">
+    Notebook 04 gave us ~17,000 participant-day rows. Notebook 05 gave us ~567,000 grid-cell-day rows.
+    Joining them by <code>(grid_id, date)</code> gives every participant-day an environmental value — then we
+    collapse that down to something a person can reason about: <b>one row per participant per trimester.</b>
+  </p>
+  <div class="diagram">17,000 participant-days  ⋈  567,000 grid-cell-days   (join on grid_id + date)
+        │
+        ▼
+  participant-day-environment table  (still ~17,000 rows, now with temp/PM2.5/NDVI attached)
+        │   groupby(PID, trimester).mean()
+        ▼
+  participant_summary  (60 participants × 3 trimesters = 180 summary rows)</div>
+  <div class="callout"><b>Why migrants matter here:</b> a migrant's trimester 1 and trimester 3 locations have
+  different climate baselines — so the migrant/non-migrant exposure-delta comparison (Exercise 2) is the moment
+  Notebook 04's work pays off numerically, not just conceptually.</div>
+  <div class="footer"><span>Notebook 06 — Characterisation, EDA & GeoAI</span><span>2 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Concept: GeoAI — natural language to SQL, safely</h2>
+  <p style="font-size:14.5px;color:#374151;line-height:1.6">
+    The GeoAI box sends your question to an LLM (Claude Haiku) running on the PRECISE server, which returns
+    <b>one SQL SELECT statement</b> — shown to you before it runs.
+  </p>
+  <div class="diagram">"how many participants have PM2.5 above WHO guideline?"
+        │
+        ▼  (model receives only table/column names — never the data itself)
+SELECT COUNT(*) FROM participant_summary WHERE pm25_mean_t1 > 15
+        │
+        ▼  validated: only SELECT allowed — INSERT/UPDATE/DROP are blocked
+        ▼  shown to you  →  you check it matches your intent  →  then it runs</div>
+  <div class="warn"><b>The one rule that matters most in this whole module:</b> always read the generated SQL
+  before trusting the result. AI-generated SQL can misinterpret a question — the safeguard is a human checking it,
+  not the model being infallible.</div>
+  <div class="footer"><span>Notebook 06 — Characterisation, EDA & GeoAI</span><span>3 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Now in code — and the full course, in one table</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Four parts of this notebook</h3>
+      <ul>
+        <li><b>A — Join</b> (~10 min): attach environment to every participant-day</li>
+        <li><b>B — Characterisation</b> (~10 min): trimester summaries, migrant vs non-migrant deltas</li>
+        <li><b>C — EDA &amp; maps</b> (~10 min): four exploratory plots, migration-path map</li>
+        <li><b>D — DuckDB &amp; GeoAI</b> (~10–15 min): SQL by hand, then by plain English</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Final exercise</h3>
+      <ul>
+        <li>Ungraded reflection: run two of <i>your own</i> questions through GeoAI</li>
+        <li>Did the SQL match your intent? Did the result match your earlier plots?</li>
+      </ul>
+    </div>
+  </div>
+  <table style="margin-top:18px">
+    <tr><th>Step</th><th>Notebook</th><th>Output</th></tr>
+    <tr><td>Geocoded health data</td><td>01</td><td>Maps of facilities by type/district</td></tr>
+    <tr><td>Environmental grids</td><td>02</td><td>2×2 spatial maps of climate variables</td></tr>
+    <tr><td>Spatial join (static)</td><td>03</td><td>Environmental values attached to points</td></tr>
+    <tr><td>Time-varying location</td><td>04</td><td><code>participant_exposure_days.csv</code></td></tr>
+    <tr><td>EE extraction</td><td>05</td><td>Understanding of satellite data sources</td></tr>
+    <tr><td>Exposure characterisation</td><td>06</td><td>Trimester summaries → plots → SQL → GeoAI</td></tr>
+  </table>
+  <div class="footer"><span>Notebook 06 — Characterisation, EDA & GeoAI</span><span>4 / 4</span></div>
+</div></body></html>

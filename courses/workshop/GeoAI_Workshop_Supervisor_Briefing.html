@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GeoAI for Climate, Environment and Health — Supervisor Briefing</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#f1f5f9; }
+  .slide {
+    width:1280px; min-height:720px; margin:24px auto; padding:56px 64px;
+    background:#fff; box-shadow:0 4px 24px rgba(0,0,0,.12); position:relative;
+    page-break-after: always;
+  }
+  .kicker { color:#457b9d; font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+  h1 { font-size:34px; color:#1d3557; margin:0 0 4px 0; }
+  h2 { font-size:22px; color:#1d3557; margin:24px 0 10px 0; border-left:5px solid #457b9d; padding-left:12px; }
+  .sub { color:#6b7280; font-size:15px; margin-bottom:8px; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:28px; margin-top:18px; }
+  .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:18px; margin-top:14px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin-top:8px; }
+  th { background:#1d3557; color:#fff; text-align:left; padding:8px 10px; font-size:13px; }
+  td { padding:7px 10px; border-bottom:1px solid #e5e7eb; font-size:13.5px; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  .pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; color:#fff; }
+  .easy { background:#10b981; } .med { background:#f59e0b; } .hard { background:#e63946; }
+  .card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:16px 18px; }
+  .card h3 { margin:0 0 8px 0; font-size:16px; color:#1d3557; }
+  .card ul { margin:0; padding-left:18px; font-size:13.5px; color:#374151; }
+  .card ul li { margin-bottom:5px; }
+  .num { font-size:32px; font-weight:800; color:#457b9d; }
+  .label { font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+  .stat { text-align:center; background:#f8fafc; border-radius:10px; padding:16px 8px; border:1px solid #e5e7eb; }
+  .footer { position:absolute; bottom:24px; left:64px; right:64px; display:flex; justify-content:space-between; font-size:11px; color:#9ca3af; border-top:1px solid #e5e7eb; padding-top:8px; }
+  .reco { background:#eef6f0; border-left:5px solid #10b981; padding:12px 16px; border-radius:6px; margin-top:10px; font-size:14px; }
+  .risk { background:#fef2f2; border-left:5px solid #e63946; padding:12px 16px; border-radius:6px; margin-top:10px; font-size:14px; }
+  .flow { display:flex; align-items:center; gap:6px; margin-top:14px; font-size:13px; flex-wrap:wrap;}
+  .flowstep { background:#1d3557; color:#fff; padding:8px 14px; border-radius:6px; font-weight:600; }
+  .arrow { color:#9ca3af; font-size:18px; }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title / framing -->
+<div class="slide">
+  <div class="kicker">Supervisor Briefing &nbsp;·&nbsp; 16 June 2026</div>
+  <h1>GeoAI for Climate, Environment and Health</h1>
+  <div class="sub">A 3-hour hands-on workshop for the Zimbabwe Young Surveyors Network &nbsp;·&nbsp; 25 June 2026, Bulawayo</div>
+
+  <div class="grid3" style="margin-top:36px">
+    <div class="stat"><div class="num">6</div><div class="label">Notebooks</div></div>
+    <div class="stat"><div class="num">35 pts</div><div class="label">Auto-graded</div></div>
+    <div class="stat"><div class="num">180 min</div><div class="label">Total runtime</div></div>
+  </div>
+
+  <h2>What this is</h2>
+  <p style="font-size:15px;line-height:1.6;color:#374151">
+    A progressive, hands-on course that takes surveyors with basic Python from raw spatial health data
+    to a working <b>natural-language query interface</b> over a real exposure database — built around a realistic
+    pregnancy-cohort case study (heat &amp; air pollution exposure → birth outcomes).
+    It follows the <b>WorldQuant University</b> format: Concept&nbsp;→&nbsp;Worked example&nbsp;→&nbsp;Do-it-yourself&nbsp;→&nbsp;Auto-check.
+  </p>
+
+  <div class="flow">
+    <div class="flowstep">Spatial data</div><div class="arrow">→</div>
+    <div class="flowstep">Environmental grids</div><div class="arrow">→</div>
+    <div class="flowstep">Spatial join</div><div class="arrow">→</div>
+    <div class="flowstep">Exposure timelines</div><div class="arrow">→</div>
+    <div class="flowstep">Earth Engine</div><div class="arrow">→</div>
+    <div class="flowstep" style="background:#457b9d">GeoAI exploration</div>
+  </div>
+
+  <div class="footer"><span>CeSHHAR Zimbabwe · Place Alert Labs · Midlands State University</span><span>1 / 5</span></div>
+</div>
+
+<!-- SLIDE 2: What is covered, module by module -->
+<div class="slide">
+  <h2 style="margin-top:0">What's covered — module by module</h2>
+  <table>
+    <tr><th>#</th><th>Module</th><th>Core skill taught</th><th>Time</th><th>Pts</th><th>Difficulty</th></tr>
+    <tr><td>01</td><td>Spatial Health Data</td><td>Loading/plotting geocoded facility data, coordinate sanity checks</td><td>25 min</td><td>5</td><td><span class="pill easy">Foundational</span></td></tr>
+    <tr><td>02</td><td>Environmental Datasets</td><td>Gridded climate data structure, raster-style thinking</td><td>20 min</td><td>5</td><td><span class="pill easy">Foundational</span></td></tr>
+    <tr><td>03</td><td>The Spatial Join</td><td>Nearest-neighbour join (cKDTree) between points and grids</td><td>20 min</td><td>5</td><td><span class="pill med">Core technique</span></td></tr>
+    <tr><td>04</td><td>Exposure Timeline Generation</td><td>Assigning a moving person's exposure day-by-day using visit dates as anchors — handles migration mid-study</td><td>25 min</td><td>6</td><td><span class="pill hard">Conceptual leap</span></td></tr>
+    <tr><td>05</td><td>Earth Engine Extraction</td><td>Pulling real satellite variables (temp, AQ, NDVI, rainfall) via Earth Engine, with offline-safe fallback</td><td>20 min</td><td>3</td><td><span class="pill med">Applied</span></td></tr>
+    <tr><td>06</td><td>Characterisation, EDA &amp; GeoAI</td><td>Trimester-level exposure summaries, mapping, DuckDB + natural-language SQL assistant</td><td>30 min</td><td>11</td><td><span class="pill hard">Capstone</span></td></tr>
+  </table>
+  <div class="reco">
+    <b>Synthesis:</b> the course is deliberately a single narrative arc, not six unrelated demos — every module
+    feeds data forward into the next, ending with participants querying their own derived dataset in plain English.
+    That arc is the strongest selling point to lead with.
+  </div>
+  <div class="footer"><span>GeoAI Workshop — Module Map</span><span>2 / 5</span></div>
+</div>
+
+<!-- SLIDE 3: How it's covered + difficulty/pacing balance -->
+<div class="slide">
+  <h2 style="margin-top:0">How it's covered — pedagogy &amp; pacing</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Teaching method (per notebook)</h3>
+      <ul>
+        <li><b>Concept note</b> — short, plain-language framing of the problem</li>
+        <li><b>Worked example</b> — instructor-run, fully solved</li>
+        <li><b>Do-it-yourself</b> — student fills in stubs (nbgrader-stripped)</li>
+        <li><b>Auto-check</b> — instant ✅/❌ feedback, no waiting on a marker</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Difficulty curve</h3>
+      <ul>
+        <li>01–03 (65 min): <b>foundational</b> — pandas, plotting, joins. Gentle ramp.</li>
+        <li>04 (25 min): <b>conceptual peak</b> — temporal-spatial assignment logic is the hardest idea in the course</li>
+        <li>05 (20 min): <b>relief module</b> — lower point value, mostly observational, non-blocking if EE/internet fails</li>
+        <li>06 (30 min): <b>capstone</b> — synthesises everything into one query interface; highest reward-to-effort module</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="card">
+      <h3>Content balance</h3>
+      <ul>
+        <li>All data synthetic and locally generated — <b>zero dependency on venue internet</b> for the core path</li>
+        <li>Earth Engine is the only live-internet component, and it's explicitly non-blocking</li>
+        <li>Basemaps tuned (CartoDB tiles, fixed zoom) — full notebook runs in ~12–15s, not minutes</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Where time is "spent"</h3>
+      <ul>
+        <li>~36% of contact time (65/180 min) builds foundational skills surveyors mostly already half-know</li>
+        <li>~14% (25 min) on the one genuinely novel idea (timeline assignment)</li>
+        <li>~28% (50 min) on applied extraction + capstone GeoAI — the most memorable, most "wow" content</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span>GeoAI Workshop — Pedagogy &amp; Pacing</span><span>3 / 5</span></div>
+</div>
+
+<!-- SLIDE 4: GeoAI capstone + guardrails -->
+<div class="slide">
+  <h2 style="margin-top:0">The capstone: GeoAI in plain English</h2>
+  <p style="font-size:14.5px;color:#374151;line-height:1.6">
+    Notebook 06 ends with a free-text question box. A participant types a question like
+    <i>"how many participants have PM2.5 above the WHO guideline?"</i> — the question is sent to a Claude-backed
+    endpoint, translated to safe SQL, executed against their own DuckDB exposure database, and returned as a table
+    <b>with an auto-generated chart</b>, the same chart-selection logic used in the production PRECISE Catalogue
+    assistant ("Shmron AI").
+  </p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Guardrails already in place</h3>
+      <ul>
+        <li>Generated SQL is validated as read-only/safe before execution (no writes, no destructive statements)</li>
+        <li>Offline fallback: pre-written demo Q→SQL pairs if the endpoint is unreachable</li>
+        <li>Per-student token budget (200k each) — students explore freely without risk of burning the shared API budget</li>
+        <li>Admin portal now surfaces every student's usage live, with one-click budget edits</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Why this matters for the audience</h3>
+      <ul>
+        <li>Surveyors leave having <i>used</i> an AI-over-database tool, not just heard about one</li>
+        <li>Demonstrates the same architecture used in a live production system (PRECISE), not a toy demo</li>
+        <li>Directly addresses the "GIS → climate-health" skills gap the YSN audience is targeting</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span>GeoAI Workshop — Capstone Module</span><span>4 / 5</span></div>
+</div>
+
+<!-- SLIDE 5: Recommendations -->
+<div class="slide">
+  <h2 style="margin-top:0">Recommendations going into 25 June</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Keep as-is</h3>
+      <ul>
+        <li>The single-narrative data flow (01→06) — don't fragment into standalone demos</li>
+        <li>Auto-check cells — instant feedback is what makes self-paced sections survivable in 3 hours</li>
+        <li>Non-blocking Earth Engine design — protects the schedule against venue Wi-Fi failure</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Tighten before the event</h3>
+      <ul>
+        <li>Module 04 is the cognitive bottleneck — consider a 2-minute whiteboard sketch of the "timeline anchoring" idea before participants touch code</li>
+        <li>Confirm facilitator has a backup plan if >20% of participants are slower-paced (guide already allows skipping worked examples in 01–03)</li>
+        <li>Do a dry run of the GeoAI capstone on workshop-day Wi-Fi specifically — it's the highest-impact, least internet-tolerant component</li>
+      </ul>
+    </div>
+  </div>
+  <div class="reco">
+    <b>Overall recommendation:</b> the course is ready to run. Risk is concentrated in two places — Module 04's
+    conceptual difficulty and the GeoAI endpoint's live-network dependency — both already have mitigations built in
+    (skip-ahead guidance; offline demo fallback). No structural changes needed before 25 June.
+  </div>
+  <div class="risk">
+    <b>Watch item:</b> 30 min is tight for Module 06 given it carries the highest point value (11) <i>and</i> the
+    capstone demo. If running behind schedule, protect GeoAI time by trimming the EDA/mapping sub-section first —
+    it's reinforcement, not new conceptual ground.
+  </div>
+  <div class="footer"><span>GeoAI Workshop — Recommendations</span><span>5 / 5</span></div>
+</div>
+
+</body>
+</html>

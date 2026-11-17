@@ -1,0 +1,112 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Notebook 04 — Exposure Timeline Generation</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#f1f5f9; }
+.slide {
+  width:1280px; min-height:720px; margin:24px auto; padding:56px 64px;
+  background:#fff; box-shadow:0 4px 24px rgba(0,0,0,.12); position:relative;
+  page-break-after: always;
+}
+.kicker { color:#457b9d; font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+h1 { font-size:32px; color:#1d3557; margin:0 0 4px 0; }
+h2 { font-size:24px; color:#1d3557; margin:0 0 18px 0; border-left:5px solid #457b9d; padding-left:12px; }
+.sub { color:#6b7280; font-size:15px; margin-bottom:8px; }
+table { width:100%; border-collapse:collapse; font-size:14px; margin-top:8px; }
+th { background:#1d3557; color:#fff; text-align:left; padding:8px 10px; font-size:13px; }
+td { padding:7px 10px; border-bottom:1px solid #e5e7eb; font-size:13.5px; }
+tr:nth-child(even) td { background:#f8fafc; }
+.card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:16px 18px; }
+.card h3 { margin:0 0 8px 0; font-size:16px; color:#1d3557; }
+.card ul { margin:0; padding-left:18px; font-size:13.5px; color:#374151; }
+.card ul li { margin-bottom:6px; }
+.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:14px; }
+.grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-top:14px; }
+.stat { text-align:center; background:#f8fafc; border-radius:10px; padding:14px 8px; border:1px solid #e5e7eb; }
+.num { font-size:28px; font-weight:800; color:#457b9d; }
+.label { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+.diagram { background:#0f172a; color:#e2e8f0; border-radius:10px; padding:20px 24px; font-family:'Consolas','Monaco',monospace; font-size:14px; line-height:1.7; white-space:pre; margin-top:14px; }
+.callout { background:#eef6f0; border-left:5px solid #10b981; padding:12px 16px; border-radius:6px; margin-top:14px; font-size:14px; }
+.warn { background:#fef2f2; border-left:5px solid #e63946; padding:12px 16px; border-radius:6px; margin-top:14px; font-size:14px; }
+.tocode { background:#1d3557; color:#fff; border-radius:10px; padding:16px 20px; margin-top:16px; }
+.tocode b { color:#a8dadc; }
+.footer { position:absolute; bottom:24px; left:64px; right:64px; display:flex; justify-content:space-between; font-size:11px; color:#9ca3af; border-top:1px solid #e5e7eb; padding-top:8px; }
+.pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; color:#fff; background:#457b9d; }
+</style></head><body><div class="slide">
+  <div class="kicker">Concept Slides &nbsp;·&nbsp; Notebook 04</div>
+  <h1>Exposure Timeline Generation</h1>
+  <div class="sub">25 minutes &nbsp;·&nbsp; 6 points &nbsp;·&nbsp; Conceptual peak of the course</div>
+  <div class="grid3" style="margin-top:30px">
+    <div class="stat"><div class="num">Detect</div><div class="label">Participant migration</div></div>
+    <div class="stat"><div class="num">Assign</div><div class="label">A location to every day</div></div>
+    <div class="stat"><div class="num">~17k</div><div class="label">Rows produced</div></div>
+  </div>
+  <h2 style="margin-top:32px">By the end you can</h2>
+  <div class="card"><ul>
+    <li>Explain why exposure in a longitudinal study is a <i>time-varying location</i> problem</li>
+    <li>Detect participant migration between study visits</li>
+    <li>Implement a rule assigning every day of pregnancy to the nearest-in-time visit location</li>
+    <li>Produce <code>participant_exposure_days.csv</code> — the central artifact the rest of the course builds on</li>
+  </ul></div>
+  <div class="footer"><span>Notebook 04 — Exposure Timeline Generation</span><span>1 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Concept: the time-varying location problem</h2>
+  <p style="font-size:14.5px;color:#374151;line-height:1.6">
+    We want a pregnant woman's air quality, temperature and vegetation exposure for every day from conception to
+    delivery. The problem: <b>we don't know exactly where she was every day</b> — we only have three snapshots,
+    one per study visit. For some participants, those three locations differ.
+  </p>
+  <div class="diagram">conception ───────────────────────────────────────► delivery   (~280 days)
+     │                    │                          │
+   visit_1              visit_2                   delivery visit
+  Riverside             Ironstone                    Kopje
+   (day 0)              (day ~180)                  (day ~280)
+
+  Which village do we assign to day 90? Day 200? Day 270?</div>
+  <div class="callout"><b>Why this matters beyond this course:</b> this exact problem — sparse location snapshots,
+  dense exposure windows — appears in almost every longitudinal environmental-health study, not just this synthetic cohort.</div>
+  <div class="footer"><span>Notebook 04 — Exposure Timeline Generation</span><span>2 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Concept: the nearest-in-time midpoint rule</h2>
+  <p style="font-size:14.5px;color:#374151;line-height:1.6">
+    The rule we use: each day is assigned to whichever visit location is <b>closest in time</b> to that day.
+    The midpoint between two visit dates is the cutover point.
+  </p>
+  <div class="diagram">visit_1 (day 0, Riverside)        visit_2 (day 180, Ironstone)      delivery (day 280, Kopje)
+       │←───── midpoint ≈ day 90 ─────→│←──── midpoint ≈ day 230 ────→│
+       Riverside assigned               Ironstone assigned             Kopje assigned
+       to days 0–89                     to days 90–229                 to days 230–280</div>
+  <p style="font-size:14px;color:#374151"><b>Migrants</b> (~30% of participants) show a visible <i>step</i> in their
+  location trajectory — and that step produces a real, measurable difference in computed exposure between trimesters.</p>
+  <div class="warn"><b>Scale note:</b> ~60 participants × ~280 days ≈ 17,000 rows here — fine for pandas. A real
+  study with thousands of participants over years would generate tens of millions of rows, which is why production
+  pipelines need checkpointing and incremental processing.</div>
+  <div class="footer"><span>Notebook 04 — Exposure Timeline Generation</span><span>3 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Now in code</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Worked examples (instructor-led)</h3>
+      <ul>
+        <li>Inspect one migrant participant's three visits</li>
+        <li>Build the per-participant day range</li>
+        <li>Assign each day to its nearest-in-time visit location</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Your turn — exercises</h3>
+      <ul>
+        <li><b>Ex 1</b> (3 pts): detect migrants without using the <code>migrated</code> column</li>
+        <li><b>Ex 2</b> (3 pts): step plot of one migrant's village-over-time trajectory</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tocode">
+    Open <b>04_exposure_timeline_generation.ipynb</b> — the output here, <code>participant_exposure_days.csv</code>,
+    is what every later notebook joins against. This is the hinge point of the whole course.
+  </div>
+  <div class="footer"><span>Notebook 04 — Exposure Timeline Generation</span><span>4 / 4</span></div>
+</div></body></html>

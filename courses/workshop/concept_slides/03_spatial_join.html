@@ -1,0 +1,121 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Notebook 03 — The Spatial Join</title>
+<style>
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#f1f5f9; }
+.slide {
+  width:1280px; min-height:720px; margin:24px auto; padding:56px 64px;
+  background:#fff; box-shadow:0 4px 24px rgba(0,0,0,.12); position:relative;
+  page-break-after: always;
+}
+.kicker { color:#457b9d; font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+h1 { font-size:32px; color:#1d3557; margin:0 0 4px 0; }
+h2 { font-size:24px; color:#1d3557; margin:0 0 18px 0; border-left:5px solid #457b9d; padding-left:12px; }
+.sub { color:#6b7280; font-size:15px; margin-bottom:8px; }
+table { width:100%; border-collapse:collapse; font-size:14px; margin-top:8px; }
+th { background:#1d3557; color:#fff; text-align:left; padding:8px 10px; font-size:13px; }
+td { padding:7px 10px; border-bottom:1px solid #e5e7eb; font-size:13.5px; }
+tr:nth-child(even) td { background:#f8fafc; }
+.card { background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:16px 18px; }
+.card h3 { margin:0 0 8px 0; font-size:16px; color:#1d3557; }
+.card ul { margin:0; padding-left:18px; font-size:13.5px; color:#374151; }
+.card ul li { margin-bottom:6px; }
+.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:14px; }
+.grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-top:14px; }
+.stat { text-align:center; background:#f8fafc; border-radius:10px; padding:14px 8px; border:1px solid #e5e7eb; }
+.num { font-size:28px; font-weight:800; color:#457b9d; }
+.label { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+.diagram { background:#0f172a; color:#e2e8f0; border-radius:10px; padding:20px 24px; font-family:'Consolas','Monaco',monospace; font-size:14px; line-height:1.7; white-space:pre; margin-top:14px; }
+.callout { background:#eef6f0; border-left:5px solid #10b981; padding:12px 16px; border-radius:6px; margin-top:14px; font-size:14px; }
+.warn { background:#fef2f2; border-left:5px solid #e63946; padding:12px 16px; border-radius:6px; margin-top:14px; font-size:14px; }
+.tocode { background:#1d3557; color:#fff; border-radius:10px; padding:16px 20px; margin-top:16px; }
+.tocode b { color:#a8dadc; }
+.footer { position:absolute; bottom:24px; left:64px; right:64px; display:flex; justify-content:space-between; font-size:11px; color:#9ca3af; border-top:1px solid #e5e7eb; padding-top:8px; }
+.pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; color:#fff; background:#457b9d; }
+</style></head><body><div class="slide">
+  <div class="kicker">Concept Slides &nbsp;·&nbsp; Notebook 03</div>
+  <h1>The Spatial Join</h1>
+  <div class="sub">20 minutes &nbsp;·&nbsp; 5 points &nbsp;·&nbsp; Core technique</div>
+  <div class="grid3" style="margin-top:30px">
+    <div class="stat"><div class="num">Build</div><div class="label">cKDTree on grid coords</div></div>
+    <div class="stat"><div class="num">Query</div><div class="label">Nearest cell per point</div></div>
+    <div class="stat"><div class="num">Merge</div><div class="label">Attach values via grid_id</div></div>
+  </div>
+  <h2 style="margin-top:32px">By the end you can</h2>
+  <div class="card"><ul>
+    <li>Implement a nearest-neighbour spatial join with <code>scipy.spatial.cKDTree</code> from scratch</li>
+    <li>Merge gridded environmental values onto point locations</li>
+    <li>Explain what becomes harder once points move over time (the preview for Notebook 04)</li>
+  </ul></div>
+  <div class="footer"><span>Notebook 03 — The Spatial Join</span><span>1 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Concept: the four-step join pattern</h2>
+  <p style="font-size:14.5px;color:#374151;line-height:1.6">
+    Notebook 02 used <code>find_nearest_grid_cells()</code> as a black box. Here we open it up — this exact
+    four-step pattern is the workhorse of the entire course; everything from here on is a variation of it.
+  </p>
+  <div class="diagram">1. tree = cKDTree(grid[['lat','lon']])      # index the grid once
+2. dist, idx = tree.query(points[['lat','lon']])   # nearest cell per point
+3. points['grid_id'] = grid.iloc[idx]['grid_id'].values
+4. result = points.merge(grid, on='grid_id')       # attach temp/PM2.5/NDVI/...</div>
+  <div class="callout"><b>Always verify the join:</b> check <code>result['temp_mean_c'].notna().all()</code> —
+  a missing value after a join means something went wrong (a coordinate outside the grid extent, a bad merge key).</div>
+  <div class="footer"><span>Notebook 03 — The Spatial Join</span><span>2 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Concept: when is "flat-plane" distance OK?</h2>
+  <p style="font-size:14.5px;color:#374151;line-height:1.6">
+    The join uses Euclidean (straight-line) distance on raw lat/lon — not true geodetic (sphere-surface) distance.
+    That's a simplification, and knowing when it's safe is the actual lesson here.
+  </p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Why it's acceptable here</h3>
+      <ul>
+        <li>Zimbabwe spans ~7° lat × 7° lon (~700 km) — flat-plane distortion here is &lt;0.5%</li>
+        <li>Far smaller than the 27 km grid cell size we're matching against</li>
+        <li>Same grid spacing on both axes keeps the approximation symmetric</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What changes once points move (Notebook 04)</h3>
+      <ul>
+        <li>So far: <i>static</i> points joined to a <i>single-date</i> grid</li>
+        <li>Next: each participant's location <i>changes</i> between visits</li>
+        <li>And the grid itself has <i>one row per cell per day</i> for ~700 days</li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn"><b>Watch for:</b> this approximation breaks down at continental scale or near the poles — always check your study area's extent before reusing this shortcut elsewhere.</div>
+  <div class="footer"><span>Notebook 03 — The Spatial Join</span><span>3 / 4</span></div>
+</div>
+<div class="slide">
+  <h2 style="margin-top:0">Now in code</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Worked example (instructor-led)</h3>
+      <ul>
+        <li>Rebuild the full cKDTree join step-by-step, no helper function</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Your turn — exercises</h3>
+      <ul>
+        <li><b>Ex 1</b> (3 pts): join for hospital-type facilities only</li>
+        <li><b>Ex 2</b> (2 pts): top 5 highest-PM2.5 facilities</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tocode">
+    Open <b>03_spatial_join.ipynb</b> — by the end of this notebook you've built the exact mechanism that
+    Notebook 04 will run once per day, per participant, at scale.
+  </div>
+  <h2 style="margin-top:28px">Recap</h2>
+  <div class="card"><ul>
+    <li>cKDTree build → query → attach id → merge — the core four-step pattern</li>
+    <li>Always sanity-check a join with a <code>notna().all()</code> assertion</li>
+    <li>Flat-plane distance is fine at country scale with grid cells this size — not a universal shortcut</li>
+  </ul></div>
+  <div class="footer"><span>Notebook 03 — The Spatial Join</span><span>4 / 4</span></div>
+</div></body></html>
