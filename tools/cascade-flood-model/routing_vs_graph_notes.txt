@@ -1,0 +1,46 @@
+ROUTING vs GRAPH APPROACH — OSRM (PRECISE) vs NetworkX+pyrosm (CASCADE flood pipeline)
+=========================================================================
+
+OSRM (PRECISE's approach) — external routing engine, Docker servers per country/mode.
+Production-grade, fast at query time (compiled, contraction hierarchies), industry-standard.
+Two real problems for our use case:
+
+1. Custom speed logic gets harder.
+   Our "31% no vehicle access" fix — treating informal/untagged roads as slow-but-driveable
+   rather than excluded, surface-based speed factors — was built by writing our own edge
+   weights in NetworkX precisely because we needed that control. OSRM would need a custom
+   Lua speed profile to replicate it. Doable, but real extra work, not a given.
+
+2. Flood-edge removal doesn't fit OSRM's model well.
+   OSRM bakes edge weights in during preprocessing (osrm-extract / partition / customize).
+   To simulate "these 118 crossings just failed," you'd either re-run that whole
+   preprocessing pipeline per scenario (slow, disk-heavy) or use OSRM's live traffic-update
+   mechanism to down-weight specific ways (more advanced, avoids a full rebuild, but still
+   extra machinery we don't currently need).
+
+NetworkX + pyrosm (our approach) — everything in-memory, no server.
+G.remove_edges_from() for a flood scenario is instant. Full control over edge weights —
+exactly what let us build the informal-road model, facility closure, and the
+flooded/baseline graph pair with zero extra infrastructure.
+Tradeoff: slower per-query (Dijkstra from scratch), and the real bottleneck right now is
+actually pyrosm parsing the national PBF and building the graph each run (minutes) — that's
+independent of Dijkstra vs OSRM either way.
+
+RECOMMENDATION
+--------------
+Don't force one universal choice — these two engines are good at different jobs.
+
+- PRECISE's OSRM stays for the NORMAL scenario (no edge removal needed — exactly OSRM's
+  sweet spot: fast, accurate, "what's the travel time right now").
+- Our NetworkX graph stays for the DISTURBED scenario (scenario perturbation — removing
+  specific crossings — is the actual point, and our current runtime, a few minutes per
+  site, is fine for a run-once-per-event workflow, not a live interactive tool).
+
+Reconsider OSRM for the flood side only if:
+  (a) this needs to become interactive/instant (e.g. a live dashboard), or
+  (b) it scales to national-level networks where per-query Dijkstra genuinely becomes
+      a bottleneck.
+
+If the two pipelines merge later, the natural integration isn't "pick one router" — it's
+PRECISE's OSRM output feeding the baseline numbers (consistency with existing PRECISE
+study data), and our NetworkX graph handling the flooded-scenario delta on top of it.
