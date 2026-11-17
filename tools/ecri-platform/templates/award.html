@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Frances Cowan Award &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">{{ award['headline'] if award and award['headline'] else 'The Frances Cowan Award' }}</h1>
+
+{% if award and award['image'] %}
+<img src="{{ b }}/static/{{ award['image'] }}" style="width:100%; max-width:640px; aspect-ratio:16/9; object-fit:cover; border-radius:10px; margin-bottom:18px;">
+{% endif %}
+
+<div class="card" style="max-width:720px;">
+  {% if award and award['body'] %}
+  <div style="font-size:14px; color:var(--body); line-height:1.6; white-space:pre-wrap;">{{ award['body'] }}</div>
+  {% else %}
+  <div style="font-size:13.5px; color:var(--muted);">Details about the Frances Cowan Award will be published here closer to the event.</div>
+  {% endif %}
+</div>
+{% endblock %}

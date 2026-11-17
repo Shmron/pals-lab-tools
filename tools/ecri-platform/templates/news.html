@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}News &amp; gallery &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">News &amp; gallery</h1>
+
+{% if not news %}
+<div class="card" style="margin-bottom:26px;">News about ECRI 2026 will appear here.</div>
+{% else %}
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; margin-bottom:32px;">
+  {% for n in news %}
+  {% set ts = tag_style.get(n['tag'], {'bg':'#F1F4F7','fg':'#68798F'}) %}
+  <div class="card">
+    {% if n['image'] %}
+    <div class="photo-zoom" style="margin-bottom:12px;">
+      <img src="{{ b }}/static/{{ n['image'] }}" style="width:100%; aspect-ratio:4/3; object-fit:cover;">
+    </div>
+    {% endif %}
+    {% if n['tag'] %}<span class="mono" style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; background:{{ ts.bg }}; color:{{ ts.fg }}; border-radius:4px; padding:3px 8px;">{{ n['tag'] }}</span>{% endif %}
+    <div style="font-family:'Newsreader',serif; font-weight:600; font-size:19px; color:var(--ink); margin:8px 0 4px;">{{ n['headline'] }}</div>
+    {% if n['body'] %}<div style="font-size:13px; color:var(--body); line-height:1.5;">{{ n['body'] }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="mono" style="font-size:11px; letter-spacing:0.08em; color:var(--faint); margin-bottom:12px;">GALLERY &mdash; {{ gallery|length }} ITEM{{ '' if gallery|length == 1 else 'S' }}</div>
+{% if not gallery %}
+<div class="card">Photos from ECRI 2026 will appear here.</div>
+{% else %}
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px;">
+  {% for g in gallery %}
+  <div class="gallery-thumb-wrap">
+    <img src="{{ b }}/static/{{ g['path'] }}" class="gallery-thumb" data-full="{{ b }}/static/{{ g['path'] }}" style="width:100%; aspect-ratio:4/3; object-fit:cover; cursor:pointer;">
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div id="lightbox" style="position:fixed; inset:0; background:rgba(11,33,64,0.92); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px;">
+  <span id="lightbox-close">&times;</span>
+  <img id="lightbox-img" style="max-width:100%; max-height:100%; border-radius:8px;">
+</div>
+
+<script>
+document.querySelectorAll('.gallery-thumb').forEach(img => {
+  img.addEventListener('click', () => {
+    document.getElementById('lightbox-img').src = img.dataset.full;
+    document.getElementById('lightbox').classList.add('open');
+  });
+});
+document.getElementById('lightbox').addEventListener('click', function () {
+  this.classList.remove('open');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}My schedule &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:28px;">My schedule</h1>
+
+{% if not email %}
+<div class="card" style="max-width:520px;">
+  <p style="margin-top:0;">Enter the email you registered with and we'll send you a link to view and manage your saved sessions.</p>
+  <div class="field">
+    <label for="f-lookup-email">Email</label>
+    <input id="f-lookup-email" type="email">
+    <div class="error" id="e-lookup-email"></div>
+  </div>
+  <button class="btn btn-primary" id="btn-request-link">Email me a link</button>
+  <div id="link-sent-msg" style="display:none; margin-top:14px; color:var(--success); font-size:13.5px;">
+    If that email is registered, a link has been sent. Check your inbox.
+  </div>
+</div>
+<script>
+document.getElementById('btn-request-link').addEventListener('click', async () => {
+  document.getElementById('e-lookup-email').textContent = '';
+  const email = document.getElementById('f-lookup-email').value;
+  const resp = await fetch('{{ b }}/api/request-schedule-link', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email}),
+  });
+  const data = await resp.json();
+  if (!data.ok) {
+    document.getElementById('e-lookup-email').textContent = (data.errors && data.errors.email) || 'Something went wrong.';
+    return;
+  }
+  document.getElementById('link-sent-msg').style.display = 'block';
+});
+</script>
+{% else %}
+  <p style="color:var(--muted); font-size:13px;">Signed in as {{ email }} &middot; <a href="{{ b }}/my-schedule/logout">not you?</a></p>
+
+  {% if registration and registration['payment_status'] != 'Not required' %}
+  <div class="card" style="margin-bottom:18px;">
+    <div class="kicker">Registration &amp; payment</div>
+    <p style="font-size:13.5px; color:var(--ink); margin:6px 0;">Check-in code: <span class="mono">{{ registration['code'] }}</span> &middot; Payment status: <strong>{{ registration['payment_status'] }}</strong></p>
+    {% if registration['payment_status'] in ('Pending', 'Rejected') %}
+    {% if registration['payment_status'] == 'Rejected' %}
+    <p style="font-size:13px; color:var(--danger, #B23A48);">Your previous submission couldn't be confirmed &mdash; please resubmit.</p>
+    {% endif %}
+    {% if payment_amount or payment_instructions %}
+    <p style="font-size:13.5px; font-weight:600; color:var(--ink);">{{ payment_amount }}</p>
+    <p style="font-size:12.5px; color:var(--body); white-space:pre-wrap;">{{ payment_instructions }}</p>
+    {% endif %}
+    <div class="field">
+      <label for="pay2-reference">Payment reference (optional if you upload a screenshot)</label>
+      <input id="pay2-reference" type="text" value="{{ registration['payment_reference'] or '' }}">
+    </div>
+    <div class="field">
+      <label for="pay2-photo">Screenshot of payment (optional if you enter a reference)</label>
+      <input id="pay2-photo" type="file" accept="image/*">
+      <div class="mono" id="pay2-photo-status" style="font-size:11.5px; color:var(--muted); margin-top:4px;"></div>
+    </div>
+    <div class="error" id="pay2-error" style="margin-bottom:10px;"></div>
+    <button class="btn btn-primary" id="btn-submit-payment2">Submit payment details</button>
+    <div id="pay2-sent-msg" style="display:none; margin-top:12px; color:var(--success); font-size:13.5px;">Thanks — we'll confirm your payment shortly.</div>
+    <script>
+    let paymentProofPath2 = '';
+    document.getElementById('pay2-photo').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('pay2-photo-status').textContent = 'Uploading…';
+      const formData = new FormData();
+      formData.append('photo', file);
+      const resp = await fetch('{{ b }}/api/upload-photo', {method: 'POST', body: formData});
+      const data = await resp.json();
+      if (!data.ok) { document.getElementById('pay2-photo-status').textContent = data.error || 'Upload failed.'; return; }
+      paymentProofPath2 = data.photo;
+      document.getElementById('pay2-photo-status').textContent = 'Uploaded.';
+    });
+    document.getElementById('btn-submit-payment2').addEventListener('click', async () => {
+      document.getElementById('pay2-error').textContent = '';
+      const reference = document.getElementById('pay2-reference').value.trim();
+      if (!reference && !paymentProofPath2) {
+        document.getElementById('pay2-error').textContent = 'Add a payment reference or upload a screenshot.';
+        return;
+      }
+      const btn = document.getElementById('btn-submit-payment2');
+      btn.disabled = true;
+      const resp = await fetch('{{ b }}/api/submit-payment', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({token: {{ token | tojson }}, reference, proof: paymentProofPath2}),
+      });
+      const data = await resp.json();
+      if (!data.ok) {
+        document.getElementById('pay2-error').textContent = data.error || 'Could not submit.';
+        btn.disabled = false;
+        return;
+      }
+      document.getElementById('pay2-sent-msg').style.display = 'block';
+      btn.style.display = 'none';
+    });
+    </script>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if registration and registration['checked_in_at'] %}
+  <div class="card" style="margin-bottom:18px;">
+    <div class="kicker">Certificate</div>
+    <p style="font-size:13.5px; color:var(--ink); margin:6px 0 12px;">You're checked in — your certificate of participation is ready.</p>
+    <a class="btn btn-primary" href="{{ b }}/api/my-certificate?token={{ token }}">Download my certificate</a>
+  </div>
+  {% endif %}
+
+  <p style="color:var(--muted); font-size:13px;">{{ rows|length }} session{{ '' if rows|length == 1 else 's' }} &mdash; you will be alerted fifteen minutes before each.</p>
+  {% if not rows %}
+  <div class="card">No reminders yet. <a href="{{ b }}/programme{{ '?token=' + token if token else '' }}">Star a session in the programme</a>.</div>
+  {% else %}
+  <div class="card sub-list">
+    {% for s in rows %}
+    <div class="row">
+      <div>
+        <div class="mono" style="font-size:11px; color:var(--faint);">Day {{ s['day'] }} &middot; {{ s['time'] }}{% if s['room'] %} &middot; {{ s['room'] }}{% endif %}</div>
+        <div style="font-size:15px; font-weight:600; color:var(--ink); margin:4px 0;">{{ s['title'] }}</div>
+        {% if s['who'] %}<div style="font-size:12.5px; color:var(--muted);">{{ s['who'] }}</div>{% endif %}
+      </div>
+      <button type="button" class="btn btn-secondary btn-remove-star" data-session="{{ s['id'] }}">Remove</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div style="margin-top:16px;"><a href="{{ b }}/programme{{ '?token=' + token if token else '' }}">&larr; Back to programme</a></div>
+
+  <script>
+  document.querySelectorAll('.btn-remove-star').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const resp = await fetch('{{ b }}/api/star-session', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({token: {{ token | tojson }}, session_id: btn.dataset.session, star: false}),
+      });
+      const data = await resp.json();
+      if (!data.ok) { alert(data.error || 'Could not remove.'); return; }
+      window.location.reload();
+    });
+  });
+  </script>
+{% endif %}
+{% endblock %}

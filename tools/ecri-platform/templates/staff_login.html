@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Staff login &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;">
+  <h1 class="serif" style="font-size:22px; margin-top:0;">Reviewer / Chair / Admin login</h1>
+  <div class="field">
+    <label for="f-email">Email</label>
+    <input id="f-email" type="email">
+    <div class="error" id="e-email"></div>
+  </div>
+  <div class="field">
+    <label for="f-password">Password</label>
+    <input id="f-password" type="password">
+    <div class="error" id="e-password"></div>
+  </div>
+  <button class="btn btn-primary" id="btn-login">Log in</button>
+  <div class="error" id="form-error" style="margin-top:10px;"></div>
+  <div style="margin-top:14px; font-size:13px;"><a href="{{ b }}/staff/forgot-password">Forgot password?</a></div>
+</div>
+<script>
+const NEXT = {{ next | tojson }};
+document.getElementById('btn-login').addEventListener('click', async () => {
+  document.getElementById('e-email').textContent = '';
+  document.getElementById('e-password').textContent = '';
+  document.getElementById('form-error').textContent = '';
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true;
+  try {
+    const resp = await fetch('{{ b }}/api/staff-login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email: document.getElementById('f-email').value,
+        password: document.getElementById('f-password').value,
+        next: NEXT,
+      }),
+    });
+    const data = await resp.json();
+    if (!data.ok) {
+      document.getElementById('form-error').textContent = (data.errors && data.errors.password) || 'Login failed.';
+      return;
+    }
+    window.location.href = data.redirect;
+  } catch (err) {
+    document.getElementById('form-error').textContent = 'Network error. Please try again.';
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+{% endblock %}

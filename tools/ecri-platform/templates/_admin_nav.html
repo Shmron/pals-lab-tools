@@ -1,0 +1,16 @@
+<div class="admin-nav">
+  <a href="{{ b }}/admin" class="{{ 'active' if active == 'overview' else '' }}">Overview</a>
+  <a href="{{ b }}/admin/decisions" class="{{ 'active' if active == 'decisions' else '' }}">Decisions</a>
+  <a href="{{ b }}/admin/registrations" class="{{ 'active' if active == 'registrations' else '' }}">Registrations</a>
+  <a href="{{ b }}/admin/checkin" class="{{ 'active' if active == 'checkin' else '' }}">Check-in</a>
+  <a href="{{ b }}/admin/programme" class="{{ 'active' if active == 'programme' else '' }}">Programme</a>
+  <a href="{{ b }}/admin/content" class="{{ 'active' if active == 'content' else '' }}">Content</a>
+  <a href="{{ b }}/admin/engage" class="{{ 'active' if active == 'engage' else '' }}">Engage</a>
+  <a href="{{ b }}/admin/staff" class="{{ 'active' if active == 'staff' else '' }}">Staff &amp; reviewers</a>
+  {% if 'reviewer' in my_staff_roles %}
+  <a href="{{ b }}/review" style="margin-left:auto;">Review queue &rarr;</a>
+  {% endif %}
+  {% if 'chair' in my_staff_roles %}
+  <a href="{{ b }}/allocation">Allocation board &rarr;</a>
+  {% endif %}
+</div>

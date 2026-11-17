@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit abstract' if edit_ref else 'Submit an abstract' }} &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<div style="max-width:820px;">
+  <h1 class="serif" style="font-size:28px;">{{ 'Edit abstract ' + edit_ref if edit_ref else 'Submit an abstract' }}</h1>
+  <p style="color:var(--muted); font-size:13.5px;">Deadline <strong>{{ deadline }}</strong> &middot; {{ word_limit }}-word limit &middot; reviewed blind by the committee.</p>
+
+  <div id="submit-form-wrap" class="card">
+    <h3 class="serif" style="font-size:17px; margin-top:0;">Presentation details</h3>
+    <div class="field">
+      <label for="f-title">Abstract title</label>
+      <input id="f-title" type="text" value="{{ prefill['title'] if prefill else '' }}">
+      <div class="word-count" id="title-word-count">0 / {{ title_word_limit }} words</div>
+      <div class="error" id="e-title"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="f-theme">Theme</label>
+        <select id="f-theme">
+          <option value="">Choose a theme&hellip;</option>
+          {% for t in themes %}<option value="{{ t }}" {{ 'selected' if prefill and prefill['theme']==t else '' }}>{{ t }}</option>{% endfor %}
+        </select>
+        <div class="error" id="e-theme"></div>
+      </div>
+      <div class="field">
+        <label for="f-format">Preferred format</label>
+        <select id="f-format">
+          <option value="">Choose a format&hellip;</option>
+          {% for f in formats %}<option value="{{ f }}" {{ 'selected' if prefill and prefill['format']==f else '' }}>{{ f }}</option>{% endfor %}
+        </select>
+        <div class="error" id="e-format"></div>
+      </div>
+    </div>
+
+    <h3 class="serif" style="font-size:17px;">The abstract</h3>
+    <div class="field">
+      <label for="f-body">Abstract</label>
+      <div style="font-size:11.5px; color:var(--muted); margin:-2px 0 6px;">A single {{ word_limit }}-word field — cover background, methods, results and conclusion in whatever balance the work needs, e.g. more on methods and less on results if that's where the substance is.</div>
+      <textarea id="f-body" rows="11">{{ prefill['body'] if prefill else '' }}</textarea>
+      <div class="word-count" id="word-count">0 / {{ word_limit }} words</div>
+      <div class="error" id="e-body"></div>
+    </div>
+    <div class="field">
+      <label for="f-ethics">Ethical approval reference (optional)</label>
+      <input id="f-ethics" type="text" placeholder="MRCZ/A/0000" value="{{ prefill['ethics_ref'] if prefill else '' }}">
+    </div>
+
+    <h3 class="serif" style="font-size:17px;">Applicant profile</h3>
+    <div class="grid-2">
+      <div class="field">
+        <label for="f-first-name">First name</label>
+        <input id="f-first-name" type="text" value="{{ prefill_first_name or '' }}">
+        <div class="error" id="e-first_name"></div>
+      </div>
+      <div class="field">
+        <label for="f-surname">Surname</label>
+        <input id="f-surname" type="text" value="{{ prefill_surname or '' }}">
+        <div class="error" id="e-surname"></div>
+      </div>
+      <div class="field">
+        <label for="f-institution">Institution</label>
+        <input id="f-institution" type="text" value="{{ prefill['institution'] if prefill else '' }}">
+      </div>
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input id="f-email" type="email" value="{{ prefill['email'] if prefill else '' }}" {{ 'readonly' if edit_ref else '' }}>
+      </div>
+      <div class="field">
+        <label for="f-country">Country</label>
+        <select id="f-country">
+          <option value="">Choose&hellip;</option>
+          {% for c in countries %}<option value="{{ c }}" {{ 'selected' if prefill and prefill['country']==c else '' }}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-career-stage">Career stage</label>
+        <select id="f-career-stage">
+          <option value="">Choose&hellip;</option>
+          {% for cs in career_stages %}<option value="{{ cs }}" {{ 'selected' if prefill and prefill['career_stage']==cs else '' }}>{{ cs }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <h3 class="serif" style="font-size:17px;">Authors</h3>
+    <p style="font-size:11.5px; color:var(--muted); margin-top:-6px;">List any co-authors beyond the presenting author above — name, institution, country and role.</p>
+    <div id="authors-list"></div>
+    <button type="button" class="btn btn-secondary" id="btn-add-author" style="margin-bottom:18px;">+ Add author</button>
+
+    <div class="field">
+      <label for="f-bio">Short bio (optional)</label>
+      <textarea id="f-bio" rows="2" placeholder="One or two sentences about you — shown on Meet the researchers if accepted for oral or poster.">{{ prefill['bio'] if prefill else '' }}</textarea>
+    </div>
+
+    <div class="field">
+      <label for="f-photo">Professional photo (optional, JPG/PNG, up to 5MB)</label>
+      <input id="f-photo" type="file" accept="image/*">
+      <div id="photo-preview-wrap" style="margin-top:8px; {{ '' if (prefill and prefill['photo']) else 'display:none;' }}">
+        <img id="photo-preview" src="{{ '{{ b }}/static/' + prefill['photo'] if (prefill and prefill['photo']) else '' }}" style="width:96px; height:96px; object-fit:cover; border-radius:10px; border:1px solid var(--hairline);">
+      </div>
+      <div class="mono" id="photo-status" style="font-size:11.5px; color:var(--muted); margin-top:4px;"></div>
+      <div class="error" id="e-photo"></div>
+    </div>
+
+    <button type="button" class="declaration-btn {{ 'checked' if edit_ref else '' }}" id="btn-declare">
+      <span class="declaration-box" id="declare-box">{{ '✓' if edit_ref else '' }}</span>
+      I confirm this abstract is original, that the presenting author is early-career, and that they will be available to present in person.
+    </button>
+    <div class="error" id="e-declared"></div>
+
+    <button class="btn btn-primary" id="btn-review" style="margin-top:18px;">Review submission</button>
+    <div class="error" id="form-error" style="margin-top:10px;"></div>
+  </div>
+
+  <div id="review-wrap" class="card" style="display:none;">
+    <h3 class="serif" style="font-size:17px; margin-top:0;">Review your submission</h3>
+    <p style="font-size:12.5px; color:var(--muted); margin-top:-6px;">Check everything below before sending it in — you can still go back and edit.</p>
+    <div id="review-content" style="font-size:13.5px; color:var(--body); line-height:1.7;"></div>
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button type="button" class="btn btn-secondary" id="btn-back-to-edit">&larr; Back to edit</button>
+      <button class="btn btn-primary" id="btn-submit">{{ 'Confirm & save changes' if edit_ref else 'Confirm & submit' }}</button>
+    </div>
+    <div class="error" id="review-form-error" style="margin-top:10px;"></div>
+  </div>
+
+  <div id="submit-success" class="success-card" style="display:none;">
+    {% if edit_ref %}
+    <div class="kicker">Changes saved</div>
+    <h2 class="serif">Reference {{ edit_ref }} updated</h2>
+    <p>Your changes have been saved. It remains anonymised for review.</p>
+    {% else %}
+    <div class="kicker">Submission received</div>
+    <h2 class="serif">Reference <span id="success-ref"></span></h2>
+    <p>Your abstract has been anonymised for review. A confirmation has been emailed to you, and you can edit it from My submissions until the deadline. Outcomes will be shared by 8 October.</p>
+    {% endif %}
+    <a class="btn btn-secondary" href="{{ b }}/my-submissions{% if edit_token %}?token={{ edit_token }}{% endif %}">View my submissions</a>
+  </div>
+</div>
+
+<script>
+const WORD_LIMIT = {{ word_limit }};
+const TITLE_WORD_LIMIT = {{ title_word_limit }};
+const EDIT_REF = {{ edit_ref | tojson }};
+const EDIT_TOKEN = {{ edit_token | tojson }};
+let declared = {{ 'true' if edit_ref else 'false' }};
+let photoPath = {{ (prefill['photo'] if prefill else '') | tojson }};
+const AUTHORS_PREFILL = {{ authors_prefill | tojson }};
+
+document.getElementById('f-photo').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('e-photo').textContent = '';
+  document.getElementById('photo-status').textContent = 'Uploading…';
+  const formData = new FormData();
+  formData.append('photo', file);
+  try {
+    const resp = await fetch('{{ b }}/api/upload-photo', {method: 'POST', body: formData});
+    const data = await resp.json();
+    if (!data.ok) {
+      document.getElementById('e-photo').textContent = data.error || 'Upload failed.';
+      document.getElementById('photo-status').textContent = '';
+      return;
+    }
+    photoPath = data.photo;
+    document.getElementById('photo-preview').src = '{{ b }}/static/' + photoPath;
+    document.getElementById('photo-preview-wrap').style.display = 'block';
+    document.getElementById('photo-status').textContent = 'Uploaded.';
+  } catch (err) {
+    document.getElementById('e-photo').textContent = 'Network error uploading photo.';
+    document.getElementById('photo-status').textContent = '';
+  }
+});
+
+function wordCount(text) {
+  text = text.trim();
+  return text ? text.split(/\s+/).length : 0;
+}
+
+const bodyEl = document.getElementById('f-body');
+const wcEl = document.getElementById('word-count');
+function updateWordCount() {
+  const n = wordCount(bodyEl.value);
+  wcEl.textContent = n + ' / ' + WORD_LIMIT + ' words';
+  wcEl.className = 'word-count' + (n > WORD_LIMIT ? ' over' : (n > WORD_LIMIT * 0.9 ? ' warn' : ''));
+}
+bodyEl.addEventListener('input', updateWordCount);
+updateWordCount();
+
+const titleEl = document.getElementById('f-title');
+const titleWcEl = document.getElementById('title-word-count');
+function updateTitleWordCount() {
+  const n = wordCount(titleEl.value);
+  titleWcEl.textContent = n + ' / ' + TITLE_WORD_LIMIT + ' words';
+  titleWcEl.className = 'word-count' + (n > TITLE_WORD_LIMIT ? ' over' : (n > TITLE_WORD_LIMIT * 0.9 ? ' warn' : ''));
+}
+titleEl.addEventListener('input', updateTitleWordCount);
+updateTitleWordCount();
+
+document.getElementById('btn-declare').addEventListener('click', function () {
+  declared = !declared;
+  this.classList.toggle('checked', declared);
+  document.getElementById('declare-box').textContent = declared ? '✓' : '';
+});
+
+// --- Authors list ---
+const authorsListEl = document.getElementById('authors-list');
+function addAuthorRow(author) {
+  author = author || {};
+  const row = document.createElement('div');
+  row.className = 'card author-row';
+  row.style.cssText = 'padding:14px; margin-bottom:10px; position:relative;';
+  row.innerHTML = `
+    <div class="grid-2">
+      <div class="field" style="margin-bottom:8px;">
+        <label>Name</label>
+        <input class="author-name" type="text" value="${(author.name || '').replace(/"/g, '&quot;')}">
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label>Institution</label>
+        <input class="author-institution" type="text" value="${(author.institution || '').replace(/"/g, '&quot;')}">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Country</label>
+        <input class="author-country" type="text" value="${(author.country || '').replace(/"/g, '&quot;')}">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Role</label>
+        <input class="author-role" type="text" placeholder="e.g. Co-author, Supervisor" value="${(author.role || '').replace(/"/g, '&quot;')}">
+      </div>
+    </div>
+    <div style="display:flex; gap:14px; margin-top:10px;">
+      <button type="button" class="btn-move-up" style="font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer;">&uarr; Move up</button>
+      <button type="button" class="btn-move-down" style="font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer;">&darr; Move down</button>
+      <button type="button" class="btn-remove-author" style="font-size:12px; color:var(--danger); background:none; border:none; cursor:pointer; margin-left:auto;">Remove</button>
+    </div>
+  `;
+  row.querySelector('.btn-remove-author').addEventListener('click', () => row.remove());
+  row.querySelector('.btn-move-up').addEventListener('click', () => {
+    const prev = row.previousElementSibling;
+    if (prev) authorsListEl.insertBefore(row, prev);
+  });
+  row.querySelector('.btn-move-down').addEventListener('click', () => {
+    const next = row.nextElementSibling;
+    if (next) authorsListEl.insertBefore(next, row);
+  });
+  authorsListEl.appendChild(row);
+}
+(AUTHORS_PREFILL || []).forEach(addAuthorRow);
+document.getElementById('btn-add-author').addEventListener('click', () => addAuthorRow());
+
+function collectAuthors() {
+  return [...authorsListEl.querySelectorAll('.author-row')].map(row => ({
+    name: row.querySelector('.author-name').value.trim(),
+    institution: row.querySelector('.author-institution').value.trim(),
+    country: row.querySelector('.author-country').value.trim(),
+    role: row.querySelector('.author-role').value.trim(),
+  })).filter(a => a.name);
+}
+
+function clearErrors() {
+  ['title','theme','format','body','first_name','surname','email','declared'].forEach(k => {
+    const e = document.getElementById('e-'+k);
+    if (e) e.textContent = '';
+  });
+}
+
+function gatherPayload() {
+  return {
+    title: document.getElementById('f-title').value,
+    theme: document.getElementById('f-theme').value,
+    format: document.getElementById('f-format').value,
+    body: document.getElementById('f-body').value,
+    ethics_ref: document.getElementById('f-ethics').value,
+    first_name: document.getElementById('f-first-name').value,
+    surname: document.getElementById('f-surname').value,
+    institution: document.getElementById('f-institution').value,
+    email: document.getElementById('f-email').value,
+    country: document.getElementById('f-country').value,
+    career_stage: document.getElementById('f-career-stage').value,
+    authors: collectAuthors(),
+    bio: document.getElementById('f-bio').value,
+    photo: photoPath,
+    declared: declared,
+  };
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s || '';
+  return div.innerHTML;
+}
+
+document.getElementById('btn-review').addEventListener('click', () => {
+  clearErrors();
+  document.getElementById('form-error').textContent = '';
+  const p = gatherPayload();
+  if (!p.title.trim()) { document.getElementById('e-title').textContent = 'Abstract title is required.'; return; }
+  if (!p.theme) { document.getElementById('e-theme').textContent = 'Choose a theme.'; return; }
+  if (!p.format) { document.getElementById('e-format').textContent = 'Choose a preferred format.'; return; }
+  if (!p.body.trim()) { document.getElementById('e-body').textContent = 'The abstract body is required.'; return; }
+  if (!p.first_name.trim()) { document.getElementById('e-first_name').textContent = 'First name is required.'; return; }
+  if (!p.surname.trim()) { document.getElementById('e-surname').textContent = 'Surname is required.'; return; }
+  if (!p.email.trim()) { document.getElementById('e-email').textContent = 'Email is required.'; return; }
+  if (!declared) { document.getElementById('e-declared').textContent = 'You must confirm the declaration.'; return; }
+
+  const authorsSummary = p.authors.length
+    ? '<ul style="margin:4px 0 0; padding-left:18px;">' + p.authors.map(a =>
+        `<li>${escapeHtml(a.name)}${a.institution ? ', ' + escapeHtml(a.institution) : ''}${a.country ? ' (' + escapeHtml(a.country) + ')' : ''}${a.role ? ' — ' + escapeHtml(a.role) : ''}</li>`
+      ).join('') + '</ul>'
+    : '<span style="color:var(--muted);">None listed</span>';
+
+  document.getElementById('review-content').innerHTML = `
+    <p><strong>Title:</strong> ${escapeHtml(p.title)}</p>
+    <p><strong>Theme:</strong> ${escapeHtml(p.theme)} &middot; <strong>Format:</strong> ${escapeHtml(p.format)}</p>
+    <p><strong>Abstract:</strong> ${wordCount(p.body)} words</p>
+    <p><strong>Presenting author:</strong> ${escapeHtml((p.first_name + ' ' + p.surname).trim())}${p.institution ? ', ' + escapeHtml(p.institution) : ''} &middot; ${escapeHtml(p.email)}</p>
+    <p><strong>Country:</strong> ${escapeHtml(p.country) || '—'} &middot; <strong>Career stage:</strong> ${escapeHtml(p.career_stage) || '—'}</p>
+    <p><strong>Co-authors:</strong></p>
+    ${authorsSummary}
+  `;
+  document.getElementById('submit-form-wrap').style.display = 'none';
+  document.getElementById('review-wrap').style.display = 'block';
+  document.getElementById('review-wrap').scrollIntoView({behavior: 'smooth', block: 'start'});
+});
+
+document.getElementById('btn-back-to-edit').addEventListener('click', () => {
+  document.getElementById('review-wrap').style.display = 'none';
+  document.getElementById('submit-form-wrap').style.display = 'block';
+  document.getElementById('submit-form-wrap').scrollIntoView({behavior: 'smooth', block: 'start'});
+});
+
+document.getElementById('btn-submit').addEventListener('click', async () => {
+  document.getElementById('review-form-error').textContent = '';
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = EDIT_REF ? 'Saving…' : 'Submitting…';
+  try {
+    const payload = gatherPayload();
+    const url = EDIT_REF ? ('{{ b }}/api/edit/' + EDIT_REF) : '{{ b }}/api/submit';
+    if (EDIT_REF) payload._token = EDIT_TOKEN;
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok && resp.status >= 500) {
+      document.getElementById('review-form-error').textContent = 'Something went wrong on our end. Please try again in a moment.';
+      return;
+    }
+    const data = await resp.json();
+    if (!data.ok) {
+      const messages = Object.values(data.errors || {});
+      document.getElementById('review-form-error').textContent = messages[0] || 'Could not submit — please go back and check the form.';
+      return;
+    }
+    document.getElementById('review-wrap').style.display = 'none';
+    document.getElementById('submit-success').style.display = 'block';
+    document.getElementById('submit-success').scrollIntoView({behavior: 'smooth', block: 'start'});
+    const refEl = document.getElementById('success-ref');
+    if (refEl) refEl.textContent = data.ref;
+  } catch (err) {
+    document.getElementById('review-form-error').textContent = 'Network error. Please check your connection and try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+});
+</script>
+{% endblock %}

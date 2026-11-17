@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Programme &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px;">
+  <h1 class="serif" style="font-size:26px; margin-bottom:4px;">Programme</h1>
+  <div class="chip-group" id="day-toggle">
+    <button type="button" class="chip-choice selected" data-day="1">Day 1 &middot; 22 Oct</button>
+    <button type="button" class="chip-choice" data-day="2">Day 2 &middot; 23 Oct</button>
+  </div>
+</div>
+<p style="font-size:13px; color:var(--muted); margin-top:2px;">
+  {% if signed_in %}
+  Tap the star to add a session to your reminders. <a href="{{ b }}/my-schedule{{ '?token=' + token if token else '' }}">My schedule</a>
+  {% else %}
+  <a href="{{ b }}/my-schedule">Get a link</a> to star sessions and save reminders.
+  {% endif %}
+</p>
+
+{% for day in [1, 2] %}
+<div class="day-panel" data-day="{{ day }}" style="{{ '' if day == 1 else 'display:none;' }}">
+  {% set rows = sessions_by_day.get(day, []) %}
+  {% if not rows %}
+  <div class="card" style="margin-top:16px;">Programme for this day hasn't been published yet.</div>
+  {% else %}
+  <div style="margin-top:16px;">
+    {% for s in rows %}
+    {% set ts = theme_style.get(s['theme'], {'bg':'#F1F4F7','fg':'#68798F'}) %}
+    <div class="card session-card{{ ' has-preview' if s['abstract_body'] else '' }}" id="{{ 'session-' + s['abstract_ref'] if s['abstract_ref'] else '' }}" style="display:flex; gap:16px; margin-bottom:10px; flex-wrap:wrap;">
+      <div class="mono" style="width:74px; color:var(--accent-ink); font-weight:600; font-size:13px;">{{ s['time'] }}</div>
+      <div style="flex:1; min-width:200px;">
+        <span class="theme-chip" style="background:{{ ts.bg }}; color:{{ ts.fg }};">{{ s['theme'] }}</span>
+        {% if s['room'] %}<span class="mono" style="font-size:11px; font-weight:600; color:var(--secondary); background:var(--inert); border-radius:4px; padding:3px 7px; margin-left:6px;">{{ s['room'] }}</span>{% endif %}
+        <div style="font-size:16px; font-weight:600; color:var(--ink); margin:4px 0 2px;">{{ s['title'] }}</div>
+        {% if s['who'] %}
+        <div style="font-size:13px; color:var(--muted);">
+          {% if s['abstract_ref'] %}<a href="{{ b }}/researchers#researcher-{{ s['abstract_ref'] }}" style="color:var(--muted);">{{ s['who'] }} &rarr;</a>{% else %}{{ s['who'] }}{% endif %}
+        </div>
+        {% endif %}
+        {% if s['abstract_body'] %}<div class="mono" style="font-size:10.5px; color:var(--faint); margin-top:4px;">Hover for abstract &middot; tap on mobile</div>{% endif %}
+      </div>
+      {% if s['presenter_photo'] %}
+      {% if s['abstract_ref'] %}<a href="{{ b }}/researchers#researcher-{{ s['abstract_ref'] }}">{% endif %}
+      <img src="{{ b }}/static/{{ s['presenter_photo'] }}" style="width:56px; height:56px; object-fit:cover; object-position:top center; border-radius:8px; flex-shrink:0;">
+      {% if s['abstract_ref'] %}</a>{% endif %}
+      {% endif %}
+      <div style="display:flex; align-items:center;">
+        {% if signed_in %}
+        {% set starred = s['id'] in starred_ids %}
+        <button type="button" class="btn-star" data-session="{{ s['id'] }}" data-starred="{{ 'true' if starred else 'false' }}"
+          style="border-radius:9px; padding:9px 14px; font-size:13px; white-space:nowrap; cursor:pointer;
+                 {% if starred %}background:var(--accent-soft); color:var(--accent-ink); border:1px solid var(--accent-soft-border);
+                 {% else %}background:#fff; color:var(--muted); border:1px solid var(--hairline);{% endif %}">
+          {{ '★ Reminder set' if starred else '☆ Remind me' }}
+        </button>
+        {% else %}
+        <a href="{{ b }}/my-schedule" style="font-size:12px; color:var(--muted);">Get a link to save</a>
+        {% endif %}
+      </div>
+      {% if s['abstract_body'] %}
+      <div class="session-abstract-popover">
+        <div class="popover-kicker">Abstract</div>
+        {% if s['abstract_author'] %}<div class="popover-author">{{ s['abstract_author'] }}{% if s['abstract_institution'] %}, {{ s['abstract_institution'] }}{% endif %}</div>{% endif %}
+        {{ s['abstract_body'] }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+
+<script>
+document.querySelectorAll('#day-toggle .chip-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#day-toggle .chip-choice').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.querySelectorAll('.day-panel').forEach(p => {
+      p.style.display = p.dataset.day === btn.dataset.day ? 'block' : 'none';
+    });
+  });
+});
+
+const TOKEN = {{ token | tojson }};
+document.querySelectorAll('.btn-star').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const willStar = btn.dataset.starred !== 'true';
+    btn.disabled = true;
+    const resp = await fetch('{{ b }}/api/star-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: TOKEN, session_id: btn.dataset.session, star: willStar}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not update.'); btn.disabled = false; return; }
+    btn.dataset.starred = willStar ? 'true' : 'false';
+    btn.textContent = willStar ? '★ Reminder set' : '☆ Remind me';
+    btn.style.background = willStar ? 'var(--accent-soft)' : '#fff';
+    btn.style.color = willStar ? 'var(--accent-ink)' : 'var(--muted)';
+    btn.style.borderColor = willStar ? 'var(--accent-soft-border)' : 'var(--hairline)';
+    btn.disabled = false;
+  });
+});
+
+document.querySelectorAll('.session-card.has-preview').forEach(card => {
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-star') || e.target.closest('a')) return;
+    document.querySelectorAll('.session-card.popover-open').forEach(c => {
+      if (c !== card) c.classList.remove('popover-open');
+    });
+    card.classList.toggle('popover-open');
+  });
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.session-card')) {
+    document.querySelectorAll('.session-card.popover-open').forEach(c => c.classList.remove('popover-open'));
+  }
+});
+
+// Arriving via a #session-XXX link (e.g. from a researcher's card) — switch to
+// whichever day panel actually contains it, then scroll it into view.
+if (window.location.hash.startsWith('#session-')) {
+  const target = document.querySelector(window.location.hash);
+  if (target) {
+    const panel = target.closest('.day-panel');
+    if (panel) {
+      const day = panel.dataset.day;
+      document.querySelectorAll('#day-toggle .chip-choice').forEach(b => b.classList.toggle('selected', b.dataset.day === day));
+      document.querySelectorAll('.day-panel').forEach(p => { p.style.display = p.dataset.day === day ? 'block' : 'none'; });
+    }
+    setTimeout(() => {
+      target.scrollIntoView({behavior: 'smooth', block: 'center'});
+      target.style.transition = 'box-shadow 0.3s ease';
+      target.style.boxShadow = '0 0 0 3px var(--accent-soft-border)';
+      setTimeout(() => { target.style.boxShadow = ''; }, 2000);
+    }, 50);
+  }
+}
+</script>
+{% endblock %}

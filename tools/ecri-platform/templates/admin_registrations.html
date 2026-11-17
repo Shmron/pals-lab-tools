@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Registrations &mdash; ECRI 2026 Admin{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">Registrations</h1>
+{% include "_admin_nav.html" with context %}
+
+<div class="facts">
+  <div class="card">
+    <div class="label">Registered</div>
+    <div class="value">{{ total }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Checked in</div>
+    <div class="value">{{ checked_in_count }}</div>
+  </div>
+</div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+  <a class="btn btn-secondary" href="{{ b }}/api/admin/export-registrations">Export to Excel</a>
+  <a class="btn btn-secondary" href="{{ b }}/api/admin/badges">Download all badges (ZIP, one PDF each)</a>
+  <a class="btn btn-secondary" id="btn-certificates" href="{{ b }}/api/admin/certificates">Download all certificates (ZIP, one PDF each)</a>
+  <a class="btn btn-secondary" href="{{ b }}/admin/checkin">Check-in desk &rarr;</a>
+</div>
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;">
+  <button type="button" class="btn btn-secondary" id="btn-email-badges">Email badges to everyone</button>
+  <button type="button" class="btn btn-secondary" id="btn-email-certificates">Email certificates to checked-in attendees</button>
+  <span class="mono" id="email-status" style="font-size:11.5px; color:var(--muted); align-self:center;"></span>
+</div>
+<p style="font-size:11.5px; color:var(--muted); margin-top:-10px; margin-bottom:18px;">Each person gets their own badge/certificate as an attachment addressed to them &mdash; certificates typically go out after the event, once people are checked in.</p>
+
+<div class="card" style="margin-bottom:18px;">
+  <div class="grid-2">
+    <div class="field" style="margin-bottom:0;">
+      <label for="f-filter-professional">Professional category</label>
+      <select id="f-filter-professional">
+        <option value="">All</option>
+        {% for c in professional_categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label for="f-filter-participation">Participation category</label>
+      <select id="f-filter-participation">
+        <option value="">All</option>
+        {% for c in participation_categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+</div>
+
+{% if not rows %}
+<div class="card">No registrations yet.</div>
+{% else %}
+<div class="card sub-list" id="reg-table">
+  {% for r in rows %}
+  <div class="row reg-row" data-professional="{{ r['professional_category'] }}" data-participation="{{ r['participation_category'] }}">
+    <div>
+      <div style="font-size:14px; font-weight:600; color:var(--ink);">{{ r['name'] }} {% if r['checked_in_at'] %}<span class="pill accepted" style="font-size:10px;">Checked in</span>{% endif %}</div>
+      <div style="font-size:12.5px; color:var(--muted); margin:2px 0;">{{ r['email'] }} &middot; {{ r['institution'] }}{% if r['country'] %} &middot; {{ r['country'] }}{% endif %}</div>
+      <div class="mono" style="font-size:11px; color:var(--faint);">{{ r['code'] }} &middot; {{ r['professional_category'] }} &middot; {{ r['participation_category'] }} &middot; Payment: {{ r['payment_status'] }}</div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; white-space:nowrap;">
+      <a href="{{ b }}/api/admin/badge/{{ r['id'] }}" style="font-size:12px;">Badge</a>
+      {% if r['checked_in_at'] %}
+      <a href="{{ b }}/api/admin/certificate/{{ r['id'] }}" style="font-size:12px;">Certificate</a>
+      {% else %}
+      <span style="font-size:12px; color:var(--faint);" title="Available once checked in">Certificate</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<h2 class="serif" style="font-size:19px; margin-top:26px;">Registration payment</h2>
+<p style="font-size:12.5px; color:var(--muted); margin-top:-6px;">Off by default. Turn it on and fill in details only once the fee/method is confirmed &mdash; existing registrations aren't affected retroactively.</p>
+<div class="card" style="max-width:640px; margin-bottom:16px;">
+  <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--body); margin-bottom:14px; cursor:pointer;">
+    <input type="checkbox" id="pay-required" style="width:auto;" {{ 'checked' if payment_required else '' }}>
+    Require payment for new registrations
+  </label>
+  <div class="field">
+    <label for="pay-amount">Fee amount</label>
+    <input id="pay-amount" type="text" value="{{ payment_amount }}" placeholder="e.g. $25 USD">
+  </div>
+  <div class="field">
+    <label for="pay-instructions">Payment instructions (bank / EcoCash details shown to registrants)</label>
+    <textarea id="pay-instructions" rows="3">{{ payment_instructions }}</textarea>
+  </div>
+  <div class="error" id="pay-settings-error" style="margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="btn-save-payment-settings">Save</button>
+</div>
+<div class="card sub-list">
+  {% if not payments_list %}
+  <div style="font-size:13.5px; color:var(--muted);">No payments to review yet.</div>
+  {% endif %}
+  {% for r in payments_list %}
+  <div class="row">
+    <div>
+      <div class="mono" style="font-size:11px; color:var(--faint);">{{ r['name'] }} &middot; {{ r['email'] }} &middot; {{ r['code'] }}</div>
+      <div style="font-size:13px; color:var(--ink); margin:4px 0;">Status: <strong>{{ r['payment_status'] }}</strong>{% if r['payment_reference'] %} &middot; ref: {{ r['payment_reference'] }}{% endif %}</div>
+      {% if r['payment_proof'] %}<a href="{{ b }}/static/{{ r['payment_proof'] }}" target="_blank" style="font-size:12.5px;">View screenshot</a>{% endif %}
+    </div>
+    <select class="payment-status-select" data-id="{{ r['id'] }}">
+      {% for s in payment_statuses %}
+      <option value="{{ s }}" {{ 'selected' if s == r['payment_status'] else '' }}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+document.getElementById('btn-save-payment-settings').addEventListener('click', async () => {
+  document.getElementById('pay-settings-error').textContent = '';
+  const btn = document.getElementById('btn-save-payment-settings');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  const resp = await fetch('{{ b }}/api/admin/save-payment-settings', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      required: document.getElementById('pay-required').checked,
+      amount: document.getElementById('pay-amount').value,
+      instructions: document.getElementById('pay-instructions').value,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) {
+    document.getElementById('pay-settings-error').textContent = data.error || 'Could not save.';
+    btn.disabled = false;
+    btn.textContent = 'Save';
+    return;
+  }
+  btn.textContent = 'Saved ✓';
+  btn.style.background = 'var(--success)';
+  setTimeout(() => window.location.reload(), 600);
+});
+
+document.querySelectorAll('.payment-status-select').forEach(sel => {
+  sel.addEventListener('change', async () => {
+    sel.disabled = true;
+    const resp = await fetch('{{ b }}/api/admin/mark-payment', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: sel.dataset.id, status: sel.value}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not update.'); sel.disabled = false; return; }
+    sel.style.borderColor = 'var(--success)';
+    sel.disabled = false;
+  });
+});
+
+function applyFilters() {
+  const prof = document.getElementById('f-filter-professional').value;
+  const part = document.getElementById('f-filter-participation').value;
+  document.querySelectorAll('.reg-row').forEach(row => {
+    const matchProf = !prof || row.dataset.professional === prof;
+    const matchPart = !part || row.dataset.participation === part;
+    row.style.display = (matchProf && matchPart) ? 'flex' : 'none';
+  });
+}
+document.getElementById('f-filter-professional').addEventListener('change', applyFilters);
+document.getElementById('f-filter-participation').addEventListener('change', applyFilters);
+
+document.getElementById('btn-certificates').addEventListener('click', (e) => {
+  if (!confirm('Certificates are issued to checked-in attendees only. Continue?')) {
+    e.preventDefault();
+  }
+});
+
+document.getElementById('btn-email-badges').addEventListener('click', async () => {
+  if (!confirm('This will email every registrant with an address on file their own badge attached. Continue?')) return;
+  const status = document.getElementById('email-status');
+  status.textContent = 'Sending…';
+  const resp = await fetch('{{ b }}/api/admin/email-badges', {method: 'POST'});
+  const data = await resp.json();
+  status.textContent = data.ok ? `Sending badges to ${data.count} people now.` : (data.error || 'Could not send.');
+});
+
+document.getElementById('btn-email-certificates').addEventListener('click', async () => {
+  if (!confirm('This will email every checked-in attendee with an address on file their own certificate attached. Continue?')) return;
+  const status = document.getElementById('email-status');
+  status.textContent = 'Sending…';
+  const resp = await fetch('{{ b }}/api/admin/email-certificates', {method: 'POST'});
+  const data = await resp.json();
+  status.textContent = data.ok ? `Sending certificates to ${data.count} people now.` : (data.error || 'Could not send.');
+});
+</script>
+{% endblock %}

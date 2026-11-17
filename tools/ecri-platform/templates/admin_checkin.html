@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Check-in desk &mdash; ECRI 2026 Admin{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">Check-in desk</h1>
+{% include "_admin_nav.html" with context %}
+
+<div class="facts">
+  <div class="card">
+    <div class="label">Checked in</div>
+    <div class="value" id="checked-in-count">{{ checked_in_count }}</div>
+    <div class="note">of {{ total }} registered</div>
+  </div>
+</div>
+
+<div class="card" style="max-width:480px;">
+  <div class="field">
+    <label for="f-code">Registration code</label>
+    <input id="f-code" type="text" placeholder="ECRI-26-0301" autofocus style="text-transform:uppercase;">
+  </div>
+  <div class="error" id="checkin-error"></div>
+  <button class="btn btn-primary" id="btn-checkin">Check in</button>
+  <div id="checkin-result" style="display:none; margin-top:14px; padding:12px 14px; border-radius:9px;"></div>
+</div>
+
+<script>
+const codeInput = document.getElementById('f-code');
+const resultBox = document.getElementById('checkin-result');
+
+async function doCheckIn() {
+  document.getElementById('checkin-error').textContent = '';
+  const code = codeInput.value.trim().toUpperCase();
+  if (!code) return;
+  const btn = document.getElementById('btn-checkin');
+  btn.disabled = true;
+  const resp = await fetch('{{ b }}/api/admin/check-in', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({code}),
+  });
+  const data = await resp.json();
+  btn.disabled = false;
+  if (!data.ok) {
+    document.getElementById('checkin-error').textContent = data.error || 'Could not check in.';
+    resultBox.style.display = 'none';
+    return;
+  }
+  resultBox.style.display = 'block';
+  if (data.already) {
+    resultBox.style.background = 'var(--warning-bg)';
+    resultBox.style.color = 'var(--warning)';
+    resultBox.innerHTML = '<strong>' + data.name + '</strong> already checked in (' + (data.institution || '') + ').';
+  } else {
+    resultBox.style.background = 'var(--success-bg)';
+    resultBox.style.color = 'var(--success)';
+    resultBox.innerHTML = '✓ Checked in: <strong>' + data.name + '</strong> (' + (data.institution || '') + ')';
+    document.getElementById('checked-in-count').textContent = parseInt(document.getElementById('checked-in-count').textContent) + 1;
+  }
+  codeInput.value = '';
+  codeInput.focus();
+}
+
+document.getElementById('btn-checkin').addEventListener('click', doCheckIn);
+codeInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doCheckIn();
+});
+</script>
+{% endblock %}

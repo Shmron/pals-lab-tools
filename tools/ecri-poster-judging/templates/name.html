@@ -1,0 +1,18 @@
+{% extends "pj_base.html" %}
+{% block title %}Your name{% endblock %}
+{% block top %}
+<div class="top"><div class="wrap">
+  <a class="brand" href="{{ url_for('posters.judge_home') }}">ECRI poster judging</a>
+  <div class="who">{{ j.name }} · <a href="{{ url_for('posters.index', all=1) }}">Home</a></div>
+</div></div>
+{% endblock %}
+{% block body %}
+<h1>{{ j.name }}</h1>
+{% if flash_msg %}<div class="notice warn" role="status">{{ flash_msg }}</div>{% endif %}
+<p>Type your name to start.</p>
+<form class="card" method="post" action="{{ url_for('posters.my_name') }}">
+  <label class="lbl" for="pn" style="margin-top:0">Your name</label>
+  <input type="text" id="pn" name="person" maxlength="40" required autocomplete="off" autocapitalize="words" spellcheck="false" autofocus placeholder="e.g. Jane Moyo">
+  <p style="margin-top:10px"><button class="btn block" type="submit">Continue</button></p>
+</form>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Research in focus &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">Research in focus</h1>
+<p style="color:var(--muted); font-size:13.5px; max-width:60ch;">Plain-language summaries of research being presented at ECRI 2026, for anyone outside the field.</p>
+
+{% if not rows %}
+<div class="card" style="margin-top:16px;">Summaries will appear here as they're prepared.</div>
+{% else %}
+{% for r in rows %}
+{% set ts = theme_style.get(r['theme'], {'bg':'#F1F4F7','fg':'#68798F'}) %}
+<div class="card" style="padding:26px; margin-bottom:16px;">
+  <div class="mono" style="font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:{{ ts.fg }};">{{ r['theme'] }} &middot; {{ r['presenting_author'] }}</div>
+  <h2 class="serif" style="font-size:25px; max-width:34ch; margin:8px 0 18px;">{{ r['headline'] or r['abstract_title'] }}</h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:18px;">
+    {% if r['q_about'] %}
+    <div>
+      <div style="font-size:12px; font-weight:600; color:var(--accent-ink);">What is the research about?</div>
+      <div style="font-size:13.5px; color:var(--body); margin-top:4px;">{{ r['q_about'] }}</div>
+    </div>
+    {% endif %}
+    {% if r['q_problem'] %}
+    <div>
+      <div style="font-size:12px; font-weight:600; color:var(--accent-ink);">What problem does it address?</div>
+      <div style="font-size:13.5px; color:var(--body); margin-top:4px;">{{ r['q_problem'] }}</div>
+    </div>
+    {% endif %}
+    {% if r['q_matters'] %}
+    <div>
+      <div style="font-size:12px; font-weight:600; color:var(--accent-ink);">Why does it matter?</div>
+      <div style="font-size:13.5px; color:var(--body); margin-top:4px;">{{ r['q_matters'] }}</div>
+    </div>
+    {% endif %}
+    {% if r['q_hoping'] %}
+    <div>
+      <div style="font-size:12px; font-weight:600; color:var(--accent-ink);">What are the researchers hoping to achieve?</div>
+      <div style="font-size:13.5px; color:var(--body); margin-top:4px;">{{ r['q_hoping'] }}</div>
+    </div>
+    {% endif %}
+  </div>
+  {% if r['credit'] %}
+  <div style="font-size:11.5px; color:var(--faint); margin-top:18px; padding-top:14px; border-top:1px solid var(--rule);">{{ r['credit'] }}</div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

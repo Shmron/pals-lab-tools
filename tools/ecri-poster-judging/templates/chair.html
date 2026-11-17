@@ -1,0 +1,558 @@
+{% extends "pj_base.html" %}
+{% block title %}Chief adjudicator{% endblock %}
+{% block wrapcls %}wide{% endblock %}
+{% macro act(name) %}{{ url_for('posters.chair_action', action=name) }}{% endmacro %}
+{% macro stp() %}<input type="hidden" name="step" value="{{ step }}">{% endmacro %}
+{% block top %}
+<div class="top"><div class="wrap wide">
+  <a class="brand" href="{{ url_for('posters.chair') }}">Chief adjudicator</a>
+  <div class="who"><a href="{{ url_for('posters.index', all=1) }}">Home</a> · <a href="{{ url_for('posters.logout') }}">Sign out</a></div>
+</div></div>
+{% endblock %}
+
+{% block body %}
+{% set labels = ['Adjudicators', 'Posters', 'Assign', 'Scoring', 'Final vote'] %}
+<div class="chips" style="margin-bottom:14px">
+  {% for l in labels %}
+  <a class="pill big {{ 'on' if loop.index == step else 'acc' }}" href="{{ url_for('posters.chair', step=loop.index) }}">{{ loop.index }} · {{ l }}</a>
+  {% endfor %}
+</div>
+{% if step != default_step %}
+<p class="sub">Where things stand: <a href="{{ url_for('posters.chair', step=default_step) }}">go to step {{ default_step }} · {{ labels[default_step - 1] }}</a></p>
+{% endif %}
+
+{% if flash_msg %}
+<div class="notice {{ 'ok' if flash_msg.startswith(('Password changed', 'All scores')) else 'warn' }}" role="status" style="word-break:break-word">{{ flash_msg }}</div>
+{% endif %}
+
+{# ---------------- STEP 1 ---------------- #}
+{% if step == 1 %}
+<h1>Step 1 · Adjudicators</h1>
+<div class="card">
+  <form method="post" action="{{ act('set-panel') }}" class="row" style="flex-wrap:wrap">{{ stp() }}
+    <label for="np" style="font-weight:600;color:var(--ink)">Number of adjudicators</label>
+    <span class="row" style="gap:8px"><input type="number" id="np" name="size" value="{{ n_panel }}" min="1" max="30" inputmode="numeric" style="width:90px">
+    <button class="btn sm" type="submit">Save</button></span>
+  </form>
+</div>
+<div class="card">
+  <h3>Everyone opens <span class="mono">{{ base_url }}</span> and taps their number.</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Adjudicator</th><th class="num">Posters</th><th class="num">Scored</th><th></th></tr>
+    {% for r in progress %}
+    <tr><td>{{ r.judge.name }}
+      <form method="post" action="{{ act('set-name') }}" class="row" style="gap:6px;margin-top:4px">{{ stp() }}<input type="hidden" name="judge" value="{{ r.judge.id }}">
+        <input type="text" name="person" value="{{ r.judge.person }}" placeholder="Name" maxlength="40" style="min-height:34px;padding:4px 8px;font-size:14px"><button class="btn ghost sm" type="submit">Save</button></form></td><td class="num">{{ r.total }}</td><td class="num">{{ r.done }}</td>
+      <td style="text-align:right">{% if r.judge.device %}<form method="post" action="{{ act('free-seat') }}" onsubmit="return confirm('Free {{ r.judge.name|e }}? Whoever is using it is signed out.')">{{ stp() }}<input type="hidden" name="judge" value="{{ r.judge.id }}">
+        <button class="btn ghost sm" type="submit">Free number</button></form>{% else %}<span class="sub">free</span>{% endif %}</td></tr>
+    {% endfor %}
+  </table></div>
+</div>
+<p><a class="btn block" href="{{ url_for('posters.chair', step=2) }}">Next: the posters</a></p>
+<details class="card"><summary>Password and reset</summary>
+  <form method="post" action="{{ act('set-password') }}">{{ stp() }}
+    <label class="lbl" for="npw">New chief password</label>
+    <input type="text" id="npw" name="password" autocomplete="off">
+    <p style="margin-top:8px"><button class="btn sm" type="submit">Change password</button></p>
+  </form>
+  <form method="post" action="{{ act('reset-all') }}" style="margin-top:16px">{{ stp() }}
+    <label class="lbl" for="rc">Clear all scores, votes and assignments (type CLEAR)</label>
+    <input type="text" id="rc" name="confirm" autocomplete="off">
+    <p style="margin-top:8px"><button class="btn danger sm" type="submit">Clear</button></p>
+  </form>
+</details>
+
+{# ---------------- STEP 2 ---------------- #}
+{% elif step == 2 %}
+<h1>Step 2 · Add the posters</h1>
+<div class="card">
+  <form method="post" action="{{ act('set-self-add') }}" class="row" style="flex-wrap:wrap">{{ stp() }}
+    <span>Adjudicators can add posters they are reviewing themselves: <b>{{ 'on' if self_add else 'off' }}</b></span>
+    <input type="hidden" name="on" value="{{ '0' if self_add else '1' }}">
+    <button class="btn ghost sm" type="submit">Turn {{ 'off' if self_add else 'on' }}</button>
+  </form>
+</div>
+{% if phase == 'scoring' %}
+<div class="card">
+  <form method="post" action="{{ act('add-abstract') }}">
+    {{ stp() }}
+    <label class="lbl" for="t">Title</label>
+    <input type="text" id="t" name="title" required>
+    <label class="lbl" for="c">Code <span class="sub">(leave blank to number automatically: ABS-001, ABS-002…)</span></label>
+    <input type="text" id="c" name="code" placeholder="e.g. ECRI-A014">
+    <label class="lbl" for="th">Theme <span class="sub">(optional)</span></label>
+    <input type="text" id="th" name="theme">
+    <label class="lbl" for="pr">Presenter <span class="sub">(optional. Leave blank to keep judging blind)</span></label>
+    <input type="text" id="pr" name="presenter">
+    <label class="lbl" for="b">Poster summary <span class="sub">(optional, shown to the adjudicators)</span></label>
+    <textarea id="b" name="body"></textarea>
+    <p style="margin-top:10px"><button class="btn block" type="submit">Add this poster</button></p>
+  </form>
+</div>
+<details class="card"><summary>Have a spreadsheet? Paste many at once</summary>
+  <form method="post" action="{{ act('import-abstracts') }}">
+    {{ stp() }}
+    <p class="sub">Choose a tab-separated file, or paste rows: code, title, presenter, theme, poster summary.</p>
+    <input type="file" id="rowsfile" accept=".tsv,.txt" style="margin-bottom:8px">
+    <textarea name="rows" id="rows" style="min-height:110px"></textarea>
+    <p style="margin-top:8px"><button class="btn sm" type="submit">Import</button></p>
+  </form>
+</details>
+{% endif %}
+<div class="card">
+  <h3>{{ posters|length }} poster{{ '' if posters|length == 1 else 's' }}</h3>
+  {% if not posters %}<p class="sub">None yet.</p>{% endif %}
+  <div class="tablewrap"><table>
+  {% for p in posters %}
+    <tr><td class="mono">{{ p.code }}</td><td>{{ p.title }}{% if p.added_name %}<div class="sub">added by {{ p.added_name }}</div>{% endif %}</td>
+      <td style="text-align:right">{% if phase == 'scoring' %}
+        <form method="post" action="{{ act('delete-abstract') }}" onsubmit="return confirm('Delete {{ p.code|e }} and its scores?')">{{ stp() }}<input type="hidden" name="poster" value="{{ p.code }}">
+          <button class="btn danger sm" type="submit">Delete</button></form>{% endif %}</td></tr>
+  {% endfor %}
+  </table></div>
+</div>
+{% if posters %}<p><a class="btn block" href="{{ url_for('posters.chair', step=3) }}">Next: assign to adjudicators</a></p>{% endif %}
+
+{# ---------------- STEP 3 ---------------- #}
+{% elif step == 3 %}
+<h1>Step 3 · Assign posters to adjudicators</h1>
+
+<style>
+  .bgrid { display:grid; gap:12px; }
+  #bjudges { order:-1; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; }
+  @media (min-width:900px) {
+    .bgrid { grid-template-columns:1fr 300px; align-items:start; }
+    #bjudges { order:0; grid-template-columns:1fr; position:sticky; top:8px; }
+  }
+  .bj { text-align:left; background:var(--surface); border:2px dashed var(--hair); border-radius:10px; padding:10px 12px; cursor:pointer; font:inherit; color:var(--body); min-height:56px; }
+  .bj:hover, .bj.over { border-color:var(--accent); background:var(--accent-soft); }
+  .bj b { color:var(--ink); }
+  .bp { background:var(--surface); border:2px solid var(--hair); border-radius:10px; padding:10px 12px; margin:0 0 8px; cursor:pointer; }
+  .bp.sel { border-color:var(--accent); background:var(--accent-soft); }
+  .bp.low { border-left:6px solid var(--warn); }
+  .bp .bt { color:var(--ink); font-weight:600; font-size:15px; line-height:1.35; margin:2px 0; }
+  .bth { margin:14px 0 6px; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .chip { border:0; cursor:pointer; min-height:30px; font:inherit; font-size:12px; font-weight:600; }
+  #bbar { position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--surface); border-top:2px solid var(--accent); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  #bbar .in { max-width:1040px; margin:0 auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  #bbar select { width:auto; flex:1 1 160px; }
+  .bad { color:var(--bad); }
+</style>
+
+<div class="card" id="board">
+  <h3>Pick and drop</h3>
+  <form method="post" action="{{ act('set-per') }}" class="row" style="justify-content:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+    {{ stp() }}
+    <label class="sub" for="pp">Adjudicators needed per poster</label>
+    <input type="text" inputmode="numeric" pattern="[0-9]*" id="pp" name="per_poster" value="{{ n_set }}" style="width:70px;min-height:40px">
+    <button class="btn ghost sm" type="submit">Save</button>
+  </form>
+
+
+  <div class="row" style="justify-content:flex-start;flex-wrap:wrap;gap:8px;margin:8px 0">
+    <select id="bt" style="width:auto;min-height:40px" aria-label="Show one theme"></select>
+    <label class="sub" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bneed" style="width:20px;height:20px"> Only posters that still need more</label>
+    <input type="text" id="bq" placeholder="Search code or title" style="width:auto;flex:1 1 180px;min-height:40px">
+  </div>
+  <div class="row" style="justify-content:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+    <button class="btn ghost sm" type="button" id="bselall">Select all shown</button>
+    <button class="btn ghost sm" type="button" id="bselnone">Clear selection</button>
+    <span class="sub" id="bsummary"></span>
+  </div>
+  <div class="sub" id="bstatus" role="status" aria-live="polite" style="min-height:20px">&nbsp;</div>
+
+  <div class="bgrid">
+    <div id="bposters"></div>
+    <div id="bjudges" aria-label="Adjudicators"></div>
+  </div>
+</div>
+
+<div id="bbar" hidden>
+  <div class="in">
+    <b id="bcount" style="color:var(--ink)"></b>
+    <select id="bsel" aria-label="Adjudicator to assign to"></select>
+    <button class="btn" type="button" id="bgo">Assign</button>
+    <button class="btn ghost" type="button" id="bclear">Clear</button>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Fill the gaps automatically</h3>
+  <div class="chips">
+    <form method="post" action="{{ act('auto-assign') }}">{{ stp() }}<input type="hidden" name="per_poster" value="{{ n_set }}">
+      <button class="btn" type="submit">Fill the gaps automatically</button></form>
+    <button class="btn danger" type="button" id="bwipe">Clear all assignments</button>
+  </div>
+</div>
+
+<div class="card" id="sharecard">
+  <h3>Posters per adjudicator</h3>
+  <div id="sharebody">
+  {% if share.rows and posters %}
+  <div class="tablewrap"><table>
+    <tr><th>Adjudicator</th>{% for t in share.themes %}<th class="num" title="{{ t }}">{{ t.split(',')[0][:14] }}<br><span class="sub">of {{ share.sizes[t] }}</span></th>{% endfor %}<th class="num">Total</th></tr>
+    {% for r in share.rows %}
+    <tr><td>{{ r.judge.name }}</td>{% for t in share.themes %}<td class="num">{{ r.by[t] }}</td>{% endfor %}<td class="num"><b>{{ r.total }}</b></td></tr>
+    {% endfor %}
+  </table></div>
+  {% else %}<p class="sub">Add adjudicators and posters first.</p>{% endif %}
+  </div>
+</div>
+{% if posters %}<p><a class="btn block" href="{{ url_for('posters.chair', step=4) }}">Next: follow the scoring</a></p>{% endif %}
+
+
+{# ---------------- STEP 4 ---------------- #}
+{% elif step == 4 %}
+<h1>Step 4 · Scoring</h1>
+{% if posters %}
+<div class="card">
+  <div class="row"><b style="color:var(--ink)">{{ covered }} of {{ posters|length }} posters have all {{ n_req }} scores</b>
+    {% if ready %}<span class="pill ok">Ready</span>{% endif %}</div>
+  <div class="bar" style="margin-top:8px"><i style="width:{{ covered / posters|length * 100 }}%"></i></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3>Who has finished</h3>
+  {% for r in progress %}
+  <div class="row" style="padding:4px 0"><span>{{ r.judge.name }}{% if r.conflicts %} <span class="sub">({{ r.conflicts }} conflict{{ '' if r.conflicts == 1 else 's' }})</span>{% endif %}</span>
+    <span class="pill {{ 'ok' if r.total and r.done == r.total else '' }}">{{ r.done }}/{{ r.total }}</span></div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h3>Ranking so far</h3>
+  <div class="tablewrap"><table>
+    <tr><th>#</th><th>Poster</th><th class="num">Mean /100</th><th class="num">Scores</th></tr>
+    {% for i in rank %}
+    <tr {% if i.poster.code in preview and phase == 'scoring' %}style="background:var(--accent-soft)"{% endif %}>
+      <td>{{ loop.index if i.mean is not none else '–' }}</td>
+      <td><span class="code">{{ i.poster.code }}</span><br>{{ i.poster.title[:70] }}{{ '…' if i.poster.title|length > 70 }}
+        {% if i.n < n_req %}<div class="sub">{% if waiting[i.poster.code] %}Waiting for: {{ waiting[i.poster.code]|join(', ') }}{% else %}Needs another adjudicator (step 3){% endif %}</div>{% endif %}</td>
+      <td class="num"><b>{{ '%.1f'|format(i.mean) if i.mean is not none else '–' }}</b></td>
+      <td class="num">{{ i.n }}/{{ n_req }}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+
+{% if phase == 'scoring' %}
+<div class="card">
+  <h3>Start the final vote</h3>
+  <form method="post" action="{{ act('set-finalists') }}" class="row" style="justify-content:flex-start;flex-wrap:wrap">
+    {{ stp() }}
+    <label for="nf" class="sub">Number of finalists</label>
+    <input type="text" inputmode="numeric" pattern="[0-9]*" id="nf" name="n" value="{{ n_final }}" style="width:70px">
+    <button class="btn ghost sm" type="submit">Save</button>
+  </form>
+  {% if cutoff_tie %}<div class="notice warn" style="margin-top:8px">Tie at the cut-off: {{ preview|length }} posters advance.</div>{% endif %}
+  <form method="post" action="{{ act('start-final') }}" style="margin-top:10px">
+    {{ stp() }}
+    <button class="btn block" type="submit" {% if not ready %}disabled{% endif %}>Start the final vote with the top {{ preview|length }}</button>
+  </form>
+  {% if not ready %}<p class="sub" style="margin-top:8px">Needs {{ n_req }} submitted score{{ "" if n_req == 1 else "s" }} on every poster.</p>{% endif %}
+</div>
+{% else %}
+<div class="notice ok">Scoring is closed. The final vote has started.</div>
+<p><a class="btn block" href="{{ url_for('posters.chair', step=5) }}">Go to the final vote</a></p>
+{% endif %}
+
+{# ---------------- STEP 5 ---------------- #}
+{% elif step == 5 %}
+<h1>Step 5 · Final vote</h1>
+{% if phase == 'scoring' %}
+  <div class="card"><p>The final vote has not started. Finish scoring in <a href="{{ url_for('posters.chair', step=4) }}">step 4</a> first.</p></div>
+{% else %}
+  {% if phase == 'done' %}
+    {% set w = rank|selectattr('poster.code', 'equalto', vs.winner)|list %}
+    <div class="card" style="border-color:var(--ok)">
+      <span class="pill ok">Winner</span>
+      {% if w %}<div class="code" style="margin-top:8px">{{ w[0].poster.code }}</div><div class="title">{{ w[0].poster.title }}</div>{% endif %}
+      {% for v in vs.by_poster.get(vs.winner, []) %}<div class="msg"><b>{{ v.name }}</b><br>{{ v.reason }}</div>{% endfor %}
+    </div>
+  {% else %}
+    <div class="notice">Round {{ vs.round }}. Results update as people vote.</div>
+    <p><a class="btn ghost" href="{{ url_for('posters.finalists') }}">Open the finalist page (read and discuss)</a></p>
+  {% endif %}
+
+  {% if phase == 'finalists' and not vs.closed %}
+  <div class="card">
+    <h3>Votes this round: {{ vs.votes|length }} of {{ vs.n_voters }}</h3>
+    {% for cid in vs.cands %}
+      {% set ps = vs.by_poster.get(cid, []) %}
+      <div style="padding:8px 0;border-top:1px solid var(--hair)">
+        <div class="row"><span><span class="code">{{ cid }}</span> {{ (rank|selectattr('poster.code', 'equalto', cid)|list)[0].poster.title[:60] }}</span><span class="pill {{ 'acc' if ps else '' }}">{{ ps|length }}</span></div>
+        {% for x in ps %}<div class="msg"><b>{{ x.name }}</b><br>{{ x.reason }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    {% if vs.missing %}<div class="notice warn">Not voted yet: {{ vs.missing|join(', ') }}</div>{% endif %}
+    {% if vs.missing %}
+    <form method="post" action="{{ act('count-votes') }}" onsubmit="return confirm('Count now without {{ vs.missing|join(', ')|e }}?')">
+      {{ stp() }}
+      <button class="btn ghost sm" type="submit" {% if not vs.votes %}disabled{% endif %}>Close this round without them</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if vs.history %}
+  <div class="card">
+    <h3>Earlier rounds</h3>
+    {% for h in vs.history %}
+    <div style="padding:6px 0;border-top:1px solid var(--hair)"><b style="color:var(--ink)">Round {{ h.n }}</b>
+      <div class="sub">{% for c in h.cands %}{{ c }}: {{ h.counts.get(c, 0) }}{{ ' · ' if not loop.last }}{% endfor %}</div>
+      <div class="sub">{% if h.outcome.startswith('winner') %}Winner: {{ h.outcome[7:] }}{% else %}Tie: {{ h.outcome[4:] }} go to a new vote{% endif %}</div></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post" action="{{ act('reopen-scoring') }}" onsubmit="return confirm('Go back to scoring? This clears the finalists, all votes and comments.')">
+    {{ stp() }}
+    <button class="btn danger sm" type="submit">Go back to scoring (clears the final vote)</button>
+  </form>
+{% endif %}
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if step == 5 and phase == 'finalists' %}<script>setInterval(function () { location.reload(); }, 4000);</script>{% endif %}
+{% if step == 3 %}
+<script>
+window.BOARD = {{ board|tojson }};
+window.BOARD_URL = {{ url_for('posters.chair_board', op='assign')|tojson }};
+</script>
+<script>
+{% raw %}
+(function () {
+  var state = window.BOARD;
+  var BASE = window.BOARD_URL.replace(/assign$/, '');
+  var sel = new Set();
+  var busy = false;
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+  function short(t) { return t.split(',')[0].slice(0, 14); }
+  function needed(p) { return p.assigned.filter(function (a) { return !a.conflict; }).length; }
+
+  function say(msg, bad) {
+    var s = $('bstatus');
+    s.textContent = msg || ' ';
+    s.className = 'sub' + (bad ? ' bad' : '');
+  }
+  function call(op, body) {
+    return fetch(BASE + op, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})})
+      .then(function (r) { return r.json().then(function (j) { j.status = r.status; return j; }); })
+      .catch(function () { return {ok: false, error: 'No connection. Nothing was changed.'}; });
+  }
+  function done(res, okMsg) {
+    busy = false;
+    if (res.ok) { state = res.state; render(); say(okMsg); } else { say(res.error || 'Could not save.', true); }
+  }
+
+  function judgeName(id) {
+    for (var i = 0; i < state.judges.length; i++) { if (state.judges[i].id === id) { return state.judges[i].name; } }
+    return '';
+  }
+  function assignTo(id, codes) {
+    if (busy) { return; }
+    if (!codes.length) { say('Pick some posters first, then choose an adjudicator.', true); return; }
+    busy = true;
+    say('Saving…');
+    call('assign', {judge: id, posters: codes}).then(function (res) {
+      if (res.ok) { sel.clear(); }
+      done(res, codes.length + ' poster' + (codes.length === 1 ? '' : 's') + ' assigned to ' + judgeName(id) + '.');
+    });
+  }
+  function remove(code, a, force) {
+    if (busy) { return; }
+    busy = true;
+    call('unassign', {judge: a.id, poster: code, force: !!force}).then(function (res) {
+      if (res.needs_confirm) {
+        busy = false;
+        if (window.confirm(res.error + ' Remove anyway?')) { remove(code, a, true); }
+        return;
+      }
+      done(res, a.name + ' was taken off ' + code + '.');
+    });
+  }
+
+  function shown() {
+    var theme = $('bt').value, need = $('bneed').checked, q = $('bq').value.trim().toLowerCase();
+    return state.posters.filter(function (p) {
+      if (theme && p.theme !== theme) { return false; }
+      if (need && needed(p) >= state.n) { return false; }
+      if (q && (p.code + ' ' + p.title).toLowerCase().indexOf(q) < 0) { return false; }
+      return true;
+    });
+  }
+
+  function renderFilter() {
+    var s = $('bt'), cur = s.value;
+    s.innerHTML = '';
+    var all = el('option', null, 'All themes'); all.value = ''; s.appendChild(all);
+    state.themes.forEach(function (t) {
+      var o = el('option', null, t + ' (' + state.sizes[t] + ')'); o.value = t; s.appendChild(o);
+    });
+    s.value = state.themes.indexOf(cur) >= 0 ? cur : '';
+  }
+
+  function renderPosters() {
+    var box = $('bposters');
+    box.innerHTML = '';
+    var list = shown();
+    if (!state.posters.length) { box.appendChild(el('p', 'sub', 'No posters yet. Add them in step 2.')); return; }
+    if (!list.length) { box.appendChild(el('p', 'sub', 'No posters match.')); return; }
+    var lastTheme = null;
+    list.forEach(function (p) {
+      if (p.theme !== lastTheme) { box.appendChild(el('div', 'bth', p.theme)); lastTheme = p.theme; }
+      var n = needed(p);
+      var card = el('div', 'bp' + (sel.has(p.code) ? ' sel' : '') + (n < state.n ? ' low' : ''));
+      card.tabIndex = 0;
+      card.setAttribute('role', 'checkbox');
+      card.setAttribute('aria-checked', sel.has(p.code) ? 'true' : 'false');
+      card.draggable = true;
+      var top = el('div', 'row');
+      top.appendChild(el('span', 'code', p.code));
+      top.appendChild(el('span', 'pill ' + (n >= state.n ? 'ok' : 'warn'), n + ' of ' + state.n));
+      card.appendChild(top);
+      card.appendChild(el('div', 'bt', p.title));
+      if (p.assigned.length) {
+        var chips = el('div', 'chips');
+        chips.style.marginTop = '6px';
+        p.assigned.forEach(function (a) {
+          var c = el('button', 'pill chip ' + (a.conflict ? 'warn' : 'acc'),
+            a.name + (a.conflict ? ' (conflict)' : '') + (a.scored ? ' ✓' : '') + ' ✕');
+          c.type = 'button';
+          c.title = 'Take ' + a.name + ' off this poster';
+          c.addEventListener('click', function (ev) { ev.stopPropagation(); remove(p.code, a, false); });
+          chips.appendChild(c);
+        });
+        card.appendChild(chips);
+      }
+      function toggle() {
+        if (sel.has(p.code)) { sel.delete(p.code); } else { sel.add(p.code); }
+        render();
+      }
+      card.addEventListener('click', toggle);
+      card.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); }
+      });
+      card.addEventListener('dragstart', function (ev) {
+        var codes = sel.has(p.code) ? Array.from(sel) : [p.code];
+        ev.dataTransfer.setData('text/plain', JSON.stringify(codes));
+        ev.dataTransfer.effectAllowed = 'copy';
+      });
+      box.appendChild(card);
+    });
+  }
+
+  function renderJudges() {
+    var box = $('bjudges');
+    box.innerHTML = '';
+    if (!state.judges.length) { box.appendChild(el('p', 'sub', 'Add adjudicators in step 1.')); return; }
+    state.judges.forEach(function (j) {
+      var t = el('button', 'bj');
+      t.type = 'button';
+      var line = el('div', 'row');
+      line.appendChild(el('b', null, j.name));
+      line.appendChild(el('span', 'pill', String(j.total)));
+      t.appendChild(line);
+      t.appendChild(el('div', 'sub', state.themes.map(function (th) { return short(th) + ' ' + j.by[th]; }).join(' · ')));
+      t.addEventListener('click', function () { assignTo(j.id, Array.from(sel)); });
+      t.addEventListener('dragover', function (ev) { ev.preventDefault(); t.classList.add('over'); });
+      t.addEventListener('dragleave', function () { t.classList.remove('over'); });
+      t.addEventListener('drop', function (ev) {
+        ev.preventDefault();
+        t.classList.remove('over');
+        var codes = [];
+        try { codes = JSON.parse(ev.dataTransfer.getData('text/plain')); } catch (e) { codes = []; }
+        assignTo(j.id, codes);
+      });
+      box.appendChild(t);
+    });
+  }
+
+  function renderBar() {
+    var bar = $('bbar');
+    bar.hidden = sel.size === 0;
+    $('bcount').textContent = sel.size + ' poster' + (sel.size === 1 ? '' : 's') + ' picked';
+    var s = $('bsel'), cur = s.value;
+    s.innerHTML = '';
+    state.judges.forEach(function (j) { var o = el('option', null, j.name + ' (' + j.total + ')'); o.value = String(j.id); s.appendChild(o); });
+    if (cur) { s.value = cur; }
+  }
+
+  function renderShare() {
+    var body = $('sharebody');
+    body.innerHTML = '';
+    if (!state.judges.length || !state.posters.length) { body.appendChild(el('p', 'sub', 'Add adjudicators and posters first.')); return; }
+    var wrap = el('div', 'tablewrap'), table = el('table'), head = el('tr');
+    head.appendChild(el('th', null, 'Adjudicator'));
+    state.themes.forEach(function (t) {
+      var th = el('th', 'num', short(t));
+      th.title = t;
+      th.appendChild(el('br'));
+      th.appendChild(el('span', 'sub', 'of ' + state.sizes[t]));
+      head.appendChild(th);
+    });
+    head.appendChild(el('th', 'num', 'Total'));
+    table.appendChild(head);
+    state.judges.forEach(function (j) {
+      var tr = el('tr');
+      tr.appendChild(el('td', null, j.name));
+      state.themes.forEach(function (t) { tr.appendChild(el('td', 'num', String(j.by[t]))); });
+      var tt = el('td', 'num'); tt.appendChild(el('b', null, String(j.total))); tr.appendChild(tt);
+      table.appendChild(tr);
+    });
+    wrap.appendChild(table);
+    body.appendChild(wrap);
+  }
+
+  function renderSummary() {
+    var low = state.posters.filter(function (p) { return needed(p) < state.n; }).length;
+    $('bsummary').textContent = state.posters.length
+      ? (low ? low + ' of ' + state.posters.length + ' posters still need more adjudicators.' : 'All ' + state.posters.length + ' posters have enough adjudicators.')
+      : '';
+  }
+
+  function render() {
+    renderFilter();
+    renderPosters();
+    renderJudges();
+    renderBar();
+    renderShare();
+    renderSummary();
+  }
+
+  ['bt', 'bneed'].forEach(function (id) { $(id).addEventListener('change', render); });
+  $('bq').addEventListener('input', render);
+  $('bselall').addEventListener('click', function () { shown().forEach(function (p) { sel.add(p.code); }); render(); });
+  $('bselnone').addEventListener('click', function () { sel.clear(); render(); });
+  $('bclear').addEventListener('click', function () { sel.clear(); render(); });
+  $('bgo').addEventListener('click', function () { assignTo(parseInt($('bsel').value, 10), Array.from(sel)); });
+  $('bwipe').addEventListener('click', function () {
+    if (busy || !window.confirm('Remove every assignment (except declared conflicts) and start again?')) { return; }
+    busy = true;
+    call('clear', {}).then(function (res) { done(res, 'All assignments were cleared.'); });
+  });
+
+  render();
+})();
+
+{% endraw %}
+</script>
+{% endif %}
+<script>
+var rf = document.getElementById('rowsfile');
+if (rf) rf.addEventListener('change', function () {
+  var f = rf.files[0]; if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function () { document.getElementById('rows').value = rd.result; };
+  rd.readAsText(f);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>{% block title %}Poster judging{% endblock %} · ECRI 2026</title>
+<style>
+:root {
+  --ink:#0B2140; --body:#3C5273; --muted:#5C7089; --hair:#E3E9F0; --page:#F6F8FA;
+  --surface:#fff; --accent:#0B79D0; --accent-ink:#08558F; --accent-soft:#E7F0FA; --accent-border:#B9D5EE;
+  --ok:#1F6B47; --ok-bg:#E6F3EC; --warn:#B5792A; --warn-bg:#FBF0E4; --bad:#C0392B; --inert:#EDF2F7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:#E8EEF6; --body:#B7C4D6; --muted:#93A3B8; --hair:#26354A; --page:#0E1724;
+    --surface:#15202F; --accent:#4DA3EA; --accent-ink:#8CC4F2; --accent-soft:#16304A; --accent-border:#2B5278;
+    --ok:#6CC59A; --ok-bg:#15332A; --warn:#E0A55A; --warn-bg:#35281A; --bad:#EF8478; --inert:#1C2A3B;
+  }
+}
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body { margin:0; background:var(--page); color:var(--body); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding-bottom:env(safe-area-inset-bottom); }
+.wrap { max-width:680px; margin:0 auto; padding:16px; }
+.wrap.wide { max-width:1040px; }
+@media (min-width:900px) { .wrap { max-width:760px; } body { font-size:17px; } }
+h1,h2,h3 { color:var(--ink); line-height:1.25; margin:0 0 8px; font-weight:600; }
+h1 { font-size:22px; } h2 { font-size:18px; } h3 { font-size:16px; }
+p { margin:0 0 10px; }
+a { color:var(--accent-ink); }
+.top { background:var(--surface); border-bottom:1px solid var(--hair); }
+.top .wrap { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:12px; padding-bottom:12px; }
+.brand { font-weight:700; color:var(--ink); text-decoration:none; font-size:15px; }
+.who { font-size:13px; color:var(--muted); text-align:right; }
+.card { background:var(--surface); border:1px solid var(--hair); border-radius:12px; padding:14px 16px; margin:0 0 12px; }
+.card.link { display:block; text-decoration:none; color:inherit; }
+.row { display:flex; gap:10px; align-items:center; justify-content:space-between; }
+.code { font:600 12px ui-monospace,Menlo,Consolas,monospace; color:var(--muted); letter-spacing:.03em; }
+.title { color:var(--ink); font-weight:600; }
+.sub { font-size:13px; color:var(--muted); }
+.pill { display:inline-block; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px; background:var(--inert); color:var(--muted); white-space:nowrap; }
+.pill.ok { background:var(--ok-bg); color:var(--ok); }
+.pill.warn { background:var(--warn-bg); color:var(--warn); }
+.pill.acc { background:var(--accent-soft); color:var(--accent-ink); }
+.pill.on { background:var(--accent); color:#fff; }
+.pill.big { font-size:14px; padding:8px 14px; text-decoration:none; }
+.btn { appearance:none; border:1px solid var(--accent); background:var(--accent); color:#fff; font:inherit; font-weight:600; padding:12px 18px; border-radius:10px; min-height:48px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; text-align:center; }
+.btn.ghost { background:transparent; color:var(--accent-ink); border-color:var(--accent-border); }
+.btn.danger { background:transparent; color:var(--bad); border-color:var(--bad); }
+.btn.sm { min-height:38px; padding:6px 12px; font-size:14px; }
+.btn.block { width:100%; }
+.btn[disabled] { opacity:.45; cursor:not-allowed; }
+input[type=text], input[type=password], input[type=number], textarea, select { width:100%; font:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--hair); border-radius:10px; padding:11px 12px; min-height:46px; }
+textarea { min-height:96px; resize:vertical; }
+label.lbl { display:block; font-size:13px; font-weight:600; color:var(--muted); margin:10px 0 4px; }
+.bar { height:8px; background:var(--inert); border-radius:99px; overflow:hidden; }
+.bar > i { display:block; height:100%; background:var(--accent); }
+.notice { border-radius:10px; padding:10px 12px; margin:0 0 12px; font-size:14px; background:var(--accent-soft); color:var(--accent-ink); border:1px solid var(--accent-border); }
+.notice.warn { background:var(--warn-bg); color:var(--warn); border-color:transparent; }
+.notice.ok { background:var(--ok-bg); color:var(--ok); border-color:transparent; }
+.stack > * + * { margin-top:10px; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th,td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--hair); vertical-align:top; }
+th { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+.tablewrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+details > summary { cursor:pointer; font-weight:600; color:var(--ink); padding:6px 0; min-height:44px; display:flex; align-items:center; }
+.mono { font-family:ui-monospace,Menlo,Consolas,monospace; }
+.msg { border-left:3px solid var(--accent-border); padding:2px 0 2px 10px; margin:8px 0; }
+.msg b { color:var(--ink); font-size:13px; }
+.sticky { position:sticky; bottom:0; background:var(--page); padding:10px 0 calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--hair); margin-top:16px; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.logos { display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+.logos img { background:#fff; border-radius:10px; padding:6px 10px; height:64px; width:auto; max-width:46vw; object-fit:contain; }
+.logos.small { margin:8px 0 24px; } .logos.small img { height:44px; }
+@media (min-width:760px) { .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; } .grid2 > .card { margin:0; } }
+</style>
+</head>
+<body>
+{% block top %}{% endblock %}
+<div class="wrap {% block wrapcls %}{% endblock %}">
+{% block body %}{% endblock %}
+{% block foot %}<div class="logos small"><img src="{{ url_for('static', filename='ceshhar-logo.png') }}" alt="CeSHHAR Zimbabwe"><img src="{{ url_for('static', filename='lstm-logo.png') }}" alt="Liverpool School of Tropical Medicine"></div>{% endblock %}
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

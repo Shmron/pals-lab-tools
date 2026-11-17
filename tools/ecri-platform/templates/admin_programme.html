@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Programme &mdash; ECRI 2026 Admin{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">Programme</h1>
+{% include "_admin_nav.html" with context %}
+
+<h2 class="serif" style="font-size:19px;">Add a session</h2>
+<div class="card" style="max-width:640px; margin-bottom:16px;">
+  <div class="grid-2">
+    <div class="field">
+      <label for="sess-day">Day</label>
+      <select id="sess-day">
+        <option value="1">Day 1 &middot; 22 Oct</option>
+        <option value="2">Day 2 &middot; 23 Oct</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="sess-time">Time</label>
+      <input id="sess-time" type="text" placeholder="09:00">
+    </div>
+  </div>
+  <div class="field">
+    <label for="sess-abstract">Fill from an accepted abstract (optional)</label>
+    <select id="sess-abstract">
+      <option value="">None &mdash; enter details manually below</option>
+      {% for a in accepted_for_sessions %}
+      <option value="{{ a['ref'] }}" data-title="{{ a['title'] }}" data-speaker="{{ a['presenting_author'] }}" data-theme="{{ a['theme'] }}">{{ a['ref'] }} &mdash; {{ a['title'] }} ({{ 'Oral' if a['format'] == 'Oral presentation' else a['format'] }})</option>
+      {% endfor %}
+    </select>
+    <div style="font-size:11.5px; color:var(--muted); margin-top:4px;">Only shows accepted abstracts not yet scheduled. Fills in title/speaker/theme below — still editable, and you choose the day/time/room yourself since parallel sessions are expected.</div>
+  </div>
+  <div class="field">
+    <label for="sess-title">Title</label>
+    <input id="sess-title" type="text">
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label for="sess-who">Speaker / presenter (free text)</label>
+      <input id="sess-who" type="text">
+    </div>
+    <div class="field">
+      <label for="sess-room">Room</label>
+      <input id="sess-room" type="text">
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label for="sess-theme">Theme</label>
+      <select id="sess-theme">
+        {% for t in session_themes %}
+        <option value="{{ t }}">{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="error" id="session-error" style="margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="btn-add-session">Add to programme</button>
+</div>
+
+<div class="card sub-list">
+  {% if not sessions_list %}
+  <div style="font-size:13.5px; color:var(--muted);">No sessions added yet.</div>
+  {% endif %}
+  {% for s in sessions_list %}
+  <div class="row">
+    <div>
+      <div class="mono" style="font-size:11px; color:var(--faint);">Day {{ s['day'] }} &middot; {{ s['time'] }} &middot; {{ s['theme'] }}{% if s['room'] %} &middot; {{ s['room'] }}{% endif %}</div>
+      <div style="font-size:14px; font-weight:600; color:var(--ink); margin:4px 0;">{{ s['title'] }}</div>
+      {% if s['who'] %}<div style="font-size:12px; color:var(--muted);">{{ s['who'] }}</div>{% endif %}
+    </div>
+    <button type="button" class="btn btn-secondary btn-delete-session" data-id="{{ s['id'] }}">Remove</button>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+document.getElementById('sess-abstract').addEventListener('change', function () {
+  const opt = this.options[this.selectedIndex];
+  if (!opt.value) return;
+  document.getElementById('sess-title').value = opt.dataset.title || '';
+  document.getElementById('sess-who').value = opt.dataset.speaker || '';
+  const themeSelect = document.getElementById('sess-theme');
+  if (opt.dataset.theme) themeSelect.value = opt.dataset.theme;
+});
+
+document.getElementById('btn-add-session').addEventListener('click', async () => {
+  document.getElementById('session-error').textContent = '';
+  const resp = await fetch('{{ b }}/api/admin/add-session', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      day: parseInt(document.getElementById('sess-day').value, 10),
+      time: document.getElementById('sess-time').value,
+      title: document.getElementById('sess-title').value,
+      who: document.getElementById('sess-who').value,
+      room: document.getElementById('sess-room').value,
+      theme: document.getElementById('sess-theme').value,
+      abstract_ref: document.getElementById('sess-abstract').value,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('session-error').textContent = data.error || 'Could not add session.'; return; }
+  window.location.reload();
+});
+
+document.querySelectorAll('.btn-delete-session').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const resp = await fetch('{{ b }}/api/admin/delete-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: btn.dataset.id}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not remove session.'); return; }
+    window.location.reload();
+  });
+});
+</script>
+{% endblock %}

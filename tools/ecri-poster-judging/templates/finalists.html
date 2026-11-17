@@ -1,0 +1,119 @@
+{% extends "pj_base.html" %}
+{% block title %}Final vote{% endblock %}
+{% block top %}
+<div class="top"><div class="wrap">
+  <a class="brand" href="{{ url_for('posters.judge_home') }}">&larr; Home</a>
+  <div class="who">{{ j.name }}{% if j.is_admin %} · <a href="{{ url_for('posters.chair', step=5) }}">Console</a>{% endif %}</div>
+</div></div>
+{% endblock %}
+{% block body %}
+{% set open_round = phase == 'finalists' and not vs.closed %}
+
+{% if phase == 'done' %}
+  <h1>The winner</h1>
+  {% set w = rank.get(vs.winner) %}
+  {% if w %}
+  <div class="card" style="border-color:var(--ok)">
+    <span class="pill ok">Winner</span>
+    <div class="code" style="margin-top:8px">{{ w.poster.code }}</div>
+    <div class="title">{{ w.poster.title }}</div>
+    <div class="sub">Round 1 mean {{ '%.1f'|format(w.mean) }} / 100</div>
+    <h3 style="margin-top:12px">Why the panel chose it</h3>
+    {% for v in vs.by_poster.get(vs.winner, []) %}<div class="msg"><b>{{ v.name }}</b><br>{{ v.reason }}</div>{% endfor %}
+  </div>
+  {% endif %}
+{% else %}
+  <h1>Final vote · round {{ vs.round }}</h1>
+  {% if vs.round > 1 %}  {% elif vs.round > 1 %}
+    <div class="notice warn">There was a tie. Vote again between these posters.</div>
+  {% else %}
+    <div class="notice">Read each finalist, then vote for one and say why.</div>
+  {% endif %}
+{% endif %}
+
+{% for i in cur %}
+{% set p = i.poster %}
+{% set is_mine = mine and mine.poster == p.code %}
+<div class="card" id="p-{{ p.code }}" {% if is_mine %}style="border-color:var(--accent)"{% endif %}>
+  <div class="row"><span class="code">{{ p.code }}</span>
+    {% if is_mine %}<span class="pill acc">Your vote</span>{% endif %}
+    {% if p.code in conflicts %}<span class="pill">Your conflict</span>{% endif %}</div>
+  <div class="title">{{ p.title }}</div>
+  <div class="sub">{{ p.presenter }}{% if p.presenter and p.theme %} · {% endif %}{{ p.theme }}</div>
+
+  {% if p.body %}<details style="margin-top:6px"><summary>Poster summary</summary><div style="white-space:pre-wrap">{{ p.body }}</div></details>{% endif %}
+  <details style="margin-top:2px">
+    <summary>Round 1 result: {{ '%.1f'|format(i.mean) }} / 100</summary>
+    {% for key, label, mx, hint in criteria %}
+      <div class="row sub" style="margin-top:6px"><span>{{ label }}</span><span>{{ '%.1f'|format(i.crit[key]) }} / {{ mx }}</span></div>
+      <div class="bar"><i style="width:{{ i.crit[key] / mx * 100 }}%"></i></div>
+    {% endfor %}
+    {% for n in notes.get(p.code, []) %}
+      <div class="msg"><b>{{ n.name }}</b> <span class="sub">(round 1 note)</span><br>{{ n.note }}</div>
+    {% endfor %}
+  </details>
+
+  <h3 style="margin-top:12px">Comments</h3>
+  {% for m in msgs.get(p.code, []) %}
+    <div class="msg"><b>{{ m.name }}</b> <span class="sub">{{ m.created_at[5:16] }}</span><br>{{ m.body }}</div>
+  {% else %}<p class="sub">No comments yet.</p>{% endfor %}
+  {% if phase == 'finalists' and is_voter %}
+  <form method="post" action="{{ url_for('posters.finalist_message') }}">
+    <input type="hidden" name="poster" value="{{ p.code }}">
+    <textarea name="body" placeholder="Add a comment for the panel" style="min-height:70px" required></textarea>
+    <p style="margin-top:8px"><button class="btn ghost sm" type="submit">Post comment</button></p>
+  </form>
+  {% endif %}
+
+  {% if open_round and is_voter and p.code not in conflicts %}
+  <details {% if is_mine %}open{% endif %} style="margin-top:6px">
+    <summary>{{ 'Change my reason' if is_mine else 'Vote for this one' }}</summary>
+    <form method="post" action="{{ url_for('posters.finalist_vote') }}">
+      <input type="hidden" name="poster" value="{{ p.code }}">
+      <label class="lbl" for="r-{{ p.code }}">Why should this one win?</label>
+      <textarea id="r-{{ p.code }}" name="reason" required>{{ mine.reason if is_mine else '' }}</textarea>
+      <p style="margin-top:8px"><button class="btn block" type="submit">{{ 'Save' if is_mine else 'Vote for this poster' }}</button></p>
+      {% if mine and not is_mine %}<p class="sub">This replaces your current vote ({{ mine.poster }}).</p>{% endif %}
+    </form>
+  </details>
+  {% endif %}
+</div>
+{% endfor %}
+
+{% if can_see_votes and vs.votes %}
+<h2 style="margin-top:20px">Votes so far this round</h2>
+<p class="sub">{{ vs.votes|length }} of {{ vs.n_voters }} have voted.</p>
+{% for i in cur %}
+  {% set ps = vs.by_poster.get(i.poster.code, []) %}
+  {% if ps %}
+  <div class="card">
+    <div class="row"><b style="color:var(--ink)">{{ i.poster.code }}</b><span class="pill acc">{{ ps|length }} vote{{ '' if ps|length == 1 else 's' }}</span></div>
+    {% for x in ps %}<div class="msg"><b>{{ x.name }}</b><br>{{ x.reason }}</div>{% endfor %}
+  </div>
+  {% endif %}
+{% endfor %}
+{% elif open_round and is_voter %}
+<div class="notice">Other adjudicators' votes appear here after you have voted, so nobody is swayed early.</div>
+{% endif %}
+
+{% if vs.history %}
+<h2 style="margin-top:20px">Earlier votes</h2>
+{% for h in vs.history %}
+<div class="card">
+  <b style="color:var(--ink)">Round {{ h.n }}</b>
+  <div class="sub">{% for c in h.cands %}{{ c }}: {{ h.counts.get(c, 0) }}{{ ' · ' if not loop.last }}{% endfor %}</div>
+  <div class="sub">{% if h.outcome.startswith('winner') %}Winner: {{ h.outcome[7:] }}{% else %}Tie: {{ h.outcome[4:] }} go to a new vote{% endif %}</div>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if phase == 'finalists' %}
+<script>
+setInterval(function () {
+  var a = document.activeElement;
+  if (a && (a.tagName === 'TEXTAREA' || a.tagName === 'INPUT')) { return; }
+  var t = document.querySelectorAll('textarea');
+  for (var i = 0; i < t.length; i++) { if (t[i].value !== t[i].defaultValue) { return; } }
+  location.reload();
+}, 5000);
+</script>{% endif %}{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "pj_base.html" %}
+{% block body %}
+{% if back %}<p style="margin:0 0 8px"><a href="{{ back[0] }}">&larr; {{ back[1] }}</a></p>{% endif %}
+<div class="brand">
+  <div class="logos"><img src="{{ url_for('static', filename='ceshhar-logo.png') }}" alt="CeSHHAR Zimbabwe"><img src="{{ url_for('static', filename='lstm-logo.png') }}" alt="Liverpool School of Tropical Medicine"></div>
+  <p class="kick">Early Career Researchers and Innovators<br>ECRI 2026 Symposium<br>22–23 October · Harare</p>
+  <p class="theme">Sustaining health research implementation in a changing funding landscape</p>
+</div>
+<h1>Poster judging</h1>
+{% if error %}<div class="notice warn" role="status">{{ error }}</div>{% endif %}
+<p>Tap your adjudicator number.</p>
+<div class="seats">
+  {% set ns = namespace(has=false) %}
+  {% for s in seats %}{% if s.device and s.device == mine %}{% set ns.has = true %}{% endif %}{% endfor %}
+  {% for s in seats %}
+  {% set is_mine = s.device and s.device == mine %}
+  <form method="post" action="{{ url_for('posters.pick', n=loop.index) }}">
+    {% if is_mine %}
+    <button class="seat mine" type="submit"><span>{{ loop.index }}</span><small>yours</small></button>
+    {% elif s.device %}
+    <button class="seat" type="submit" disabled title="Taken"><span>{{ loop.index }}</span><small>taken</small></button>
+    {% elif ns.has %}
+    <button class="seat" type="submit" disabled><span>{{ loop.index }}</span></button>
+    {% else %}
+    <button class="seat" type="submit"><span>{{ loop.index }}</span></button>
+    {% endif %}
+  </form>
+  {% endfor %}
+</div>
+<style>
+  .brand { text-align:center; margin:0 0 18px; }
+  .brand .kick { margin:6px 0 0; font-size:13px; font-weight:600; letter-spacing:.04em; color:var(--muted); text-transform:uppercase; }
+  .brand .theme { margin:8px auto 0; max-width:30ch; font-size:15px; font-style:italic; color:var(--accent-ink); }
+  .seats { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:10px; margin:0 0 20px; }
+  .seat { width:100%; aspect-ratio:1; min-height:84px; font:inherit; font-size:30px; font-weight:700; color:var(--accent-ink);
+          background:var(--surface); border:2px solid var(--accent-border); border-radius:14px; cursor:pointer; }
+  .seat small { display:block; font-size:12px; font-weight:600; color:var(--muted); }
+  .seat[disabled] { opacity:.45; cursor:not-allowed; }
+  .seat.mine { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .seat.mine small { color:#fff; }
+  .seat:hover:not([disabled]), .seat:focus { background:var(--accent-soft); border-color:var(--accent); outline:none; }
+</style>
+<details class="card"><summary>Chief adjudicator</summary>
+  <form method="post" action="{{ url_for('posters.chief_signin') }}">
+    <label class="lbl" for="pw">Password</label>
+    <input type="password" id="pw" name="password" required autocomplete="new-password"
+           style="width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:11px 12px;min-height:46px">
+    <p style="margin-top:10px"><button class="btn block" type="submit">Open the console</button></p>
+  </form>
+</details>
+{% endblock %}
+{% block foot %}{% endblock %}

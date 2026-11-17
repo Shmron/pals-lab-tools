@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}ECRI 2026 &mdash; Home{% endblock %}
+{% block content %}
+<div class="hero">
+  <div class="eyebrow">CeSHHAR Zimbabwe &middot; Early Career Research Initiative</div>
+  <h1>Research that changes the conversation.</h1>
+  <p>ECRI 2026 brings together early-career researchers, the scientific committee and the wider CeSHHAR community for two days of presentations, review and networking.</p>
+  <div class="actions">
+    <a class="btn btn-primary on-navy" href="{{ b }}/submit">Submit an abstract</a>
+    <a class="btn btn-ghost" href="{{ b }}/register">Register to attend</a>
+  </div>
+</div>
+
+{% if announcements %}
+<h2 class="serif" style="font-size:22px; display:flex; align-items:center; gap:10px;">
+  Key updates <span class="mono" style="font-size:12px; color:var(--faint); font-weight:400;">{{ announcements|length }} recent</span>
+</h2>
+<div class="card updates-carousel" id="updates-carousel" style="margin-bottom:22px;">
+  <div class="updates-slides">
+    {% for a in announcements %}
+    {% set tone = {'Standard': '#1B79C9', 'Important': '#B5792A', 'Urgent': '#C0392B'}.get(a['priority'], '#1B79C9') %}
+    <div class="update-slide{{ ' active' if loop.first else '' }}" style="border-left:3px solid {{ tone }};">
+      <div style="font-size:14.5px; font-weight:600; color:var(--ink);">{{ a['headline'] }}</div>
+      {% if a['body'] %}<div style="font-size:13px; color:var(--secondary); margin-top:4px;">{{ a['body'] }}</div>{% endif %}
+      <div class="mono" style="font-size:11px; color:var(--faint); margin-top:10px;">{{ a['sent_at'][:16].replace('T', ' ') }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if announcements|length > 1 %}
+  <div class="updates-dots">
+    {% for a in announcements %}
+    <button type="button" class="update-dot{{ ' active' if loop.first else '' }}" data-index="{{ loop.index0 }}" aria-label="Show update {{ loop.index }}"></button>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+<script>
+(function () {
+  const root = document.getElementById('updates-carousel');
+  if (!root) return;
+  const slides = [...root.querySelectorAll('.update-slide')];
+  const dots = [...root.querySelectorAll('.update-dot')];
+  if (slides.length < 2) return;
+  let current = 0;
+  let timer = null;
+
+  function goTo(index) {
+    slides[current].classList.remove('active');
+    if (dots[current]) dots[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    if (dots[current]) dots[current].classList.add('active');
+  }
+  function next() { goTo((current + 1) % slides.length); }
+  function start() { timer = setInterval(next, 4000); }
+  function stop() { clearInterval(timer); }
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      goTo(parseInt(dot.dataset.index, 10));
+      stop();
+      start();
+    });
+  });
+  root.addEventListener('mouseenter', stop);
+  root.addEventListener('mouseleave', start);
+  start();
+})();
+</script>
+{% endif %}
+
+<h2 class="serif" style="font-size:22px;">At a glance</h2>
+<div class="facts glance-facts">
+  <div class="card glance-card" style="--dot:#1B79C9;">
+    <div class="label">When &amp; where</div>
+    <div class="value">22&ndash;23 Oct</div>
+    <div class="note">Harare, Zimbabwe</div>
+  </div>
+  <div class="card glance-card" style="--dot:#B5792A;">
+    <div class="label">Abstract deadline</div>
+    <div class="value">2 Oct</div>
+    <div class="note">{{ deadline }} &middot; reviewed blind</div>
+  </div>
+  <div class="card glance-card" style="--dot:#8455A8;">
+    <div class="label">Themes</div>
+    <div class="value">{{ theme_count }}</div>
+    <div class="note">Browse tracks in the Programme</div>
+  </div>
+</div>
+
+<h2 class="serif" style="font-size:22px; margin-top:6px;">Explore ECRI 2026</h2>
+<div class="explore-grid">
+  <a class="card explore-card" href="{{ b }}/submit">
+    <div class="explore-title">Submit an abstract</div>
+    <div class="explore-desc">Share your research with the ECRI 2026 scientific committee &mdash; submissions close 2 October.</div>
+    <div class="explore-arrow">Start your submission &rarr;</div>
+  </a>
+  <a class="card explore-card" href="{{ b }}/register">
+    <div class="explore-title">Register to attend</div>
+    <div class="explore-desc">Secure your place at ECRI 2026 and get your check-in QR code.</div>
+    <div class="explore-arrow">Register now &rarr;</div>
+  </a>
+  <a class="card explore-card" href="{{ b }}/programme">
+    <div class="explore-title">Programme</div>
+    <div class="explore-desc">The full two-day schedule &mdash; save sessions and get a reminder before each starts.</div>
+    <div class="explore-arrow">Browse programme &rarr;</div>
+  </a>
+  <a class="card explore-card" href="{{ b }}/researchers">
+    <div class="explore-title">Meet the researchers</div>
+    <div class="explore-desc">Presenters and their accepted abstracts, grouped by track.</div>
+    <div class="explore-arrow">Meet them &rarr;</div>
+  </a>
+  {% if has_research_focus %}
+  <a class="card explore-card" href="{{ b }}/research-in-focus">
+    <div class="explore-title">Research in focus</div>
+    <div class="explore-desc">Plain-language Q&amp;As on selected accepted work.</div>
+    <div class="explore-arrow">Read more &rarr;</div>
+  </a>
+  {% endif %}
+  <a class="card explore-card" href="{{ b }}/engage">
+    <div class="explore-title">Engage</div>
+    <div class="explore-desc">Share thoughts and questions live during the symposium.</div>
+    <div class="explore-arrow">Join in &rarr;</div>
+  </a>
+  <a class="card explore-card" href="{{ b }}/news">
+    <div class="explore-title">News &amp; gallery</div>
+    <div class="explore-desc">Announcements, media mentions and photos from the event.</div>
+    <div class="explore-arrow">See updates &rarr;</div>
+  </a>
+  {% if has_award %}
+  <a class="card explore-card" href="{{ b }}/award">
+    <div class="explore-title">Frances Cowan Award</div>
+    <div class="explore-desc">About the award and what it recognises.</div>
+    <div class="explore-arrow">Learn more &rarr;</div>
+  </a>
+  {% endif %}
+  {% if has_downloads %}
+  <a class="card explore-card" href="{{ b }}/downloads">
+    <div class="explore-title">Downloads</div>
+    <div class="explore-desc">Programme documents, templates and other resources.</div>
+    <div class="explore-arrow">Get files &rarr;</div>
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

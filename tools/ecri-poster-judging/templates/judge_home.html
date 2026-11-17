@@ -1,0 +1,60 @@
+{% extends "pj_base.html" %}
+{% block top %}
+<div class="top"><div class="wrap">
+  <a class="brand" href="{{ url_for('posters.judge_home') }}">ECRI poster judging</a>
+  <div class="who">{{ j.name }} · <a href="{{ url_for('posters.index', all=1) }}">Home</a></div>
+</div></div>
+{% endblock %}
+{% block body %}
+{% if flash_msg %}<div class="notice warn" role="status">{{ flash_msg }}</div>{% endif %}
+
+{% if phase == 'scoring' %}
+  <h1>Your posters</h1>
+  <p class="sub">Tap a poster to score it.</p>
+  <div class="card">
+    <div class="row"><b style="color:var(--ink)">{{ done }} of {{ total }} scored</b>
+      {% if total and done == total %}<span class="pill ok">All done</span>{% endif %}</div>
+    <div class="bar" style="margin-top:8px"><i style="width:{{ (done / total * 100) if total else 0 }}%"></i></div>
+  </div>
+  {% if not items %}<div class="notice">No posters on your list yet. Check with the chief adjudicator.</div>{% endif %}
+  {% for i in items %}
+  <a class="card link" href="{{ url_for('posters.score_page', code=i.p.code) }}">
+    <div class="row">
+      <span class="code">{{ i.p.code }}</span>
+      {% if i.status == 'done' %}<span class="pill ok">Scored · {{ i.total }}/100</span>
+      {% elif i.status == 'draft' %}<span class="pill warn">In progress</span>
+      {% elif i.status == 'conflict' %}<span class="pill">Conflict declared</span>
+      {% else %}<span class="pill acc">To score</span>{% endif %}
+    </div>
+    <div class="title">{{ i.p.title }}</div>
+    {% if i.p.presenter or i.p.theme %}<div class="sub">{{ i.p.presenter }}{% if i.p.presenter and i.p.theme %} · {% endif %}{{ i.p.theme }}</div>{% endif %}
+  </a>
+  {% if i.p.added_by == j.id and not i.p.n_sub %}
+  <form method="post" action="{{ url_for('posters.my_withdraw', code=i.p.code) }}" style="margin:-6px 0 12px" onsubmit="return confirm('Remove {{ i.p.code|e }} from the list?')">
+    <button class="btn ghost sm" type="submit">Remove {{ i.p.code }} (added by mistake)</button></form>
+  {% endif %}
+  {% endfor %}
+  {% if self_add %}
+  <details class="card" {% if not items %}open{% endif %}><summary>Add a poster you are reviewing</summary>
+    <form method="post" action="{{ url_for('posters.my_add_abstract') }}">
+      <label class="lbl" for="ac">Poster ID</label>
+      <input type="text" id="ac" name="code" placeholder="e.g. ECRI2026-R0128-POSTER-A017" autocomplete="off" required>
+      <label class="lbl" for="at">Title <span class="sub">(only needed the first time this ID is added)</span></label>
+      <input type="text" id="at" name="title">
+      <label class="lbl" for="ab">Poster summary <span class="sub">(optional)</span></label>
+      <textarea id="ab" name="body"></textarea>
+      <p style="margin-top:10px"><button class="btn block" type="submit">Add and start scoring</button></p>
+    </form>
+  </details>
+  {% endif %}
+{% elif phase == 'finalists' %}
+  <h1>Final vote · round {{ vs.round }}</h1>
+  <div class="notice ok">Scoring is finished. Choose the winner.</div>
+  <p><a class="btn block" href="{{ url_for('posters.finalists') }}">
+    {{ 'See the finalists and my vote' if voted else 'Read the finalists and vote' }}</a></p>
+  {% if voted %}<p class="sub">You have voted. You can change it until everyone has voted.</p>{% endif %}
+{% else %}
+  <h1>The winner is chosen</h1>
+  <p><a class="btn block" href="{{ url_for('posters.finalists') }}">See the outcome</a></p>
+{% endif %}
+{% endblock %}

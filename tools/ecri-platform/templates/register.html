@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+{% block title %}Register to attend &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<div style="max-width:760px;">
+  <h1 class="serif" style="font-size:28px;">Register to attend</h1>
+
+  <div id="reg-form-wrap">
+
+    <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Personal details</h2>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="grid-2">
+        <div class="field">
+          <label for="f-first-name">First name</label>
+          <input id="f-first-name" type="text">
+          <div class="error" id="e-first_name"></div>
+        </div>
+        <div class="field">
+          <label for="f-surname">Surname</label>
+          <input id="f-surname" type="text">
+          <div class="error" id="e-surname"></div>
+        </div>
+        <div class="field">
+          <label for="f-preferred-name">Preferred name for badge <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-preferred-name" type="text">
+        </div>
+        <div class="field">
+          <label for="f-email">Email</label>
+          <input id="f-email" type="email">
+          <div class="error" id="e-email"></div>
+        </div>
+        <div class="field">
+          <label for="f-title">Title</label>
+          <select id="f-title">
+            <option value="">Prefer not to say</option>
+            {% for t in titles %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-gender">Gender <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-gender" type="text">
+        </div>
+        <div class="field">
+          <label for="f-phone">Phone / WhatsApp <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-phone" type="text">
+        </div>
+        <div class="field">
+          <label for="f-country">Country</label>
+          <select id="f-country">
+            <option value="">Choose&hellip;</option>
+            {% for c in countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+          <div class="error" id="e-country"></div>
+        </div>
+        <div class="field">
+          <label for="f-city">City <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-city" type="text">
+        </div>
+      </div>
+    </div>
+
+    <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Organisation &amp; professional information</h2>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="grid-2">
+        <div class="field">
+          <label for="f-institution">Organisation / institution</label>
+          <input id="f-institution" type="text">
+          <div class="error" id="e-institution"></div>
+        </div>
+        <div class="field">
+          <label for="f-department">Department <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-department" type="text">
+        </div>
+        <div class="field">
+          <label for="f-job-title">Job title / position <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-job-title" type="text">
+        </div>
+        <div class="field">
+          <label for="f-professional-category">Professional category</label>
+          <select id="f-professional-category">
+            <option value="">Choose&hellip;</option>
+            {% for c in professional_categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+          <div class="error" id="e-professional_category"></div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">ECRI participation category</h2>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="field" style="margin-bottom:0;">
+        <select id="f-participation-category">
+          <option value="">Choose&hellip;</option>
+          {% for c in participation_categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        </select>
+        <div class="error" id="e-participation_category"></div>
+      </div>
+    </div>
+
+    <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Research &amp; innovation profile <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></h2>
+    <div class="card" style="margin-bottom:18px;">
+      <p style="margin-top:0; font-size:12.5px; color:var(--muted);">Thematic areas that best describe your research, innovation or professional interests &mdash; select all that apply.</p>
+      <div class="chip-group" id="interests-group">
+        {% for t in themes %}
+        <button type="button" class="chip-choice" data-value="{{ t }}">{{ t }}</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div id="presentation-section" style="display:none;">
+      <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Presentation details</h2>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-presentation-type">Presentation type</label>
+            <select id="f-presentation-type">
+              <option value="">Choose&hellip;</option>
+              {% for pt in presentation_types %}<option value="{{ pt }}">{{ pt }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-presentation-title">Presentation title</label>
+            <input id="f-presentation-title" type="text">
+          </div>
+          <div class="field">
+            <label for="f-abstract-id">Abstract ID <span class="mono" style="font-size:10.5px; color:var(--faint);">(if already submitted)</span></label>
+            <input id="f-abstract-id" type="text" placeholder="e.g. ECRI-003">
+          </div>
+          <div class="field">
+            <label for="f-supervisor">Supervisor / mentor name <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+            <input id="f-supervisor" type="text">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="booth-section" style="display:none;">
+      <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Poster &amp; innovation booth requirements</h2>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="field">
+          <label>Poster printing support required?</label>
+          <div class="chip-group" id="poster-print-group">
+            <button type="button" class="chip-choice" data-value="Yes">Yes</button>
+            <button type="button" class="chip-choice" data-value="No">No</button>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-innovation-title">Innovation title <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+            <input id="f-innovation-title" type="text">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-innovation-description">Innovation description <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <textarea id="f-innovation-description" rows="2"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Equipment required</label>
+          <div class="chip-group" id="equipment-group">
+            {% for e in equipment_options %}
+            <button type="button" class="chip-choice" data-value="{{ e }}">{{ e }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Attendance logistics</h2>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="field">
+        <label>Attendance mode</label>
+        <div class="chip-group" id="attendance-mode-group">
+          {% for m in attendance_modes %}
+          <button type="button" class="chip-choice" data-value="{{ m }}">{{ m }}</button>
+          {% endfor %}
+        </div>
+        <div class="error" id="e-attendance_mode"></div>
+      </div>
+      <div class="field">
+        <label>Days attending</label>
+        <div class="chip-group" id="days-group">
+          {% for d in days_options %}
+          <button type="button" class="chip-choice" data-value="{{ d }}">{{ d }}</button>
+          {% endfor %}
+        </div>
+        <div class="error" id="e-days_attending"></div>
+      </div>
+      <div class="field">
+        <label>Networking cocktail attendance <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+        <div class="chip-group" id="cocktail-group">
+          <button type="button" class="chip-choice" data-value="Yes">Yes</button>
+          <button type="button" class="chip-choice" data-value="No">No</button>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="f-dietary">Dietary requirements <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-dietary" type="text">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="f-accessibility">Accessibility requirements <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></label>
+          <input id="f-accessibility" type="text">
+        </div>
+      </div>
+    </div>
+
+    <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Travel &amp; accommodation <span class="mono" style="font-size:10.5px; color:var(--faint);">(optional)</span></h2>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="field">
+        <label>Travelling from outside Harare?</label>
+        <div class="chip-group" id="travel-group">
+          <button type="button" class="chip-choice" data-value="Yes">Yes</button>
+          <button type="button" class="chip-choice" data-value="No">No</button>
+        </div>
+      </div>
+      <div id="travel-detail-fields" style="display:none;">
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-travel-origin">Travelling from</label>
+            <input id="f-travel-origin" type="text">
+          </div>
+          <div class="field">
+            <label for="f-transport">Transport requirements</label>
+            <input id="f-transport" type="text">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="f-accommodation">Accommodation requirements</label>
+            <input id="f-accommodation" type="text">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="serif" style="font-size:17px; margin:22px 0 10px;">Consent</h2>
+    <div class="card" style="margin-bottom:22px;">
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--body); margin-bottom:12px; cursor:pointer;">
+        <input type="checkbox" id="f-consent-photo" style="width:auto;">
+        I consent to being photographed/filmed during ECRI 2026 for CeSHHAR's use.
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--body); margin-bottom:0; cursor:pointer;">
+        <input type="checkbox" id="f-consent-comms" style="width:auto;">
+        I would like to receive ECRI updates and future communication.
+      </label>
+    </div>
+
+    <button class="btn btn-primary" id="btn-submit" style="margin-top:4px;">Complete registration</button>
+    <div class="error" id="form-error" style="margin-top:10px;"></div>
+  </div>
+
+  <div id="reg-success" class="success-card" style="display:none;">
+    <div class="kicker" id="success-kicker">Registration confirmed</div>
+    <h2 class="serif" id="success-heading">You are registered for ECRI 2026</h2>
+    <p id="success-email"></p>
+    <div>
+      <img id="success-qr" alt="Registration QR code" style="width:110px;height:110px;">
+    </div>
+    <div class="code" id="success-code"></div>
+  </div>
+
+  <div id="payment-card" class="card" style="display:none; margin-top:18px;">
+    <div class="kicker">Registration fee</div>
+    <p style="font-size:12.5px; color:var(--muted); margin-top:-4px;">Your place is reserved, but registration is only finalised once your payment is verified.</p>
+    <p id="payment-amount" style="font-size:15px; font-weight:600; color:var(--ink);"></p>
+    <p id="payment-instructions" style="font-size:13px; color:var(--body); white-space:pre-wrap;"></p>
+    <div class="field">
+      <label for="pay-reference">Payment reference (optional if you upload a screenshot)</label>
+      <input id="pay-reference" type="text" placeholder="e.g. EcoCash transaction ID">
+    </div>
+    <div class="field">
+      <label for="pay-photo">Screenshot of payment (optional if you enter a reference)</label>
+      <input id="pay-photo" type="file" accept="image/*">
+      <div class="mono" id="pay-photo-status" style="font-size:11.5px; color:var(--muted); margin-top:4px;"></div>
+    </div>
+    <div class="error" id="pay-error" style="margin-bottom:10px;"></div>
+    <button class="btn btn-primary" id="btn-submit-payment">Submit payment details</button>
+    <div id="pay-sent-msg" style="display:none; margin-top:12px; color:var(--success); font-size:13.5px;">
+      Thanks — we'll confirm your payment shortly. You can also submit or update this any time from My schedule.
+    </div>
+  </div>
+</div>
+
+<script>
+function makeSingleSelectChip(groupId) {
+  let selected = '';
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.chip-choice').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.chip-choice').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selected = btn.dataset.value;
+      group.dispatchEvent(new CustomEvent('changed', {detail: selected}));
+    });
+  });
+  return {get: () => selected};
+}
+function makeMultiSelectChip(groupId) {
+  let selected = [];
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.chip-choice').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      const v = btn.dataset.value;
+      selected = selected.includes(v) ? selected.filter(x => x !== v) : [...selected, v];
+    });
+  });
+  return {get: () => selected};
+}
+
+const interests = makeMultiSelectChip('interests-group');
+const posterPrint = makeSingleSelectChip('poster-print-group');
+const equipment = makeMultiSelectChip('equipment-group');
+const attendanceMode = makeSingleSelectChip('attendance-mode-group');
+const days = makeMultiSelectChip('days-group');
+const cocktail = makeSingleSelectChip('cocktail-group');
+const travelOutside = makeSingleSelectChip('travel-group');
+
+document.getElementById('travel-group').addEventListener('changed', (e) => {
+  document.getElementById('travel-detail-fields').style.display = e.detail === 'Yes' ? 'block' : 'none';
+});
+
+const PRESENTING_CATEGORIES = {{ presenting_categories | tojson }};
+const BOOTH_CATEGORIES = {{ booth_categories | tojson }};
+document.getElementById('f-participation-category').addEventListener('change', function () {
+  document.getElementById('presentation-section').style.display = PRESENTING_CATEGORIES.includes(this.value) ? 'block' : 'none';
+  document.getElementById('booth-section').style.display = BOOTH_CATEGORIES.includes(this.value) ? 'block' : 'none';
+});
+
+function clearErrors() {
+  ['first_name', 'surname', 'email', 'country', 'institution', 'professional_category',
+   'participation_category', 'attendance_mode', 'days_attending'].forEach(k => {
+    const el = document.getElementById('e-' + k);
+    if (el) el.textContent = '';
+  });
+}
+
+document.getElementById('btn-submit').addEventListener('click', async () => {
+  clearErrors();
+  document.getElementById('form-error').textContent = '';
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Submitting…';
+  try {
+    const payload = {
+      title: document.getElementById('f-title').value,
+      first_name: document.getElementById('f-first-name').value,
+      surname: document.getElementById('f-surname').value,
+      preferred_name: document.getElementById('f-preferred-name').value,
+      gender: document.getElementById('f-gender').value,
+      email: document.getElementById('f-email').value,
+      phone: document.getElementById('f-phone').value,
+      country: document.getElementById('f-country').value,
+      city: document.getElementById('f-city').value,
+      institution: document.getElementById('f-institution').value,
+      department: document.getElementById('f-department').value,
+      job_title: document.getElementById('f-job-title').value,
+      professional_category: document.getElementById('f-professional-category').value,
+      participation_category: document.getElementById('f-participation-category').value,
+      research_interests: interests.get(),
+      presentation_type: document.getElementById('f-presentation-type').value,
+      presentation_title: document.getElementById('f-presentation-title').value,
+      abstract_id_ref: document.getElementById('f-abstract-id').value,
+      supervisor_name: document.getElementById('f-supervisor').value,
+      poster_printing_support: posterPrint.get(),
+      innovation_title: document.getElementById('f-innovation-title').value,
+      innovation_description: document.getElementById('f-innovation-description').value,
+      equipment_required: equipment.get(),
+      attendance_mode: attendanceMode.get(),
+      days_attending: days.get(),
+      cocktail_attendance: cocktail.get(),
+      dietary_requirements: document.getElementById('f-dietary').value,
+      accessibility_requirements: document.getElementById('f-accessibility').value,
+      travelling_outside_harare: travelOutside.get(),
+      travel_origin: document.getElementById('f-travel-origin').value,
+      transport_requirements: document.getElementById('f-transport').value,
+      accommodation_requirements: document.getElementById('f-accommodation').value,
+      consent_photo: document.getElementById('f-consent-photo').checked,
+      consent_comms: document.getElementById('f-consent-comms').checked,
+    };
+    const resp = await fetch('{{ b }}/api/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok && resp.status >= 500) {
+      document.getElementById('form-error').textContent = 'Something went wrong on our end. Please try again in a moment.';
+      return;
+    }
+    const data = await resp.json();
+    if (!data.ok) {
+      for (const [k, msg] of Object.entries(data.errors || {})) {
+        const errEl = document.getElementById('e-' + k);
+        if (errEl) errEl.textContent = msg;
+      }
+      document.getElementById('form-error').textContent = 'Please fix the highlighted fields.';
+      return;
+    }
+    const paymentOutstanding = data.payment_required && data.payment_status !== 'Paid';
+
+    document.getElementById('reg-form-wrap').style.display = 'none';
+    document.getElementById('reg-success').style.display = 'block';
+    document.getElementById('reg-success').scrollIntoView({behavior: 'smooth', block: 'start'});
+    if (paymentOutstanding) {
+      document.getElementById('success-kicker').textContent = 'Registration received — payment pending';
+      document.getElementById('success-heading').textContent = 'Your place is reserved for ECRI 2026';
+      document.getElementById('success-email').textContent = 'A confirmation has been emailed to ' + data.email + '. Your registration is finalised once your payment is verified — see below.';
+    } else {
+      document.getElementById('success-kicker').textContent = 'Registration confirmed';
+      document.getElementById('success-heading').textContent = 'You are registered for ECRI 2026';
+      document.getElementById('success-email').textContent = 'A confirmation has been emailed to ' + data.email + '.';
+    }
+    document.getElementById('success-code').textContent = data.code;
+    document.getElementById('success-qr').src = 'data:image/png;base64,' + data.qr;
+
+    if (paymentOutstanding) {
+      document.getElementById('payment-card').style.display = 'block';
+      document.getElementById('payment-amount').textContent = data.payment_amount || '';
+      document.getElementById('payment-instructions').textContent = data.payment_instructions || '';
+      window.paymentLinkToken = data.link_token;
+    }
+  } catch (err) {
+    document.getElementById('form-error').textContent = 'Network error. Please check your connection and try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+});
+
+let paymentProofPath = '';
+document.getElementById('pay-photo').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('pay-photo-status').textContent = 'Uploading…';
+  const formData = new FormData();
+  formData.append('photo', file);
+  const resp = await fetch('{{ b }}/api/upload-photo', {method: 'POST', body: formData});
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('pay-photo-status').textContent = data.error || 'Upload failed.'; return; }
+  paymentProofPath = data.photo;
+  document.getElementById('pay-photo-status').textContent = 'Uploaded.';
+});
+
+document.getElementById('btn-submit-payment').addEventListener('click', async () => {
+  document.getElementById('pay-error').textContent = '';
+  const reference = document.getElementById('pay-reference').value.trim();
+  if (!reference && !paymentProofPath) {
+    document.getElementById('pay-error').textContent = 'Add a payment reference or upload a screenshot.';
+    return;
+  }
+  const btn = document.getElementById('btn-submit-payment');
+  btn.disabled = true;
+  const resp = await fetch('{{ b }}/api/submit-payment', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({token: window.paymentLinkToken, reference, proof: paymentProofPath}),
+  });
+  const data = await resp.json();
+  if (!data.ok) {
+    document.getElementById('pay-error').textContent = data.error || 'Could not submit.';
+    btn.disabled = false;
+    return;
+  }
+  document.getElementById('pay-sent-msg').style.display = 'block';
+  btn.style.display = 'none';
+});
+</script>
+{% endblock %}

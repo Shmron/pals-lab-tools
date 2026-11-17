@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Decisions &mdash; ECRI 2026 Admin{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">Decisions</h1>
+{% include "_admin_nav.html" with context %}
+
+<p style="font-size:12.5px; color:var(--muted); margin-top:-10px;">Grouped by track, ranked by mean score (highest first) so you can compare candidates before deciding where the cutoff falls.</p>
+{% if not decision_groups %}
+<div class="card" style="margin-bottom:22px;">No abstracts yet.</div>
+{% endif %}
+{% for group in decision_groups %}
+{% set ts = theme_style.get(group.theme, {'bg':'#F1F4F7','fg':'#68798F'}) %}
+<h3 style="font-size:13px; font-weight:600; margin:18px 0 8px; display:flex; align-items:center; gap:8px;">
+  <span class="theme-chip" style="background:{{ ts.bg }}; color:{{ ts.fg }};">{{ group.theme }}</span>
+  <span class="mono" style="font-size:11px; color:var(--faint); font-weight:400;">{{ group.decisions|length }} abstract{{ '' if group.decisions|length == 1 else 's' }}</span>
+</h3>
+<div class="card sub-list" style="margin-bottom:16px;">
+  {% for d in group.decisions %}
+  {% set row = d.row %}
+  <div class="row">
+    <div>
+      <div class="mono" style="font-size:12px; color:var(--faint);">#{{ loop.index }} &middot; {{ row['ref'] }}</div>
+      <div style="font-size:14px; font-weight:600; color:var(--ink); margin:4px 0;">{{ row['title'] }}</div>
+      <div style="font-size:12px; color:var(--muted);">{{ row['review_count'] }} review(s) &middot; mean {{ '%.2f'|format(row['mean']) if row['mean'] else '—' }}</div>
+      {% if d.recommendations %}
+      <div style="font-size:11.5px; margin-top:4px;">
+        {% if d.unanimous %}
+        <span style="color:var(--success); font-weight:600;">Unanimous:</span> {{ d.recommendations[0] }}
+        {% elif d.split %}
+        <span style="color:var(--warning); font-weight:600;">Split:</span> {{ d.recommendations|join(' / ') }} &mdash; awaiting reviewer consensus
+        {% elif d.unassigned %}
+        <span style="color:var(--danger); font-weight:600;">No reviewer currently assigned</span> to this track &mdash; {{ d.recommendations|length }} review(s) on file from before a reassignment. Assign someone to {{ row['theme'] }} to move this forward.
+        {% elif d.awaiting_more %}
+        <span style="color:var(--muted); font-weight:600;">{{ d.recommendations|length }} of {{ d.required }} reviews in:</span> {{ d.recommendations[0] }} &mdash; awaiting {{ 'another reviewer' if d.required - d.recommendations|length > 1 else 'one more reviewer' }}
+        {% endif %}
+      </div>
+      {% endif %}
+      <div class="mono" style="font-size:11px; color:var(--faint); margin-top:6px;">Current status: {{ row['status'] }}</div>
+    </div>
+    <div style="text-align:right;">
+      {% if d.unanimous and row['status'] != d.suggested_status %}
+      <button type="button" class="btn btn-primary btn-apply-decision" data-ref="{{ row['ref'] }}" data-status="{{ d.suggested_status }}">Apply: {{ d.suggested_status }}</button>
+      {% elif d.split or d.awaiting_more or d.unassigned %}
+      <div style="font-size:11.5px; color:var(--muted); max-width:160px;">No action available until enough reviewers agree.</div>
+      {% endif %}
+      <details style="margin-top:8px;">
+        <summary style="font-size:11px; color:var(--faint); cursor:pointer;">Manual override</summary>
+        <select class="decision-select" data-ref="{{ row['ref'] }}" style="margin-top:6px; border:1px solid var(--hairline); border-radius:8px; padding:8px 10px; font-size:13px;">
+          {% for s in decision_statuses %}
+          <option value="{{ s }}" {{ 'selected' if row['status'] == s else '' }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </details>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+
+<script>
+async function applyDecision(btn, ref, status) {
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Applying…';
+  const resp = await fetch('{{ b }}/api/admin/decision', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ref, status}),
+  });
+  const data = await resp.json();
+  if (!data.ok) {
+    alert(data.error || 'Could not update status.');
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    return;
+  }
+  btn.textContent = 'Applied ✓';
+  btn.style.background = 'var(--success)';
+  setTimeout(() => window.location.reload(), 700);
+}
+
+document.querySelectorAll('.btn-apply-decision').forEach(btn => {
+  btn.addEventListener('click', () => applyDecision(btn, btn.dataset.ref, btn.dataset.status));
+});
+
+document.querySelectorAll('.decision-select').forEach(sel => {
+  sel.addEventListener('change', async () => {
+    sel.disabled = true;
+    const resp = await fetch('{{ b }}/api/admin/decision', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ref: sel.dataset.ref, status: sel.value}),
+    });
+    const data = await resp.json();
+    if (!data.ok) {
+      alert(data.error || 'Could not update status.');
+      sel.disabled = false;
+      return;
+    }
+    sel.style.borderColor = 'var(--success)';
+    setTimeout(() => window.location.reload(), 500);
+  });
+});
+</script>
+{% endblock %}

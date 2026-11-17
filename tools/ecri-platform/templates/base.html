@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ECRI 2026 Symposium{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Early Career Research Initiative — ECRI 2026 Symposium, 22&ndash;23 October, Harare. Presentations, review and networking for early-career researchers with CeSHHAR Zimbabwe.{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ECRI 2026 Symposium">
+  <meta property="og:title" content="{{ self.title() }}">
+  <meta property="og:description" content="{% block og_description %}{{ self.meta_description() }}{% endblock %}">
+  <meta property="og:image" content="{{ public_base }}/static/ceshhar-logo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ self.title() }}">
+  <meta name="twitter:description" content="{{ self.meta_description() }}">
+  <link rel="icon" type="image/png" href="{{ b }}/static/ceshhar-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="{{ b }}/static/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site">
+    <div class="brand">
+      <img src="{{ b }}/static/ceshhar-logo.png" alt="CeSHHAR Zimbabwe">
+      <div>
+        <div class="title">Early Career Research Initiative</div>
+        <div class="title-expansion">ECRI 2026 Symposium</div>
+        <div class="sub">22&ndash;23 OCTOBER &middot; HARARE</div>
+      </div>
+    </div>
+    <nav aria-label="Primary">
+      <a href="{{ b }}/">Home</a>
+      <a href="{{ b }}/programme">Programme</a>
+      <a href="{{ b }}/researchers">Meet the researchers</a>
+      {% if has_research_focus %}<a href="{{ b }}/research-in-focus">Research in focus</a>{% endif %}
+      <a href="{{ b }}/news">News &amp; gallery</a>
+      {% if has_award %}<a href="{{ b }}/award">Frances Cowan Award</a>{% endif %}
+      {% if has_downloads %}<a href="{{ b }}/downloads">Downloads</a>{% endif %}
+      <a href="{{ b }}/engage">Engage</a>
+      <a href="{{ b }}/register">Register to attend</a>
+      <a href="{{ b }}/submit">Submit an abstract</a>
+      <a href="{{ b }}/my-submissions">My submissions</a>
+    </nav>
+  </header>
+  <div class="shell">
+    <main class="content" id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <footer class="site">
+    <div>
+      <div style="font-weight:600; color:var(--ink); font-size:13px;">CeSHHAR Zimbabwe</div>
+      <div class="mono" style="font-size:11px; color:var(--muted); margin-top:2px; letter-spacing:0.04em;">ECRI 2026 &middot; #ECRI2026</div>
+    </div>
+    <div class="footer-links">
+      <a href="mailto:organisers@example.org">Contact organisers</a>
+      <a href="{{ b }}/my-schedule">My schedule</a>
+      <a href="{{ b }}/staff/login" class="footer-link-strong">Reviewer / Chair / Admin login</a>
+    </div>
+  </footer>
+</body>
+</html>

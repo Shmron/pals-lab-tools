@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% block title %}Content &mdash; ECRI 2026 Admin{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">Content</h1>
+{% include "_admin_nav.html" with context %}
+<p style="font-size:12.5px; color:var(--muted); margin-top:-10px;">News, gallery, research summaries, downloads and the award page all live here. Research in Focus / Award / Downloads only appear on the public site once there's something in them.</p>
+
+<h2 class="serif" style="font-size:19px; margin-top:22px;">Post news</h2>
+<div class="card" style="max-width:640px; margin-bottom:16px;">
+  <div class="field">
+    <label for="news-headline">Headline</label>
+    <input id="news-headline" type="text">
+  </div>
+  <div class="field">
+    <label for="news-tag">Tag</label>
+    <select id="news-tag">
+      <option value="">None</option>
+      {% for t in news_tags %}
+      <option value="{{ t }}">{{ t }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="news-body">Body</label>
+    <textarea id="news-body" rows="3"></textarea>
+  </div>
+  <div class="field">
+    <label for="news-photo">Photo (optional)</label>
+    <input id="news-photo" type="file" accept="image/*">
+    <div class="mono" id="news-photo-status" style="font-size:11.5px; color:var(--muted); margin-top:4px;"></div>
+  </div>
+  <div class="error" id="news-error" style="margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="btn-add-news">Post</button>
+</div>
+<div class="card sub-list" style="margin-bottom:16px;">
+  {% if not news_list %}
+  <div style="font-size:13.5px; color:var(--muted);">No news posted yet.</div>
+  {% endif %}
+  {% for n in news_list %}
+  <div class="row">
+    <div>
+      <div class="mono" style="font-size:11px; color:var(--faint);">{{ n['tag'] or 'No tag' }}</div>
+      <div style="font-size:14px; font-weight:600; color:var(--ink); margin:4px 0;">{{ n['headline'] }}</div>
+    </div>
+    <button type="button" class="btn btn-secondary btn-delete-news" data-id="{{ n['id'] }}">Remove</button>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="serif" style="font-size:19px; margin-top:26px;">Upload gallery photo</h2>
+<div class="card" style="max-width:640px; margin-bottom:16px;">
+  <div class="field">
+    <label for="gallery-photo">Photo</label>
+    <input id="gallery-photo" type="file" accept="image/*">
+  </div>
+  <div class="field">
+    <label for="gallery-caption">Caption (optional)</label>
+    <input id="gallery-caption" type="text">
+  </div>
+  <div class="error" id="gallery-error" style="margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="btn-add-gallery" disabled>Upload a photo first</button>
+</div>
+<div class="card sub-list">
+  {% if not gallery_list %}
+  <div style="font-size:13.5px; color:var(--muted);">No gallery photos yet.</div>
+  {% endif %}
+  {% for g in gallery_list %}
+  <div class="row">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="{{ b }}/static/{{ g['path'] }}" style="width:44px; height:44px; object-fit:cover; border-radius:6px;">
+      <div style="font-size:13px; color:var(--muted);">{{ g['caption'] or '(no caption)' }}</div>
+    </div>
+    <button type="button" class="btn btn-secondary btn-delete-gallery" data-id="{{ g['id'] }}">Remove</button>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="serif" style="font-size:19px; margin-top:26px;">Research in focus</h2>
+<div class="card" style="max-width:700px; margin-bottom:16px;">
+  <div class="field">
+    <label for="rf-abstract">Accepted abstract</label>
+    <select id="rf-abstract">
+      <option value="">Choose an abstract&hellip;</option>
+      {% for a in accepted_abstracts %}
+      <option value="{{ a['ref'] }}"
+        data-headline="{{ a['headline'] or '' }}"
+        data-about="{{ a['q_about'] or '' }}"
+        data-problem="{{ a['q_problem'] or '' }}"
+        data-matters="{{ a['q_matters'] or '' }}"
+        data-hoping="{{ a['q_hoping'] or '' }}"
+        data-credit="{{ a['credit'] or '' }}">{{ a['ref'] }} &mdash; {{ a['title'] }}{{ ' (already written)' if a['q_about'] or a['q_problem'] or a['q_matters'] or a['q_hoping'] else '' }}</option>
+      {% endfor %}
+    </select>
+    <div style="font-size:11.5px; color:var(--muted); margin-top:4px;">Selecting one already written loads its answers below so you can edit them.</div>
+  </div>
+  <div class="field">
+    <label for="rf-headline">Plain-language headline (optional &mdash; falls back to the abstract title)</label>
+    <input id="rf-headline" type="text">
+  </div>
+  <div class="field">
+    <label for="rf-about">What is the research about?</label>
+    <textarea id="rf-about" rows="2"></textarea>
+  </div>
+  <div class="field">
+    <label for="rf-problem">What problem does it address?</label>
+    <textarea id="rf-problem" rows="2"></textarea>
+  </div>
+  <div class="field">
+    <label for="rf-matters">Why does it matter?</label>
+    <textarea id="rf-matters" rows="2"></textarea>
+  </div>
+  <div class="field">
+    <label for="rf-hoping">What are the researchers hoping to achieve?</label>
+    <textarea id="rf-hoping" rows="2"></textarea>
+  </div>
+  <div class="field">
+    <label for="rf-credit">Credit line (optional)</label>
+    <input id="rf-credit" type="text" placeholder="Written by the CeSHHAR Communications team">
+  </div>
+  <div class="error" id="rf-error" style="margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="btn-save-rf">Save</button>
+</div>
+<div class="card sub-list" style="margin-bottom:16px;">
+  {% if not research_focus_list %}
+  <div style="font-size:13.5px; color:var(--muted);">No summaries written yet.</div>
+  {% endif %}
+  {% for r in research_focus_list %}
+  <div class="row">
+    <div>
+      <div class="mono" style="font-size:11px; color:var(--faint);">{{ r['abstract_ref'] }}</div>
+      <div style="font-size:14px; font-weight:600; color:var(--ink); margin:4px 0;">{{ r['headline'] or r['abstract_title'] }}</div>
+    </div>
+    <button type="button" class="btn btn-secondary btn-delete-rf" data-ref="{{ r['abstract_ref'] }}">Remove</button>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="serif" style="font-size:19px; margin-top:26px;">Downloads</h2>
+<div class="card" style="max-width:640px; margin-bottom:16px;">
+  <div class="field">
+    <label for="dl-title">Title</label>
+    <input id="dl-title" type="text">
+  </div>
+  <div class="field">
+    <label for="dl-description">Description (optional)</label>
+    <input id="dl-description" type="text">
+  </div>
+  <div class="field">
+    <label for="dl-file">File (PDF, Word, PowerPoint or Excel, up to 15MB)</label>
+    <input id="dl-file" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+    <div class="mono" id="dl-file-status" style="font-size:11.5px; color:var(--muted); margin-top:4px;"></div>
+  </div>
+  <div class="error" id="dl-error" style="margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="btn-add-download" disabled>Upload a file first</button>
+</div>
+<div class="card sub-list" style="margin-bottom:16px;">
+  {% if not downloads_list %}
+  <div style="font-size:13.5px; color:var(--muted);">No downloads published yet.</div>
+  {% endif %}
+  {% for d in downloads_list %}
+  <div class="row">
+    <div>
+      <div style="font-size:14px; font-weight:600; color:var(--ink);">{{ d['title'] }}</div>
+      {% if d['description'] %}<div style="font-size:12.5px; color:var(--muted);">{{ d['description'] }}</div>{% endif %}
+    </div>
+    <button type="button" class="btn btn-secondary btn-delete-download" data-id="{{ d['id'] }}">Remove</button>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="serif" style="font-size:19px; margin-top:26px;">Frances Cowan Award page</h2>
+<div class="card" style="max-width:700px; margin-bottom:16px;">
+  <div class="field">
+    <label for="award-headline">Headline</label>
+    <input id="award-headline" type="text" value="{{ award['headline'] if award else '' }}">
+  </div>
+  <div class="field">
+    <label for="award-body">Body</label>
+    <textarea id="award-body" rows="6">{{ award['body'] if award else '' }}</textarea>
+  </div>
+  <div class="field">
+    <label for="award-photo">Image (optional)</label>
+    <input id="award-photo" type="file" accept="image/*">
+    <div class="mono" id="award-photo-status" style="font-size:11.5px; color:var(--muted); margin-top:4px;"></div>
+  </div>
+  <div class="error" id="award-error" style="margin-bottom:10px;"></div>
+  <button class="btn btn-primary" id="btn-save-award">Save</button>
+</div>
+
+<script>
+async function uploadPhoto(file) {
+  const formData = new FormData();
+  formData.append('photo', file);
+  const resp = await fetch('{{ b }}/api/upload-photo', {method: 'POST', body: formData});
+  return await resp.json();
+}
+
+let newsPhotoPath = '';
+document.getElementById('news-photo').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('news-photo-status').textContent = 'Uploading…';
+  const data = await uploadPhoto(file);
+  if (!data.ok) { document.getElementById('news-photo-status').textContent = data.error || 'Upload failed.'; return; }
+  newsPhotoPath = data.photo;
+  document.getElementById('news-photo-status').textContent = 'Uploaded.';
+});
+
+document.getElementById('btn-add-news').addEventListener('click', async () => {
+  document.getElementById('news-error').textContent = '';
+  const resp = await fetch('{{ b }}/api/admin/add-news', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      headline: document.getElementById('news-headline').value,
+      tag: document.getElementById('news-tag').value,
+      body: document.getElementById('news-body').value,
+      image: newsPhotoPath,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('news-error').textContent = data.error || 'Could not post.'; return; }
+  window.location.reload();
+});
+
+document.querySelectorAll('.btn-delete-news').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const resp = await fetch('{{ b }}/api/admin/delete-news', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: btn.dataset.id}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not remove.'); return; }
+    window.location.reload();
+  });
+});
+
+let galleryPhotoPath = '';
+document.getElementById('gallery-photo').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const btn = document.getElementById('btn-add-gallery');
+  btn.textContent = 'Uploading…';
+  const data = await uploadPhoto(file);
+  if (!data.ok) { document.getElementById('gallery-error').textContent = data.error || 'Upload failed.'; return; }
+  galleryPhotoPath = data.photo;
+  btn.disabled = false;
+  btn.textContent = 'Add to gallery';
+});
+
+document.getElementById('btn-add-gallery').addEventListener('click', async () => {
+  document.getElementById('gallery-error').textContent = '';
+  const resp = await fetch('{{ b }}/api/admin/add-gallery-image', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({path: galleryPhotoPath, caption: document.getElementById('gallery-caption').value}),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('gallery-error').textContent = data.error || 'Could not add.'; return; }
+  window.location.reload();
+});
+
+document.querySelectorAll('.btn-delete-gallery').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const resp = await fetch('{{ b }}/api/admin/delete-gallery-image', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: btn.dataset.id}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not remove.'); return; }
+    window.location.reload();
+  });
+});
+
+document.getElementById('rf-abstract').addEventListener('change', function () {
+  const opt = this.options[this.selectedIndex];
+  document.getElementById('rf-headline').value = opt.dataset.headline || '';
+  document.getElementById('rf-about').value = opt.dataset.about || '';
+  document.getElementById('rf-problem').value = opt.dataset.problem || '';
+  document.getElementById('rf-matters').value = opt.dataset.matters || '';
+  document.getElementById('rf-hoping').value = opt.dataset.hoping || '';
+  document.getElementById('rf-credit').value = opt.dataset.credit || '';
+});
+
+document.getElementById('btn-save-rf').addEventListener('click', async () => {
+  document.getElementById('rf-error').textContent = '';
+  const abstractRef = document.getElementById('rf-abstract').value;
+  if (!abstractRef) { document.getElementById('rf-error').textContent = 'Choose an abstract.'; return; }
+  const resp = await fetch('{{ b }}/api/admin/save-research-focus', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      abstract_ref: abstractRef,
+      headline: document.getElementById('rf-headline').value,
+      q_about: document.getElementById('rf-about').value,
+      q_problem: document.getElementById('rf-problem').value,
+      q_matters: document.getElementById('rf-matters').value,
+      q_hoping: document.getElementById('rf-hoping').value,
+      credit: document.getElementById('rf-credit').value,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('rf-error').textContent = data.error || 'Could not save.'; return; }
+  window.location.reload();
+});
+
+document.querySelectorAll('.btn-delete-rf').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const resp = await fetch('{{ b }}/api/admin/delete-research-focus', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({abstract_ref: btn.dataset.ref}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not remove.'); return; }
+    window.location.reload();
+  });
+});
+
+let downloadFilePath = '';
+let downloadOriginalName = '';
+document.getElementById('dl-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const btn = document.getElementById('btn-add-download');
+  document.getElementById('dl-file-status').textContent = 'Uploading…';
+  const formData = new FormData();
+  formData.append('file', file);
+  const resp = await fetch('{{ b }}/api/admin/upload-document', {method: 'POST', body: formData});
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('dl-file-status').textContent = data.error || 'Upload failed.'; return; }
+  downloadFilePath = data.file_path;
+  downloadOriginalName = data.original_name;
+  document.getElementById('dl-file-status').textContent = 'Uploaded: ' + data.original_name;
+  btn.disabled = false;
+  btn.textContent = 'Publish download';
+});
+
+document.getElementById('btn-add-download').addEventListener('click', async () => {
+  document.getElementById('dl-error').textContent = '';
+  const resp = await fetch('{{ b }}/api/admin/add-download', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      title: document.getElementById('dl-title').value,
+      description: document.getElementById('dl-description').value,
+      file_path: downloadFilePath,
+      original_name: downloadOriginalName,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('dl-error').textContent = data.error || 'Could not publish.'; return; }
+  window.location.reload();
+});
+
+document.querySelectorAll('.btn-delete-download').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const resp = await fetch('{{ b }}/api/admin/delete-download', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: btn.dataset.id}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not remove.'); return; }
+    window.location.reload();
+  });
+});
+
+let awardPhotoPath = {{ (award['image'] if award else '') | tojson }};
+document.getElementById('award-photo').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('award-photo-status').textContent = 'Uploading…';
+  const data = await uploadPhoto(file);
+  if (!data.ok) { document.getElementById('award-photo-status').textContent = data.error || 'Upload failed.'; return; }
+  awardPhotoPath = data.photo;
+  document.getElementById('award-photo-status').textContent = 'Uploaded.';
+});
+
+document.getElementById('btn-save-award').addEventListener('click', async () => {
+  document.getElementById('award-error').textContent = '';
+  const resp = await fetch('{{ b }}/api/admin/save-award', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      headline: document.getElementById('award-headline').value,
+      body: document.getElementById('award-body').value,
+      image: awardPhotoPath,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('award-error').textContent = data.error || 'Could not save.'; return; }
+  window.location.reload();
+});
+</script>
+{% endblock %}

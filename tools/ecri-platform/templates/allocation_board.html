@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Allocation board &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px;">
+  <div>
+    <h1 class="serif" style="font-size:26px; margin-bottom:4px;">Allocation board</h1>
+    {% if 'admin' in my_staff_roles or 'reviewer' in my_staff_roles %}
+    <p style="margin:4px 0 0; font-size:12.5px; color:var(--muted);">
+      {% if 'admin' in my_staff_roles %}<a href="{{ b }}/admin" style="color:var(--muted);">&larr; Admin dashboard</a>{% endif %}
+      {% if 'admin' in my_staff_roles and 'reviewer' in my_staff_roles %} &middot; {% endif %}
+      {% if 'reviewer' in my_staff_roles %}<a href="{{ b }}/review" style="color:var(--muted);">Review queue &rarr;</a>{% endif %}
+    </p>
+    {% endif %}
+  </div>
+  <div class="mono" style="font-size:13px; color:var(--muted);">{{ placed }}/{{ total }} placed</div>
+</div>
+<p id="instruction" style="color:var(--muted); font-size:13.5px;">Select an abstract, then choose a slot. Click a filled slot to free it.</p>
+
+<details style="margin-bottom:16px;" open>
+  <summary class="btn btn-secondary" style="display:inline-flex; cursor:pointer; margin-bottom:2px;">+ Manage slots (add one, or generate a grid)</summary>
+  <div class="card" style="max-width:560px; margin-top:10px;">
+    <div class="grid-2">
+      <div class="field">
+        <label for="slot-day">Day</label>
+        <select id="slot-day">
+          <option value="1">Day 1 &middot; 22 Oct</option>
+          <option value="2">Day 2 &middot; 23 Oct</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="slot-room">Room / label</label>
+        <input id="slot-room" type="text" placeholder="e.g. Main Auditorium, Gallery">
+      </div>
+    </div>
+    <div class="field">
+      <label for="slot-time">Add one slot at a specific time</label>
+      <div style="display:flex; gap:8px;">
+        <input id="slot-time" type="text" placeholder="14:05" style="flex:1;">
+        <button type="button" class="btn btn-secondary" id="btn-add-slot">Add slot</button>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label>Or generate a grid</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <input id="grid-start" type="text" placeholder="09:00" style="width:80px;">
+        <span style="color:var(--muted); font-size:13px;">to</span>
+        <input id="grid-end" type="text" placeholder="16:30" style="width:80px;">
+        <span style="color:var(--muted); font-size:13px;">every</span>
+        <input id="grid-interval" type="text" placeholder="15" style="width:56px;">
+        <span style="color:var(--muted); font-size:13px;">min</span>
+        <button type="button" class="btn btn-secondary" id="btn-generate-grid">Generate</button>
+      </div>
+    </div>
+    <div class="error" id="slot-error" style="margin-top:8px;"></div>
+  </div>
+</details>
+
+<div class="grid-2" style="align-items:start;">
+  <div class="card">
+    <div class="mono" style="font-size:11px; letter-spacing:0.08em; color:var(--faint); margin-bottom:12px;">ACCEPTED &middot; RANKED BY MEAN SCORE</div>
+    <div id="pool">
+      {% if not pool %}
+      <div style="font-size:13.5px; color:var(--muted);">All accepted abstracts are allocated.</div>
+      {% endif %}
+      {% for p in pool %}
+      {% set a = p.abstract %}
+      <button type="button" class="pool-card" data-ref="{{ a['ref'] }}" style="display:block; width:100%; text-align:left; border:1px solid var(--hairline); border-radius:10px; padding:12px 14px; margin-bottom:10px; background:#fff; cursor:pointer;">
+        <div class="mono" style="font-size:11px; color:var(--faint);">{{ a['ref'] }} &middot; <span style="color:var(--accent-ink);">{{ '%.2f'|format(p.mean) if p.mean else '—' }}</span></div>
+        <div style="font-size:13.5px; font-weight:600; color:var(--ink); margin:4px 0 2px;">{{ a['title'] }}</div>
+        <div style="font-size:11.5px; color:var(--muted);">{{ a['theme'] }}</div>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    {% for day, slots in slots_by_day.items() %}
+    <div class="card">
+      <div style="font-family:'Newsreader',serif; font-weight:600; font-size:15px; color:var(--ink); margin-bottom:10px;">Day {{ day }} &middot; {{ '22 Oct' if day == 1 else '23 Oct' }}</div>
+      <div style="max-height:480px; overflow-y:auto;">
+      {% for s in slots %}
+        {% if s.abstract %}
+        <button type="button" class="slot-btn filled" data-slot="{{ s.id }}" style="display:flex; width:100%; align-items:center; gap:10px; border:1px solid var(--hairline); border-radius:9px; padding:10px 12px; margin-bottom:8px; background:#fff; cursor:pointer; text-align:left;">
+          <span class="mono" style="font-size:12px; color:var(--accent-ink); width:52px;">{{ s.time }}</span>
+          <span style="flex:1;">
+            <span style="display:block; font-size:13.5px; font-weight:600; color:var(--ink);">{{ s.abstract['title'] }}</span>
+            {% if s.room %}<span class="mono" style="font-size:10.5px; color:var(--faint);">{{ s.room }}</span>{% endif %}
+          </span>
+          <span class="mono" style="font-size:11px; color:var(--faint);">remove</span>
+        </button>
+        {% else %}
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+          <button type="button" class="slot-btn empty" data-slot="{{ s.id }}" style="display:flex; flex:1; align-items:center; gap:10px; border:1px dashed var(--hairline-strong); border-radius:9px; padding:10px 12px; background:#fff; cursor:pointer; text-align:left;">
+            <span class="mono" style="font-size:12px; color:var(--muted); width:52px;">{{ s.time }}</span>
+            <span style="flex:1; font-size:13.5px; color:var(--muted);">{{ s.room if s.room else 'Empty slot' }}</span>
+            <span class="mono" style="font-size:11px; color:var(--faint);">place</span>
+          </button>
+          <button type="button" class="btn-delete-slot" data-slot="{{ s.id }}" title="Remove this slot" style="border:none; background:none; color:var(--faint); cursor:pointer; font-size:16px; padding:0 4px;">&times;</button>
+        </div>
+        {% endif %}
+      {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+document.getElementById('btn-add-slot').addEventListener('click', async () => {
+  document.getElementById('slot-error').textContent = '';
+  const resp = await fetch('{{ b }}/api/admin/add-allocation-slot', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      day: parseInt(document.getElementById('slot-day').value, 10),
+      time: document.getElementById('slot-time').value,
+      room: document.getElementById('slot-room').value,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('slot-error').textContent = data.error || 'Could not add slot.'; return; }
+  window.location.reload();
+});
+
+document.getElementById('btn-generate-grid').addEventListener('click', async () => {
+  document.getElementById('slot-error').textContent = '';
+  const resp = await fetch('{{ b }}/api/admin/generate-allocation-grid', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      day: parseInt(document.getElementById('slot-day').value, 10),
+      start: document.getElementById('grid-start').value,
+      end: document.getElementById('grid-end').value,
+      interval_minutes: document.getElementById('grid-interval').value,
+      room: document.getElementById('slot-room').value,
+    }),
+  });
+  const data = await resp.json();
+  if (!data.ok) { document.getElementById('slot-error').textContent = data.error || 'Could not generate slots.'; return; }
+  window.location.reload();
+});
+
+document.querySelectorAll('.btn-delete-slot').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const resp = await fetch('{{ b }}/api/admin/delete-allocation-slot', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: btn.dataset.slot}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not remove slot.'); return; }
+    window.location.reload();
+  });
+});
+
+let selectedRef = null;
+
+function selectRef(ref, btn) {
+  selectedRef = ref;
+  document.querySelectorAll('.pool-card').forEach(b => {
+    b.style.background = b === btn ? '#E7F0FA' : '#fff';
+    b.style.borderColor = b === btn ? '#7FB6E4' : 'var(--hairline)';
+  });
+  document.getElementById('instruction').textContent = 'Now choose a slot for the selected abstract.';
+  document.querySelectorAll('.slot-btn.empty').forEach(b => {
+    b.style.background = '#F2F8FD';
+    b.style.borderColor = '#9CC8EA';
+    b.querySelector('span:last-child').textContent = 'place selected abstract here';
+  });
+}
+
+function clearSelection() {
+  selectedRef = null;
+  document.querySelectorAll('.pool-card').forEach(b => { b.style.background = '#fff'; b.style.borderColor = 'var(--hairline)'; });
+  document.getElementById('instruction').textContent = 'Select an abstract, then choose a slot. Click a filled slot to free it.';
+  document.querySelectorAll('.slot-btn.empty').forEach(b => {
+    b.style.background = '#fff';
+    b.style.borderColor = 'var(--hairline-strong)';
+    b.querySelector('span:last-child').textContent = 'place';
+  });
+}
+
+document.querySelectorAll('.pool-card').forEach(btn => {
+  btn.addEventListener('click', () => selectRef(btn.dataset.ref, btn));
+});
+
+document.querySelectorAll('.slot-btn.empty').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (!selectedRef) return;
+    const resp = await fetch('{{ b }}/api/allocate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ref: selectedRef, slot_id: btn.dataset.slot}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not place abstract.'); return; }
+    window.location.reload();
+  });
+});
+
+document.querySelectorAll('.slot-btn.filled').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const resp = await fetch('{{ b }}/api/deallocate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({slot_id: btn.dataset.slot}),
+    });
+    const data = await resp.json();
+    if (!data.ok) { alert(data.error || 'Could not free slot.'); return; }
+    window.location.reload();
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Admin dashboard &mdash; ECRI 2026{% endblock %}
+{% block content %}
+<h1 class="serif" style="font-size:26px;">Organiser dashboard</h1>
+{% include "_admin_nav.html" with context %}
+
+<div class="facts">
+  <a class="card" href="{{ b }}/admin/registrations" style="text-decoration:none;">
+    <div class="label">Registrations</div>
+    <div class="value">{{ registered }}</div>
+    <div class="note">{{ '%.0f'|format(registered / capacity * 100) if capacity else 0 }}% of capacity &middot; manage &rarr;</div>
+  </a>
+  <a class="card" href="{{ b }}/admin/decisions" style="text-decoration:none;">
+    <div class="label">Abstracts</div>
+    <div class="value">{{ abstracts_total }}</div>
+    <div class="note">{{ accepted_oral }} accepted as oral &middot; decide &rarr;</div>
+  </a>
+  <div class="card">
+    <div class="label">Reviews recorded</div>
+    <div class="value">{{ reviews_count }}</div>
+    <div class="note">across all abstracts</div>
+  </div>
+  <div class="card">
+    <div class="label">Announcements sent</div>
+    <div class="value">{{ announcements|length }}</div>
+    <div class="note">{{ 'Last: ' + announcements[0]['headline'] if announcements else 'None yet' }}</div>
+  </div>
+</div>
+
+<h2 class="serif" style="font-size:19px;">Submissions by theme</h2>
+<div class="card" style="margin-bottom:22px;">
+  {% if not by_theme %}
+  <div style="font-size:13.5px; color:var(--muted);">No abstracts yet.</div>
+  {% endif %}
+  {% for t in by_theme %}
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:{{ '0' if loop.last else '10px' }};">
+    <div style="width:220px; font-size:12.5px; color:var(--body);">{{ t.theme }}</div>
+    <div style="flex:1; height:9px; background:var(--inert); border-radius:5px; overflow:hidden;">
+      <div style="height:100%; width:{{ (t.count / max_count * 100) if max_count else 0 }}%; background:{{ theme_style.get(t.theme, {'solid':'#8496AB'}).solid }};"></div>
+    </div>
+    <div class="mono" style="width:24px; text-align:right; font-size:12.5px; color:var(--muted);">{{ t.count }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="serif" style="font-size:19px;">Send an announcement</h2>
+<div class="card" style="margin-bottom:22px; max-width:640px;">
+  <div class="field">
+    <label for="a-headline">Headline</label>
+    <input id="a-headline" type="text">
+  </div>
+  <div class="field">
+    <label>Priority</label>
+    <div class="chip-group" id="priority-group">
+      <button type="button" class="chip-choice selected" data-value="Standard">Standard</button>
+      <button type="button" class="chip-choice" data-value="Important">Important</button>
+      <button type="button" class="chip-choice" data-value="Urgent">Urgent</button>
+    </div>
+  </div>
+  <div class="field">
+    <label for="a-body">Message</label>
+    <textarea id="a-body" rows="3"></textarea>
+  </div>
+  <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--body); margin-bottom:14px; cursor:pointer;">
+    <input type="checkbox" id="a-also-email" style="width:auto;">
+    Also email all {{ registered }} registered attendee{{ '' if registered == 1 else 's' }} directly &mdash; posting alone only reaches people who visit the site.
+  </label>
+  <div class="mono" id="announce-status" style="font-size:12px; color:var(--muted); margin-bottom:10px;">Not sent</div>
+  <button class="btn btn-primary" id="btn-announce">Send now</button>
+</div>
+
+<script>
+let priority = 'Standard';
+document.querySelectorAll('#priority-group .chip-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    priority = btn.dataset.value;
+    document.querySelectorAll('#priority-group .chip-choice').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+
+document.getElementById('btn-announce').addEventListener('click', async () => {
+  const headline = document.getElementById('a-headline').value;
+  if (!headline.trim()) return;
+  const alsoEmail = document.getElementById('a-also-email').checked;
+  if (alsoEmail && !confirm('This will email every registered attendee directly. Continue?')) return;
+  const resp = await fetch('{{ b }}/api/admin/announce', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({headline, body: document.getElementById('a-body').value, priority, also_email: alsoEmail}),
+  });
+  const data = await resp.json();
+  if (!data.ok) { alert(data.error || 'Could not send.'); return; }
+  document.getElementById('announce-status').textContent = data.emailed_count
+    ? `Posted, and emailing ${data.emailed_count} attendee${data.emailed_count === 1 ? '' : 's'} now`
+    : 'Posted';
+  document.getElementById('a-headline').value = '';
+  document.getElementById('a-body').value = '';
+  document.getElementById('a-also-email').checked = false;
+});
+</script>
+{% endblock %}
